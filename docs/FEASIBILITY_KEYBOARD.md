@@ -229,10 +229,14 @@ release) still requires the physical pass.
   1. **Pending-prefix on host blur → void.** If the window loses focus between the prefix and the
      action key, the pending prefix is discarded; the attempt is voided (re-triable), never failed.
      Matches LEVEL.md's standing blur rule; deterministic and replay-safe.
-  2. **Capture release affordance → Esc.** Escape cancels a pending prefix and exits capture
-     context, with a visible pending-prefix indicator (mode-bar area) while one is held. Fidelity
-     note: this mirrors the observed prefix state machine (second press of the prefix forwards);
-     the indicator is presentation, never presented as a Herdr binding.
+  2. **Capture release affordance → separate external control (amended at M2 approval).**
+     Escape inside the simulated TUI is **Herdr-owned**: it always follows authentic pinned
+     behavior (cancel prefix, exit copy mode, close overlays) and is never hijacked for release.
+     Release is provided by a visually and semantically external control in page chrome — a
+     button, keyboard-reachable via browser focus order whenever the capture context is not
+     capturing — plus a visible pending-prefix indicator. **Both paths tested at M2:** (a) Esc
+     performs authentic Herdr behavior inside the TUI; (b) the release control is reachable and
+     activatable by keyboard without entering the Herdr input path.
   3. **Clipboard failure → assessment-neutral fallback.** Copy actions are assessed as *page-level
      copy requested* (the action), never as OS-clipboard success. The probe's fallback pattern
      (summary selected in a textarea) is the UI precedent. The standing paste rule (LEVEL.md) already

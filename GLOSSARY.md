@@ -58,7 +58,7 @@ Single project context. Two language groups share this file because both are loa
 
 **Retention checkpoint** — a level that assesses only previously taught skills with faded scaffolding. A checkpoint that introduces a new skill is a curriculum defect.
 
-**Capture context** — the host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; escape from capture must be keyboard-reachable.
+**Capture context** — the host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; release from capture is keyboard-reachable via the external release control, never via the Escape key, which is Herdr-owned inside the simulated TUI.
 
 **Logical clock** — deterministic simulation time advancing only through recorded events. Browser suspension freezes it; resume never applies wall-clock catch-up.
 
@@ -68,6 +68,6 @@ Single project context. Two language groups share this file because both are loa
 
 **Risk chord** — a keyboard chord the browser or OS is presumed to consume before the page (Ctrl+W plain and Ctrl+W in field). No required game action, lesson predicate, or assessment may depend on a risk chord reaching the page; the probe's warning panel documents the interception for players.
 
-**Voided attempt** — an attempt whose pending prefix was discarded by host blur (or user Esc release). Voided is re-triable and is never recorded as a failure; assessment counts only attempts that completed inside one capture context.
+**Voided attempt** — an attempt whose pending prefix was discarded by host blur. Voided is re-triable and is never recorded as a failure; assessment counts only attempts that completed inside one capture context.
 
 **Partial introduction** — a matrix cell that teaches part of a skill's content only (for example, the close half of the detach/reattach-versus-close skill). The matrix records the split explicitly; a later level's full introduction never backdates to the partial one.

@@ -3,6 +3,13 @@
 Status: **M1 exit requested.** This report closes the authorized M1 scope and asks for a separate
 user decision on M2. Date: 2026-11-23.
 
+**Amended at M2 approval (2026-11-23).** Two user corrections carry into M2: (1) the capture-release
+policy is amended — Escape inside the simulated TUI is Herdr-owned (authentic pinned behavior) and
+release is a separate accessible external control that never steals Herdr input; both paths are
+tested (FEASIBILITY hold policy 2 as amended). (2) Evidence wording stands as written here: the
+Chromium results are predominantly synthetic CDP input plus two physical observations; Firefox is
+unmeasured; prefix+`?` remains partial.
+
 ## Evidence basis (stated once, plainly)
 
 No physical-key manual pass was run. Gate 1 closed by **user authorization** (recorded in
@@ -27,8 +34,11 @@ cross-browser envelope reopens Gate 1.
 ## Key technical findings (Chromium 158 evidence)
 
 - Every taught chord (`Ctrl+B` alone, sequential prefix+letter including h/j/k/l, Esc, `Ctrl+[`,
-  field keys A/E/K/Y, Tab, prefix+`?`/Shift+N/Shift+T/`-`/`[`, plain Enter) reached the page with
+  field keys A/E/K/Y, Tab, Shift+N/Shift+T/`-`/`[` after prefix, plain Enter) reached the page with
   correct `key`/`code`/modifier properties. Zero drops or misroutes at page level.
+- **Prefix+`?` stays partial** (per the matrix): the `?` event arrived but with a synthetic
+  shift=no dispatch artifact; Shift-survival is answered only indirectly by the Shift+N/T evidence.
+  Not counted as fully verified.
 - **Prefix second-press semantics hold:** in every prefix chord the follow-up key arrived with
   modifiers cleared — the property the mode-bar state machine depends on.
 - Shift modifiers survive the prefix (Shift+N/T: `shift=yes` on the letter keydown).

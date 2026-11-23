@@ -57,9 +57,10 @@
 > (i) browser delivery of prefix chords — FEASIBILITY items #1, #2, #5 recorded `delivered`
 > (synthetic Chromium pass; Firefox accepted by user decision, Ctrl+W plain/in-field flagged as
 > risk chords covered by hold policy); (ii) host-blur pending-prefix policy — **decided:** a blur
-> between prefix and action key voids that attempt (re-triable, never failed it), capture release
-> is Esc with a visible pending indicator. The void-on-blur and never-behind-Ctrl+W rules are
-> binding constraints on every capture lesson.
+> between prefix and action key voids that attempt (re-triable, never failed it); capture release
+> is a separate external control that never steals Herdr-owned Escape (**amended at M2 approval**,
+> see FEASIBILITY hold policy 2). The void-on-blur, Herdr-owned-Escape, and never-behind-Ctrl+W
+> rules are binding constraints on every capture lesson.
 
 ### Standing field-edge constraint (applies everywhere typing enters a Herdr-owned field or copy-mode search)
 

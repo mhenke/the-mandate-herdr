@@ -14,9 +14,14 @@ Progress: probe extended to 18 chords (self-test 9/9); synthetic pass recorded (
 
 Exit report: `docs/M1_EXIT_REPORT.md` (per-criterion evidence; requests separate M2 approval).
 
-## Milestone 2 — vertical slice (requires separate approval)
+## Milestone 2 — vertical slice — **APPROVED, in progress** (user decision, 2026-11-23)
 
-Scope: L1–L3 only (per LEVEL.md contracts), in-memory attempt, no settings surface — and the first dependency installation with the exact TECH_STACK versions (React 19.3.1, TS 5.9.3 strict, Vite 8.3.8, Vitest 5.1.1, fast-check, Playwright, ESLint stack, pnpm 12.23.0 pinned, Node 22.12+, lockfile committed).
+Scope: L1–L3 only (per LEVEL.md contracts), in-memory attempt, no settings surface — and the first dependency installation with the exact TECH_STACK versions (React 19.3.1, TS 5.9.3 strict, Vite 8.3.8, Vitest 5.1.1, fast-check, Playwright, ESLint stack, pnpm 12.23.0 pinned, Node 22.12+, lockfile committed). **L4–L15 remain unauthorized** and require a separate approval after M2 acceptance.
+
+Recorded corrections (user, M2 approval):
+
+1. **Escape conflict resolved before input capture.** Escape is also an authentic Herdr control (canceling prefix mode, closing certain overlays), so a global Escape-to-release handler would violate fidelity. Inside the simulated TUI, Escape is **Herdr-owned** and follows pinned behavior; capture release is a **separate accessible release mechanism** (external control, see FEASIBILITY hold policy 2 as amended) that does not steal Herdr input. **Both paths are tested** at M2.
+2. **Evidence-based browser claims.** Chromium results are predominantly synthetic CDP input plus two physical keyboard observations; they are never described as measured Firefox compatibility or full physical certification. Firefox risk is accepted for M2 development but stays visible in testing and release documentation. The prefix+`?` result stays **partial**, not fully verified.
 
 Exit criteria additions from the technology decisions:
 
@@ -24,6 +29,7 @@ Exit criteria additions from the technology decisions:
 2. Visual baselines captured from the pinned upstream Herdr build for the taught interface states; visual regression running with the acceptance rule (screenshot evidence for CSS changes; justified baseline updates only).
 3. CI workflow green: typecheck, lint (incl. Stylelint), tests incl. fast-check properties, Playwright smoke + visual + axe-core floor, Knip + fallow baselines; Actions pinned to SHAs; branch protection with required checks configured.
 4. React render purity demonstrated: strict-mode development runs with zero side-effecting renders (no story advance, keybinding record, or level evaluation from a re-render).
+5. Both Escape paths tested: authentic Herdr Escape inside the simulated TUI, and the separate external release control reachable/activatable by keyboard without entering the Herdr input path.
 
 ## Milestone 3 — full content (on M2 acceptance)
 
@@ -47,7 +53,7 @@ As before (manual accessibility audits, performance budgets, learner study, rele
 2. ~~Manual keyboard pass~~ — **closed 2026-11-23 by user authorization** (acceptance, not measurement; FEASIBILITY_KEYBOARD "User authorization").
 3. ~~Gate-1 hold policies~~ — decided (void-on-blur, Esc release, clipboard-failure fallback).
 4. No runtime performance, accessibility, or learner-retention evidence exists yet — all are M3/M4 gates, not current claims.
-5. **M2 approval** — the only open gate; requires the user's separate decision after reading `docs/M1_EXIT_REPORT.md`.
+5. **M2 approval** — ~~the only open gate~~ **GRANTED 2026-11-23** with two corrections (Escape conflict resolution; evidence-based browser claims). M2 is now in progress; L4–L15 remain unauthorized.
 
 ## Review-gate decisions recorded (user)
 

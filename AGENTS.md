@@ -2,7 +2,7 @@
 
 ## Current gate
 
-**M0 approved; M1 (feasibility) authorized and in progress.** M1 scope and exclusions are recorded in `docs/IMPLEMENTATION_PLAN.md` — no application scaffolding, gameplay implementation, or dependency installation until M2 is explicitly approved. The technology stack is selected and documented in `docs/TECH_STACK.md` (React 19 presentation, deterministic framework-independent core); selection is not installation.
+**M0 and M1 approved; M2 (L1–L3 vertical slice) approved 2026-11-23 and in progress** — dependency installation and scaffolding are authorized for M2 scope only. **L4–L15 remain unauthorized** pending separate approval after M2 acceptance. Recorded M2 corrections: (1) Escape is Herdr-owned inside the simulated TUI; capture release is a separate accessible external control, both paths tested; (2) browser support claims stay evidence-based — synthetic Chromium CDP input + two physical observations, Firefox unmeasured, prefix+`?` partial.
 
 ## Agent workflow
 
