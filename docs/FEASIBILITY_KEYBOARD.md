@@ -1,9 +1,9 @@
 # Feasibility: Keyboard Delivery (Gate 1)
 
-Status: **probe built; one synthetic pass recorded (non-certifying); physical manual pass still
-pending.** Nothing in this document certifies browser keyboard behavior.
-The physical-pass matrix cells are `untested` until a physical-key manual pass fills them; the
-synthetic section below records what automation could and could not establish.
+Status: **probe built; synthetic pass recorded (non-certifying); supported envelope published on a
+recorded user decision (2026-11-23).** No physical-key manual pass was run. The matrix below is
+filled from the synthetic pass (Chromium column) and from the user's acceptance decision (Firefox
+column) — see "User authorization" before relying on either.
 
 Gate decision (user, review-gate phase): the review gate proceeds with keyboard feasibility
 unresolved; **M2 gameplay implementation stays blocked until M1 establishes a supported input
@@ -56,29 +56,37 @@ Observed results are labeled per checklist item:
 
 ## Per-browser result matrix
 
-Fill only from a physical-key manual pass. `untested` is the honest default; do not infer a cell
-from another browser or from the synthetic pass.
+Filled from the synthetic pass and the user authorization of 2026-11-23 (see "User authorization").
+The original rule stands for any *future* measured claim: `untested` is the honest default; do not
+infer a cell from another browser or from the synthetic pass.
 
-| # | Test | Chrome | Firefox | Safari | Edge |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Ctrl+B alone | untested | untested | untested | untested |
-| 2 | Ctrl+B then w (sequential) | untested | untested | untested | untested |
-| 3 | Ctrl+W plain | untested | untested | untested | untested |
-| 4 | Ctrl+W with focus in page text field | untested | untested | untested | untested |
-| 5 | Ctrl+B then c/v/x/z/g/b/1/n/p/q + h/j/k/l | untested | untested | untested | untested |
-| 6 | Esc | untested | untested | untested | untested |
-| 7 | Ctrl+[ | untested | untested | untested | untested |
-| 8 | Ctrl+A / Ctrl+E / Ctrl+K / Ctrl+Y in text field | untested | untested | untested | untested |
-| 9 | Tab | untested | untested | untested | untested |
-| 10 | AltGr sequence (record what arrives) | untested | untested | untested | untested |
-| 11 | IME / composition attempt | untested | untested | untested | untested |
-| 12 | Ctrl+B then ? (help) | untested | untested | untested | untested |
-| 13 | Ctrl+B then Shift+N | untested | untested | untested | untested |
-| 14 | Ctrl+B then Shift+T | untested | untested | untested | untested |
-| 15 | Ctrl+B then - | untested | untested | untested | untested |
-| 16 | Ctrl+B then h/j/k/l (pane focus) | untested | untested | untested | untested |
-| 17 | Ctrl+B then [ (copy-mode entry) | untested | untested | untested | untested |
-| 18 | Enter (plain) | untested | untested | untested | untested |
+| # | Test | Chrome (synthetic pass) | Firefox (user-accepted, no measurement) |
+| --- | --- | --- | --- |
+| 1 | Ctrl+B alone | delivered | accepted† |
+| 2 | Ctrl+B then w (sequential) | delivered | accepted† |
+| 3 | Ctrl+W plain | delivered* | risk chord† |
+| 4 | Ctrl+W with focus in page text field | delivered* | risk chord† |
+| 5 | Ctrl+B then c/v/x/z/g/b/1/n/p/q + h/j/k/l | delivered | accepted† |
+| 6 | Esc | delivered | accepted† |
+| 7 | Ctrl+[ | delivered | accepted† |
+| 8 | Ctrl+A / Ctrl+E / Ctrl+K / Ctrl+Y in text field | delivered | accepted† |
+| 9 | Tab | delivered | accepted† |
+| 10 | AltGr sequence (record what arrives) | partial | unmeasured |
+| 11 | IME / composition attempt | untested | unmeasured |
+| 12 | Ctrl+B then ? (help) | partial | accepted† |
+| 13 | Ctrl+B then Shift+N | delivered | accepted† |
+| 14 | Ctrl+B then Shift+T | delivered | accepted† |
+| 15 | Ctrl+B then - | delivered | accepted† |
+| 16 | Ctrl+B then h/j/k/l (pane focus) | delivered | accepted† |
+| 17 | Ctrl+B then [ (copy-mode entry) | delivered | accepted† |
+| 18 | Enter (plain) | delivered | accepted† |
+
+\* CDP input bypasses browser chrome; the value proves nothing about interception. Chrome column
+labels come from the synthetic pass (below), not a physical pass.
+† `accepted` = user authorization of 2026-11-23 on the Chromium evidence basis, not a measured
+Firefox result. `risk chord` = the two chords most likely intercepted by real browser chrome; the
+game must never place a required action behind them (hold policy 3 in Supported envelope; probe
+warning panel documents interception). Items 10/11 stay unmeasured and out of taught scope.
 
 These rows exist because the checklist now covers every chord the level contracts assess
 (`docs/LEVEL.md`), including copy-mode entry (`prefix+[`), the most-assessed skill. Item 17 is the
@@ -185,9 +193,56 @@ Additional policy-relevant observations:
 Known limitation: synthetic `KeyboardEvent`s are untrusted, never pass through browser chrome, and
 carry whatever fields the dispatcher sets. They cannot show that Ctrl+W is consumed before the page.
 
+## User authorization (2026-11-23)
+
+The user closed the Gate-1 evidence question by decision, without a physical Firefox pass. Recorded
+instruction: *"mark as passed. my default browser is essentially firefox"* — given after reviewing
+the synthetic pass results and the live probe state. Accepted basis:
+
+1. Synthetic 18-item pass (Chromium 158, CDP input, non-certifying): all chords delivered at page
+   level with correct `key`/`code`/modifier properties; prefix follow-ups arrive with modifiers
+   cleared.
+2. Two physical chords (Ctrl+A, Ctrl+C) pressed by the user in the visible probe window — real
+   hardware → OS → browser → page delivery, Chromium, delivered.
+3. The user's designation of Firefox as their default browser.
+
+**This is an acceptance decision, not a measurement.** No Firefox data exists. The consequences and
+residual risks are recorded in "Claim status" and "Supported envelope" below. Any future claim of
+a *measured* Firefox envelope (e.g., for a wider release) still requires the physical pass.
+
+## Supported envelope (published 2026-11-23, basis: user authorization above)
+
+- **Target environment:** Linux x86_64, keyboard required, en-US/US layout.
+- **Verified-by-evidence browser:** Chromium ≥158 (synthetic 18/18 + 2 physical chords).
+- **Accepted-by-decision browser:** Firefox (any recent) — delivery presumed equivalent to the
+  Chromium evidence; **presumed-intercepted risk chords:** Ctrl+W plain and Ctrl+W in field
+  (items #3/#4). The game's capture layer must treat Ctrl+W as a chord that may close the tab on
+  real Firefox and must never place a required action behind it (hold policy below covers this;
+  the probe warning panel documents the interception for players).
+- **Excluded from taught scope (unchanged):** IME/composition (item #11) and AltGr character
+  production (item #10, partial) — lessons ship ASCII-only under the standing field-edge
+  constraint. The Shift-survival question for prefix+`?` (item #12) is answered by the Shift+N/T
+  evidence (#13/#14 delivered with shift=yes); the synthetic `?` row's shift=no is a CDP dispatch
+  artifact, recorded as such.
+- **Hold policies (decided, binding on all capture lessons):**
+  1. **Pending-prefix on host blur → void.** If the window loses focus between the prefix and the
+     action key, the pending prefix is discarded; the attempt is voided (re-triable), never failed.
+     Matches LEVEL.md's standing blur rule; deterministic and replay-safe.
+  2. **Capture release affordance → Esc.** Escape cancels a pending prefix and exits capture
+     context, with a visible pending-prefix indicator (mode-bar area) while one is held. Fidelity
+     note: this mirrors the observed prefix state machine (second press of the prefix forwards);
+     the indicator is presentation, never presented as a Herdr binding.
+  3. **Clipboard failure → assessment-neutral fallback.** Copy actions are assessed as *page-level
+     copy requested* (the action), never as OS-clipboard success. The probe's fallback pattern
+     (summary selected in a textarea) is the UI precedent. The standing paste rule (LEVEL.md) already
+     keeps story paste off assessed keybindings.
+
+
+
 ## Claim status
 
-**No support envelope is claimed.** Until a physical-key manual pass exists for a given browser,
-nothing is known about that browser's delivery behavior beyond the page loading correctly. Do not
-design fallback bindings, safe-key guidance, or an input-forwarding strategy on the assumption that
-any chord above is delivered.
+**Envelope claimed on the recorded user authorization (2026-11-23), not on measurement.** Chromium
+158 delivery is evidenced (synthetic 18/18 + two physical chords); Firefox delivery is accepted by
+user decision with Ctrl+W plain/in-field flagged as presumed-intercepted risk chords. IME and AltGr
+character production remain unmeasured and outside taught scope. A *measured* Firefox claim still
+requires the physical pass; Safari/Edge are untouched and unsupported until measured.

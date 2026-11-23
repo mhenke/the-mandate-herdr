@@ -86,8 +86,8 @@ Unresolved (blocks lessons until resolved): pending prefix across host focus los
 
 ## Unresolved contracts (block lessons, no invention)
 
-1. Browser delivery of `ctrl+b` and sequential prefix across the supported OS/browser/AT/layout matrix; plus `ctrl+w` only in taught field contexts.
-2. Host-blur/suspend pending-prefix policy; capture release affordance.
+1. Browser delivery of `ctrl+b` and sequential prefix across the supported OS/browser/AT/layout matrix; plus `ctrl+w` only in taught field contexts. — **RESOLVED 2026-11-23 (feasibility, user-accepted basis):** Chromium 158 synthetic pass delivered all taught chords; Firefox accepted by user decision with Ctrl+W risk-chord handling; no required action may sit behind Ctrl+W. A *measured* cross-browser claim reopens this item.
+2. Host-blur/suspend pending-prefix policy; capture release affordance. — **RESOLVED 2026-11-23 (policy):** blur voids the pending prefix (attempt voided, never failed); release is Esc plus a visible pending indicator (presentation only, never presented as a Herdr binding).
 3. IME/composition and AltGr interaction with prefix, copy mode, and field editing.
 4. Focus reflow after a close; already-closed focused pane between snapshot and request.
 5. Close-pane confirmation accept path; `Runtime::shutdown` scope (plugins vs terminal only); close-workspace confirmation branches beyond the traced path; any checkout-deletion claims.

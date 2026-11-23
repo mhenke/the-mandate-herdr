@@ -10,9 +10,9 @@ The user approved M0 with recorded decisions (see "Review-gate decisions recorde
 
 Scope (user-approved): 18-item checklist documentation (physical-key observations come from the user only; synthetic results non-certifying), capture-release and pending-prefix cancellation policies, clipboard-failure behavior and its assessment impact, completion or explicit resolution of the outstanding fidelity-audit dimensions, published supported envelope with limitations and blocked lessons, updated gate documents with per-criterion evidence. **Explicitly excluded: application scaffolding, gameplay implementation, the L1–L3 vertical slice.**
 
-Progress: probe extended to 18 chords (self-test 9/9); synthetic pass recorded (non-certifying); fidelity-audit dimensions completed (close-pane chain, help-listed bindings, chrome rows, Yazi citations, web citations verified; copy-mode command-char rule verified); hold-policy and clipboard-failure sections drafted pending the physical pass.
+Progress: probe extended to 18 chords (self-test 9/9); synthetic pass recorded (non-certifying); fidelity-audit dimensions completed (close-pane chain, help-listed bindings, chrome rows, Yazi citations, web citations verified; copy-mode command-char rule verified). **Gate 1 closed 2026-11-23 by user authorization** (no physical pass): Chromium 158 evidenced (synthetic 18/18 + two physical chords), Firefox accepted by user decision with Ctrl+W risk-chord handling; hold policies decided (void-on-blur, Esc release, clipboard-failure fallback); supported envelope published in FEASIBILITY_KEYBOARD.md. Reconciled: LEVEL.md standing BLOCKED-ON resolved, FIDELITY Unresolved #1/#2 marked resolved-on-accepted-basis.
 
-Remaining: the user's manual pass on Linux + Firefox + US layout; hold-policy decisions recorded from its results; the published envelope (or its narrowed form).
+Exit report: `docs/M1_EXIT_REPORT.md` (per-criterion evidence; requests separate M2 approval).
 
 ## Milestone 2 — vertical slice (requires separate approval)
 
@@ -39,18 +39,19 @@ As before (manual accessibility audits, performance budgets, learner study, rele
 - The feasibility probe stays a diagnostic page; nothing migrates into an application without post-gate approval.
 - Any upstream Herdr baseline move re-triggers the ADR-0002 upgrade protocol before affected lessons ship.
 - Narrative and assessment never share an authority path; story completion never manufactures keyboard-transfer credit.
-- The manual pass remains the only certifying keyboard evidence; synthetic runs are labeled non-certifying wherever they appear.
+- Physical passes remain the only *measured* keyboard evidence; synthetic runs are labeled non-certifying wherever they appear. The Gate-1 envelope rests on the recorded user authorization of 2026-11-23 (acceptance, not measurement); a measured cross-browser claim reopens it.
 
 ## Current blocker summary
 
-1. Skeptic full-package reconciliation (running) — gate input.
-2. Manual keyboard pass — user action, gates M1 exit; initial proposed target Linux + Firefox + US-layout keyboard.
-3. Gate-1 hold policies — parent decisions recorded at M1.
+1. ~~Skeptic full-package reconciliation~~ — complete; blocker fixes verified (`10199ad`).
+2. ~~Manual keyboard pass~~ — **closed 2026-11-23 by user authorization** (acceptance, not measurement; FEASIBILITY_KEYBOARD "User authorization").
+3. ~~Gate-1 hold policies~~ — decided (void-on-blur, Esc release, clipboard-failure fallback).
 4. No runtime performance, accessibility, or learner-retention evidence exists yet — all are M3/M4 gates, not current claims.
+5. **M2 approval** — the only open gate; requires the user's separate decision after reading `docs/M1_EXIT_REPORT.md`.
 
 ## Review-gate decisions recorded (user)
 
 1. **IQ-1 approved as optional evidence**: stage its Nov 17 release, reconcile across BIBLE/ARC/NARRATIVE_DESIGN/LEVEL, preserve L10 checkpoint purity — available before L10, examinable during L10, never required for retention scoring, existing common-root proof requirements unchanged, optional discovery recorded in the knowledge ledger without becoming an E3 prerequisite.
-2. **Keyboard certification pending**: M0 proceeds unresolved; no manual-pass labels inferred from synthetic tests; Linux + Firefox + US-layout keyboard is the initial proposed test target; M2 blocked until M1 is accepted.
+2. **Keyboard certification pending**: M0 proceeds unresolved; no manual-pass labels inferred from synthetic tests; Linux + Firefox + US-layout keyboard is the initial proposed test target; M2 blocked until M1 is accepted. — **Superseded 2026-11-23 by user authorization**: Gate 1 closed on the Chromium-evidenced basis (synthetic 18/18 + two physical chords) with the user's explicit acceptance ("mark as passed; default browser essentially Firefox"); Firefox Ctrl+W plain/in-field flagged as risk chords; IME/AltGr excluded from taught scope. Recorded in FEASIBILITY_KEYBOARD "User authorization".
 3. **Milestone structure accepted for review** — not an authorization for gameplay implementation. M1 is the next authorized work after M0 approval, subject to the same boundary; M2 requires separate approval.
 4. **L15 detach/reattach must be validated as an authentic Herdr workflow** — a simulated page reload is never credited as a Herdr detach/reattach action (consistent with ARCHITECTURE §Fidelity and FIDELITY presentation-safety rules).

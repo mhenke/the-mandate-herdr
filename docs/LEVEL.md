@@ -32,10 +32,12 @@
 - **Fidelity.** A lesson may teach only verified contracts. Anything routing through an unresolved
   contract carries a `BLOCKED-ON` line naming the blocker and its Gate-1/feasibility dependency.
   Avoided branches are stated as hard constraints in the contract, not silently skipped.
-- **Feasibility gate.** `docs/FEASIBILITY_KEYBOARD.md` is all-`untested`: no support envelope is
-  claimed. A capture lesson ships only after the cited probe items record `delivered` on the target
-  envelope (physical-key pass; synthetic runs are non-certifying). Probe item numbers below refer to
-  that document's checklist (#1 Ctrl+B alone, #2 sequential Ctrl+B-then-key, #3 Ctrl+W plain,
+- **Feasibility gate.** `docs/FEASIBILITY_KEYBOARD.md` carries a **published envelope (user
+  authorization, 2026-11-23)**: Chromium 158 evidenced (synthetic 18/18 + two physical chords),
+  Firefox accepted by user decision with Ctrl+W risk-chord handling, IME/AltGr outside taught
+  scope. A capture lesson ships only under that envelope and the decided hold policies (void-on-blur,
+  Esc release, clipboard-failure fallback); probe item numbers below refer to that document's
+  checklist (#1 Ctrl+B alone, #2 sequential Ctrl+B-then-key, #3 Ctrl+W plain,
   #4 Ctrl+W in field, #5 prefix+letter chords incl. h/j/k/l, #6 Esc, #7 Ctrl+[ alone,
   #8 field keys, #9 Tab, #10 AltGr, #11 IME/composition; #12–#18: prefix+? help,
   prefix+shift+n/t, prefix+minus, prefix+h/j/k/l, sequential prefix+[ (copy-mode entry,
@@ -51,10 +53,13 @@
 
 ### Standing BLOCKED-ON (applies everywhere a prefix sequence is taught, recorded, or assessed)
 
-> `BLOCKED-ON (standing): (i) browser delivery of prefix chords — FIDELITY Unresolved #1; ships
-> only after FEASIBILITY items #1, #2, #5 record delivered on the target envelope; (ii) host-blur
-> pending-prefix policy — FIDELITY Unresolved #2; assessed prefix evidence is valid only inside a
-> Gate-1 hold policy (a blur between prefix and action key voids that attempt, never fails it).`
+> **RESOLVED 2026-11-23 by user authorization** (see FEASIBILITY_KEYBOARD "User authorization"):
+> (i) browser delivery of prefix chords — FEASIBILITY items #1, #2, #5 recorded `delivered`
+> (synthetic Chromium pass; Firefox accepted by user decision, Ctrl+W plain/in-field flagged as
+> risk chords covered by hold policy); (ii) host-blur pending-prefix policy — **decided:** a blur
+> between prefix and action key voids that attempt (re-triable, never failed it), capture release
+> is Esc with a visible pending indicator. The void-on-blur and never-behind-Ctrl+W rules are
+> binding constraints on every capture lesson.
 
 ### Standing field-edge constraint (applies everywhere typing enters a Herdr-owned field or copy-mode search)
 
@@ -696,7 +701,7 @@ L12 S11 assessment is a matrix-sanctioned cell (S11 assess: 12). L15 T3's S02 as
   release, Q-118/leave at L6, VP-1109 request at L10 + BC-10 citation in L10 proof, IQ-1 Nov 17
   request-fulfillment, and docket-buffer recovery at L15 match the story docs. No level consumes
   undelivered knowledge.
-- **Remaining for parent:** FEASIBILITY manual passes (all probe items untested — no capture lesson
-  ships without its cited `delivered` cells); Gate-1 hold-policy decisions (blur, capture release);
-  FIDELITY re-verification if the upstream baseline moves; playtest of correction-notice staging
+- **Remaining for parent:** FIDELITY re-verification if the upstream baseline moves; a *measured*
+  Firefox pass if a measured cross-browser envelope is ever claimed (user authorization of
+  2026-11-23 closed Gate 1 on the Chromium-evidenced basis); playtest of correction-notice staging
   (W3) and copy-artifact readability (ARC W1-note carried into L9 O2).

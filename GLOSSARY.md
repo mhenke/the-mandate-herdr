@@ -62,8 +62,12 @@ Single project context. Two language groups share this file because both are loa
 
 **Logical clock** — deterministic simulation time advancing only through recorded events. Browser suspension freezes it; resume never applies wall-clock catch-up.
 
-**Supported envelope** — the OS/browser/layout/assistive-technology matrix with a recorded test history. No envelope is supported until its physical-key test record exists; synthetic events are never certifying.
+**Supported envelope** — the OS/browser/layout/assistive-technology matrix with a recorded evidence basis. Two flavors: **measured** (a physical-key test record exists) and **accepted** (an explicit user authorization stands in place of measurement). Synthetic events are never certifying for either. The Gate-1 envelope (2026-11-23) is accepted, not measured; a measured cross-browser claim reopens it.
 
 **Certifying evidence** — only what the claim requires: physical-key tests for interception claims, action+state provenance for skill claims, replay for determinism claims. Everything else is labeled non-certifying.
+
+**Risk chord** — a keyboard chord the browser or OS is presumed to consume before the page (Ctrl+W plain and Ctrl+W in field). No required game action, lesson predicate, or assessment may depend on a risk chord reaching the page; the probe's warning panel documents the interception for players.
+
+**Voided attempt** — an attempt whose pending prefix was discarded by host blur (or user Esc release). Voided is re-triable and is never recorded as a failure; assessment counts only attempts that completed inside one capture context.
 
 **Partial introduction** — a matrix cell that teaches part of a skill's content only (for example, the close half of the detach/reattach-versus-close skill). The matrix records the split explicitly; a later level's full introduction never backdates to the partial one.
