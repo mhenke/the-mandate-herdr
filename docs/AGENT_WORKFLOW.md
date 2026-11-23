@@ -18,6 +18,14 @@ The contract for any coding agent modifying this repository. It exists because T
 
 **Compatibility rule:** before any agent relies on pstack automation or orchestration in any of the project's harnesses, run a small verification task in that harness and record the result (which skills fired, which features were skipped, whether playbook routing worked). Until then, agents use the **fallback mode**: read the relevant pstack `SKILL.md`/playbook files as instructions and execute them manually — the workflow contract in this document still applies in full.
 
+### Verification log (per harness)
+
+| Harness | Date | What fired | What did not / fallback | Verdict |
+| --- | --- | --- | --- | --- |
+| OpenCode | 2026-11-23 | `@setup-pstack` skill loaded and executed end-to-end (budget + role-mapping prompts answered, rule file written); OpenCode models catalog enumerates all required pstack model families (Opus 5.5, Fable 5.2, Gemini 4 Neon) | Rule file lives at `~/.cursor/rules/pstack-models.mdc` — a Cursor/Claude-Code convention **OpenCode never reads**; skill-internal subagent slugs (`claude-opus-5-5-xhigh-fast`) do not exist in OpenCode's catalog — OpenCode equivalents are `providerID/modelID#variant` (e.g. `commandcode/claude-opus-5-5#xhigh`); no `-fast` variants (effort is the `#variant` token); the `Task`-subagent machinery the skill references maps to OpenCode's subagent tool with a different model-param format | **Partial integration:** skills load and execute as instructions (fallback mode confirmed working); model-role automation needs the OpenCode slug format; `poteto-mode` playbook routing not yet exercised under a real task |
+| OMP | — | not yet verified | — | verify before use |
+| Antigravity (agy) | — | not yet verified | — | verify before use |
+
 ### How pstack is used here
 
 - **`poteto-mode`** is the default entry point for substantial coding tasks: it selects the playbook (investigation, bug fix, feature, refactoring, testing, review, shipping, visual parity, …) and routes to the other skills as steps fire.
