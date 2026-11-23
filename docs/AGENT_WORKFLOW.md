@@ -70,7 +70,7 @@ pstack's model-role configuration (`/setup-pstack`) may be used to map its roles
 
 ## Parallel agents
 
-Parallel agents must own separate modules or separate worktrees with one named integrator responsible for reconciliation. Two agents must never edit the same file concurrently; when lanes would touch a shared file (contracts, glossary, story canon), the integrator serializes the edits and reconciles dependents. Agents do not approve their own work; the integrator (or the user at milestone gates) owns acceptance.
+Parallel agents must own separate modules or separate worktrees with one named integrator responsible for reconciliation. Worktrees follow the project convention: created under **`.worktrees/`** (git-ignored) as `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`, one branch per lane, merged back to main by the integrator. Two agents must never edit the same file concurrently; when lanes would touch a shared file (contracts, glossary, story canon), the integrator serializes the edits and reconciles dependents. Agents do not approve their own work; the integrator (or the user at milestone gates) owns acceptance.
 
 ## Exploration tools
 
