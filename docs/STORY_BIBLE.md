@@ -90,6 +90,7 @@ L7 re-reads the accepted receipt with new understanding — reinterpretation, no
 - **Nov 12–13:** Player assignment (L1–L3). **Nov 13, 19:05:** player files VN-12 (origin blank); SUB-ACK-12 returned same night. **Nov 14, 09:00:** EIAB intake → R-2 (receipt DR-2 = INT-RECEIPT-12, delivered in L5 morning paperwork).
 - **Nov 14, 16:00:** EIAB finding F-47-E3 (R-1+R-2+R-3) → extraordinary package recommended. Board vote set Nov 24.
 - **Nov 15, 10:30:** Ellison files Q-118. **Nov 16, 09:00:** directed leave + credential suspension effective; her final desk log entry (opening line): *"The vote wasn't the target. The response was. Find Directive 47 before they certify the emergency."* **Nov 16, 13:15:** BCR personal-paper lodging C-1, receipted.
+- **Nov 17:** Cole releases intake queue snapshot IQ-1 with testimony packet (optional evidence; shows per-cycle depth counts Nov 12–14 + blank-origin normalization note; available in L10 paperwork, examinable but never required for retention scoring).
 - **Nov 21:** Counsel relays Ellison's lodging index. **Nov 24, 08:00:** counter-provenance filing due. **10:00:** hearing and vote.
 
 No box moves, no renewals, no 72-hour chaining apparatus — deleted as non-load-bearing. The only 72-hour element is the extraordinary package's statutory maximum (single use, no renewal).
@@ -113,6 +114,7 @@ No box moves, no renewals, no 72-hour chaining apparatus — deleted as non-load
 | D-47 | Directive 47 §4 (ratified, noticed) | Public record | Narrow, genuine-independence standard | Ratified Oct 14; noticed Oct 17 | What the law actually requires. No hidden text. |
 | Q-118 | Ellison query | EIAB file + OPCI mirror | Accurate as question | Filed Nov 15 10:30 | She asked; leave order is the consequence. Doesn't prove her claim (C-1 + SM-1 do). |
 | C-1 | BCR lodging + receipt | BCR custody, Desai receipt | Copies authenticated against vendor/SOC originals by comparison (hash = copy-vs-original check only) | Lodged Nov 16 13:15 | Originals preserved with origins intact. Alternative (selective curation) answered by completeness + declared gaps. |
+| IQ-1 | EIAB intake queue snapshot, Nov 12–14 (per-cycle depth counts + attached blank-origin normalization note) | EIAB intake log, via records request (in L10 paperwork) | Accurate as queue record | Nov 12–14 (released Nov 17) | Shows surge volume + that blanks were normalized as "expected migration artifacts." Does NOT show content truth or independence. Alternative (selective snapshot) answered by consecutive date range + OPCI mirror. Optional: examinable at L10, never required for retention scoring. |
 | NL-1 | Cooperative newsroom log | Cooperative records | Accurate publication record | Ongoing | Second-source timeline; records correction cost. |
 | CPF-9 | Counter-provenance filing + VN-12 retraction | Player + corroborator | Must meet two-source rule | Due Nov 24 08:00 | The instrument. Affirmative common-source proof (not mere subtraction) is what kills the package. |
 
@@ -124,6 +126,7 @@ Comparison discipline: hashes and signatures authenticate a copy against a trust
 - After L6 (Nov 16): leave/personnel order for Ellison posts as new paperwork alongside F-47-E3 — "asked a question and was removed" lands here, not in E1. Q-118's content becomes readable at L6 via the mirror.
 - After L7: EIAB counted three reports; your note is R-2 (reinterpretation of the accepted receipt).
 - After L9: R-3 is R-1's twin (shared `LT-47B` + truncation artifact); profile + memo exist.
+- After L10 (optional discovery, not scored, not an E3 prerequisite): IQ-1 queue depth corroborates the surge-week miss; the normalization note explains the un-triggered §5 spot-check.
 - After L11: full D-47 §4 + IG-E3-02 — the law demands genuine independence; the guidance presumed it from faces. The fight is provenance, not authority text.
 - After L13: Ellison's lodging index via counsel; she is on leave and credential-barred, not hiding, not a puzzle.
 - Never hidden: the scan was real; standard measures deserved. Never asked: who "really" ordered the scan (no one — documented misfire).

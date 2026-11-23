@@ -392,10 +392,11 @@ overlay path is not entered, not taught); copy-mode fumbles → exit/retry.
 
 ## L10 — Nov 20 — prove common root — RETENTION II — "Two Sources, One Root"
 
-**Discoveries:** none new (faces + receipts + comparison states only — no lodging, no law text).
+**Discoveries:** faces + receipts + comparison states (no lodging, no law text — required proof).
 Proof argued from R-1/R-3 shared root + VN-12 non-independence (portal access logs show no player
-session). Proposed IQ-1 (intake-queue snapshot) is NOT required; staged enhancement only (see
-Staging notes).
+session). IQ-1 (intake-queue snapshot, released Nov 17) present in the paperwork as OPTIONAL
+examination — queue-depth-vs-finding-date comparison, explicitly not scored for retention; L10's
+common-root proof requirements unchanged.
 
 **Interface lesson: previously-taught skills only (S07 intro L4; S08/S09 intro L6; S10 intro L7).
 No new skills. Tier-0 start.** Assesses S07–S10 (per LEARNING_DESIGN) + retrieves S01/S04–S06.
@@ -643,11 +644,11 @@ transfer record).
 - **W1 — profile-diff obtainability: RESOLVED-in-contract.** L9 Objective O1 makes the
   records-channel request a required story step; the diff arrives as a fixture document and O2/O4
   predicate on comparing its drop-rule line. The diff is never merely described.
-- **W2 — Cole corroboration depth: STAGED-for-parent.** L8's Cole transcript + L11's §5 duty carry
-  the beat in-contract; the intake-queue snapshot is proposed as new evidence item IQ-1 (delta text
-  in Staging notes below — BIBLE NOT edited here). If approved, L10 gains an optional comparison
-  predicate (queue depth vs finding date) and the knowledge ledger gains an "After L10" line. Until
-  then L10 is complete without it.
+- **W2 — Cole corroboration depth: APPROVED-optional** (decision recorded in IMPLEMENTATION_PLAN.md
+  §Review-gate decisions). IQ-1 is canon optional evidence (BIBLE §7): released Nov 17, present in
+  L10 paperwork for examination, never required for retention scoring, not an E3 prerequisite.
+  L8's Cole transcript + L11's §5 duty carry the required beat; IQ-1 deepens it for players who
+  examine it.
 - **W3 — publish-path correction staging: RESOLVED-in-contract.** The publish branch is kept (not
   reframed): L9 records the preliminary; L14 requires the public correction notice filed +
   acknowledged before CPF-9 counts as complete, plus the Adebayo acknowledgment slip (trust beat as
@@ -659,24 +660,7 @@ transfer record).
 - **W5 — E2 texture (Cole transcript): RESOLVED-in-contract.** L8 carries the Cole intake-call
   transcript via records request — story content, explicitly no new EV.
 
-## Staging notes (proposed deltas for parent reconciliation — not applied)
-
-**PROPOSED BIBLE §7 addition (IQ-1):**
-
-> `| IQ-1 | EIAB intake queue snapshot, Nov 12–14 (per-cycle depth counts + attached blank-origin
-> normalization note) | EIAB intake log, via records request at L10 | Accurate as queue record | Nov 12–14 | Shows surge volume + that
-> blanks were normalized as "expected migration artifacts." Does NOT show content truth or
-> independence. Alternative (selective snapshot) answered by consecutive date range + OPCI mirror
-> copy-vs-original check. |`
-
-**PROPOSED BIBLE §6 addition:** `Nov 17: Cole releases intake queue snapshot IQ-1 with testimony
-packet (PROPOSED — pending approval).`
-
-**PROPOSED knowledge-ledger addition:** `After L10 (if IQ-1 approved): queue depth corroborates
-the surge-week miss; Cole's normalization note explains the un-triggered §5 spot-check.`
-
-**PROPOSED NARRATIVE_DESIGN SE-table addition (if IQ-1 approved):** extend SE-L10 with
-`+ IQ-1 comparison predicate (optional; queue depth vs finding date)`.
+## Staging notes (decided items removed; open items only)
 
 **LEARNING_DESIGN deltas proposed:** none. The matrix is followed exactly (see verification walk);
 L12 S11 assessment and L15 Home/End-via-help are matrix-sanctioned cells.
@@ -712,8 +696,8 @@ L12 S11 assessment and L15 Home/End-via-help are matrix-sanctioned cells.
 - **Dates/story gates:** every block carries its ARC date-table date; receipt order
   (DR-1 Nov 10 → DR-3 Nov 13 → DR-2 Nov 14), SUB-ACK-12 vs INT-RECEIPT-12 split, L6 weekend-hold
   release, and Q-118/leave at L6 match the story docs. No level consumes undelivered knowledge.
-- **Weaknesses:** W1/W3/W4/W5 resolved in-contract; W2 staged with explicit proposed delta (BIBLE
-  untouched).
+- **Weaknesses:** W1/W3/W4/W5 resolved in-contract; W2 approved-optional via IQ-1 (user decision
+  recorded in IMPLEMENTATION_PLAN.md §Review-gate decisions; BIBLE §7 canon row, Nov 17 release).
 - **Remaining for parent:** FEASIBILITY manual passes (all probe items untested — no capture lesson
   ships without its cited `delivered` cells); Gate-1 hold-policy decisions (blur, capture release);
   FIDELITY re-verification if the upstream baseline moves; playtest of correction-notice staging
