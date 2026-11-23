@@ -6,7 +6,7 @@ Status: **selected for review (user decisions, extended).** Documentation and te
 
 | Package | Verified | Role | Notes |
 |---|---|---|---|
-| React | 19.3.1 | Presentation projection of committed simulation state | React Strict Mode ON in development; `eslint-plugin-react-hooks` 7.1.1 with recommended rules. Rendering must stay pure: re-rendering a pane cannot advance the story, record a keybinding, or evaluate a level twice |
+| React | 19.3.1 | Presentation projection of committed simulation state | React Strict Mode ON in development; `eslint-plugin-react-hooks` 7.1.1 with recommended rules; `@types/react` 19.3.0 + `@types/react-dom` 19.3.0 (verified 2026-11-23, matching 19.3.1). Rendering must stay pure: re-rendering a pane cannot advance the story, record a keybinding, or evaluate a level twice |
 | TypeScript | **5.9.3 strict** | Domain contracts | TS 7.0.2 exists but typescript-eslint 8.74.0 caps `typescript < 6.1.0` — type-aware lint does not tool TS 7 yet. Locked to 5.9.3 until support lands |
 | Vite | 8.3.8 | Build/dev server | `@vitejs/plugin-react` 6.3.0 requires Vite `^8.0.0`; Node `^20.19.0 \|\| >=22.12.0` |
 | CSS Modules + CSS custom properties | (built-in) | Styling system | Chosen over Tailwind: Herdr's dense terminal geometry (row heights, borders, spacing, focus states) is explicit CSS agents can reason about. No original "Herdr-like" theme may be invented; tokens extracted from the pinned upstream source. No external fonts, no runtime CDN — self-contained assets |
