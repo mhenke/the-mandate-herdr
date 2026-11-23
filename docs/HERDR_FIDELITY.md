@@ -84,10 +84,58 @@ Unresolved (blocks lessons until resolved): pending prefix across host focus los
 - Color-only status is prohibited; provide text/shape and programmatic labels.
 - The mode bar placement contract (bottom pane area, not the tab row) is verified; a lesson that shows it otherwise fails fidelity review.
 
+## Session and agent-state contracts (official-docs cross-check, 2026-11-23)
+
+Cross-checked against both the pinned 0.9.5 source and the official live documentation (herdr.dev,
+fetched 2026-11-23 — see HERDR_RESEARCH "Live-site consultation"). Later-level content (M3+) draws
+on these; M2 sim touches only the marked rows.
+
+- **Detach (taught from L6 per LEVEL; contract reaffirmed).** `prefix+q` detaches the client; the
+  server keeps every process running; reattach returns layout, the live terminal screen, and the
+  agent conversation. Detach is never equivalent to close or to server restart. (how-to-work;
+  session-state survival table.)
+- **Direct attach prefix semantics (future agent-attach levels; record now).** In direct attach
+  (`herdr agent attach <target>` / `herdr terminal attach <id>`), input goes straight to the
+  terminal; detach is `ctrl+b q`; a **literal ctrl+b is sent by `ctrl+b ctrl+b`**. The prefix keeps
+  its meaning inside direct attach. (persistence-remote "Direct terminal attach".)
+- **Done/seen is per client (M2 sim: yes).** "A done agent stays visible until you view it";
+  each TUI client tracks viewed completions independently, so badges differ between clients; the
+  CLI's seen state is server-side and only explicit `pane focus`/`agent focus` marks seen — reads
+  never do. `completion_seq` identifies the idle transition that represents completed work,
+  independent of who has viewed it. (agents; agent-automation.) Partially resolves Unresolved #7:
+  a background completion is acknowledged when the *client* views it, not when it happens.
+- **State rollup (M2 sim: agent status rows only).** A blocked agent marks its pane, tab, and
+  workspace blocked; a working agent marks the workspace active; done stays visible until viewed.
+  (agents.)
+- **Agent detection (fictional pane apps must behave like the real path).** Herdr reads the live
+  bottom of the pane against bundled detection manifests; when an integration reports state, the
+  report wins over the screen. `blocked` is deliberately strict (visible approval/question/permission
+  UI only); unmatched known agents fall back to `idle` (labeled `default_known_agent_idle_fallback`).
+  Wrapper hint: `HERDR_AGENT=<agent>` on a wrapper command. The game's fictional agents state-report
+  like integrations (`pane report-agent --source ...`), never fabricated process names. (agents;
+  the capture harness uses the same path.)
+- **Named sessions (capture harness + future multi-server levels).** A named session owns its
+  panes, tabs, workspaces, sockets, and runtime state; sessions share only the global config file.
+  (persistence-remote.) This is also the only safe way to run a second Herdr instance beside a
+  live one (see the incident record in HERDR_RESEARCH).
+- **Persistence paths (M3+ level content, not M2).** Server restart restores the session shape
+  (workspaces, tabs, panes, cwd, layout, focus) but not processes — panes return as new shells;
+  a pane whose saved directory is unavailable stays in the layout with an error (never moves to
+  home). Up to 48 layout snapshots in `session-snapshots/` at ≥15-minute intervals; pane screen
+  history (`session-history.json`) is experimental and off by default; failed-load recovery copies
+  in `session-backups/` (three kept, never auto-restored). Native agent session restore resumes
+  supported agents via their documented resume commands (integration-version table in
+  session-state). (session-state.)
+- **Remote/multi-machine (off M2 scope; recorded for later levels).** Client and server versions
+  negotiate rather than requiring a match; each machine keeps its own server, sessions, and
+  processes; remote automation via `herdr --machine <profile>`; workspace/tab/pane IDs and agent
+  names are scoped to one server. (connecting-machines.) The user's "connect a different device"
+  path is this contract — not needed while named sessions solve local isolation.
+
 ## Unresolved contracts (block lessons, no invention)
 
 1. Browser delivery of `ctrl+b` and sequential prefix across the supported OS/browser/AT/layout matrix; plus `ctrl+w` only in taught field contexts. — **RESOLVED 2026-11-23 (feasibility, user-accepted basis):** Chromium 158 synthetic pass delivered all taught chords; Firefox accepted by user decision with Ctrl+W risk-chord handling; no required action may sit behind Ctrl+W. A *measured* cross-browser claim reopens this item.
-2. Host-blur/suspend pending-prefix policy; capture release affordance. — **RESOLVED 2026-11-23 (policy):** blur voids the pending prefix (attempt voided, never failed); release is Esc plus a visible pending indicator (presentation only, never presented as a Herdr binding).
+2. Host-blur/suspend pending-prefix policy; capture release affordance. — **RESOLVED 2026-11-23 (policy, amended at M2 approval):** blur voids the pending prefix (attempt voided, never failed); release is a separate accessible external control — **Escape inside the simulated TUI is Herdr-owned** and never a release mechanism; both paths tested at M2. See FEASIBILITY_KEYBOARD hold policy 2 as amended.
 3. IME/composition and AltGr interaction with prefix, copy mode, and field editing.
 4. Focus reflow after a close; already-closed focused pane between snapshot and request.
 5. Close-pane confirmation accept path; `Runtime::shutdown` scope (plugins vs terminal only); close-workspace confirmation branches beyond the traced path; any checkout-deletion claims.

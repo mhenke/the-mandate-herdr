@@ -137,4 +137,34 @@ Each unresolved item blocks its related lesson rather than licensing invented be
 
 ## Method notes
 
+### Live-site consultation (2026-11-23)
+
+The official live documentation at herdr.dev was fetched for six pages (`/tui/docs/how-to-work/`,
+`/agents/`, `/agent-automation/`, `/session-state/`, `/persistence-remote/`,
+`/connecting-machines/`). All six have pinned-edition counterparts already inventoried above
+(`how-to-work.mdx`, `agents.mdx`, `agent-automation.mdx`, `session-state.mdx`,
+`persistence-remote.mdx`, `connecting-machines.mdx`). The live pages are the **current** edition;
+the pinned 0.9.5 source remains behavioral authority for taught content. Facts verified consistent
+across both (detach binding `ctrl+b q`; per-client Done/seen state; agent detection manifests with
+integration reports winning over screen reads; named sessions owning sockets and runtime state;
+server-restart restore semantics; direct-attach prefix semantics) are recorded as cross-checked.
+Any live-page fact used in a contract must cite the pinned source line, not the website.
+
+### Capture-harness incident record (2026-11-23)
+
+Four attempts to run a second Herdr instance for visual-baseline captures killed the user's live
+default-session server. Root cause: Herdr's server holder registry and the `herdr-core`
+workspace/agent-state daemon resolve through fixed `/run/user/<uid>/herdr-core` paths that **no
+environment variable redirects** (`XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_RUNTIME_DIR` were all
+isolated and the leak persisted; sandboxed TUIs even rendered the user's live workspace list).
+Env-var isolation for a second Herdr instance is not real. Resolution: the pinned binary's own
+**named sessions** (`herdr --session <name>`, documented in the pinned persistence-remote edition
+as owning "its own panes, tabs, workspaces, sockets, and runtime state", sharing only the global
+config file). Verified probe (2026-11-23): a `--session capture` instance with a private config
+started fresh (empty spaces), and the user's default server survived the full sandbox lifecycle —
+PID and workspace count unchanged before/after, including `session stop capture`. A fresh named
+session names its initial workspace after the process cwd (`the-mandate`) — not user data.
+`scripts/capture-upstream-baselines.sh` uses this mechanism; `server stop` must never appear in
+its cleanup (only `session stop capture`).
+
 Source citations use `path:line` at the pinned commit. Documentation claims cite edition paths. No runtime behavior was executed and no live Herdr session was driven for this research; no game prototype exists. Acceptance criteria for each taught contract belong in `HERDR_FIDELITY.md`.
