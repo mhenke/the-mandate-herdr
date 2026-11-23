@@ -63,13 +63,24 @@ from another browser or from the synthetic pass.
 | 2 | Ctrl+B then w (sequential) | untested | untested | untested | untested |
 | 3 | Ctrl+W plain | untested | untested | untested | untested |
 | 4 | Ctrl+W with focus in page text field | untested | untested | untested | untested |
-| 5 | Ctrl+B then c/v/x/z/g/b/1/n/p/q | untested | untested | untested | untested |
+| 5 | Ctrl+B then c/v/x/z/g/b/1/n/p/q + h/j/k/l | untested | untested | untested | untested |
 | 6 | Esc | untested | untested | untested | untested |
 | 7 | Ctrl+[ | untested | untested | untested | untested |
 | 8 | Ctrl+A / Ctrl+E / Ctrl+K / Ctrl+Y in text field | untested | untested | untested | untested |
 | 9 | Tab | untested | untested | untested | untested |
 | 10 | AltGr sequence (record what arrives) | untested | untested | untested | untested |
 | 11 | IME / composition attempt | untested | untested | untested | untested |
+| 12 | Ctrl+B then ? (help) | untested | untested | untested | untested |
+| 13 | Ctrl+B then Shift+N | untested | untested | untested | untested |
+| 14 | Ctrl+B then Shift+T | untested | untested | untested | untested |
+| 15 | Ctrl+B then - | untested | untested | untested | untested |
+| 16 | Ctrl+B then h/j/k/l (pane focus) | untested | untested | untested | untested |
+| 17 | Ctrl+B then [ (copy-mode entry) | untested | untested | untested | untested |
+| 18 | Enter (plain) | untested | untested | untested | untested |
+
+These rows exist because the checklist now covers every chord the level contracts assess
+(`docs/LEVEL.md`), including copy-mode entry (`prefix+[`), the most-assessed skill. Item 17 is the
+sequential prefix-then-bracket chord and is distinct from item 7, Ctrl+[ pressed alone.
 
 Notes required per cell when filled: what the page logged, and what visibly happened instead
 (tab closed, menu opened, character typed, nothing).

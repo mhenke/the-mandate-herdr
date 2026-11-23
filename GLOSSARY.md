@@ -30,6 +30,12 @@ Single project context. Two language groups share this file because both are loa
 
 **Fair-play artifact** — an on-screen document available to the player before a revelation that later re-reads with new meaning. The test: the clue must be visible at the moment of the player's action, not introduced afterward.
 
+**Fair-play window** — the span between a clue's first visibility and its payoff. The twist stress test must test the window's start, not only its end: a clue first visible at level 3 is fair play from level 3, even if the story only tests the guesser at level 7.
+
+**Negative evidence** — a proof of absence (for example, no player session in an access log). Valid only with a stated custodian, a request route the player can actually use, and a declared completeness limit; it never proves more than its limit, and its absence-claim is itself subject to the provenance/accuracy/timing/intent distinction.
+
+**Clue-audit row** — the per-clue record the fairness discipline requires: first visible (level and date), payoff level, the alternative reading preserved, and the specific observation that excludes that reading. Major clues get one; a stress-test claim with no staged disproof is a defect, not a flourish.
+
 **Provenance / Accuracy / Timing / Intent** — four distinct questions about any artifact: where it came from, whether it is true, when it was made, and why. Evidence of one never establishes another. Authentication (hash, signature) speaks only to provenance-against-a-comparison-original.
 
 **Level knowledge vs underlying truth** — what the player can know at a given level versus the full chronology. Knowledge trails truth by stated gaps; no level consumes knowledge the fiction has not delivered.
@@ -46,6 +52,8 @@ Single project context. Two language groups share this file because both are loa
 
 **Action evidence / process evidence / learning evidence** — three kinds, never interchangeable: a fictional artifact produced, a Herdr operation performed, and the player's deliberate use of a taught operation. Narrative scripts can manufacture process evidence; they cannot manufacture player-action evidence.
 
+**Provenance kinds** — the origin labels behind any resulting state: player action (performed by the player), fixture (pre-created state), or simulated process event (produced by fictional machinery). Fixtures and process events never count as player actions; the provenance kind recorded for an objective decides which evidence kinds it can earn.
+
 **Keyboard transfer vs story completion** — separate outcomes. A player may finish the story with external/accessible controls and earn no keyboard-transfer credit; the record states which.
 
 **Retention checkpoint** — a level that assesses only previously taught skills with faded scaffolding. A checkpoint that introduces a new skill is a curriculum defect.
@@ -57,3 +65,5 @@ Single project context. Two language groups share this file because both are loa
 **Supported envelope** — the OS/browser/layout/assistive-technology matrix with a recorded test history. No envelope is supported until its physical-key test record exists; synthetic events are never certifying.
 
 **Certifying evidence** — only what the claim requires: physical-key tests for interception claims, action+state provenance for skill claims, replay for determinism claims. Everything else is labeled non-certifying.
+
+**Partial introduction** — a matrix cell that teaches part of a skill's content only (for example, the close half of the detach/reattach-versus-close skill). The matrix records the split explicitly; a later level's full introduction never backdates to the partial one.

@@ -105,13 +105,20 @@ code column shows <code>code</code>, or the input data for <code>beforeinput</co
     { id: 'ctrl-b-w',      label: 'Ctrl+B then w (sequential)',            hint: 'release between keys; prefix semantics' },
     { id: 'ctrl-w',        label: 'Ctrl+W plain',                          hint: 'may close the tab; record as intercepted' },
     { id: 'ctrl-w-field',  label: 'Ctrl+W with focus in page text field',  hint: 'focus the field above first' },
-    { id: 'ctrl-b-keys',   label: 'Ctrl+B then c/v/x/z/g/b/1/n/p/q',       hint: 'one prefix command at a time; note each' },
+    { id: 'ctrl-b-keys',   label: 'Ctrl+B then c/v/x/z/g/b/1/n/p/q + h/j/k/l', hint: 'one prefix command at a time; h/j/k/l are pane focus' },
     { id: 'esc',           label: 'Esc',                                   hint: 'plain Escape' },
     { id: 'ctrl-bracket',  label: 'Ctrl+[',                                hint: 'some browsers route this to UI or OS' },
     { id: 'emacs',         label: 'Ctrl+A / E / K / Y in text field',      hint: 'focus field; A start, E end, K kill, Y yank' },
     { id: 'tab',           label: 'Tab',                                   hint: 'focus movement, not text' },
     { id: 'altgr',         label: 'AltGr sequence (e.g. AltGr+E, AltGr+Q)', hint: 'try to produce @ or €; record what arrives' },
-    { id: 'ime',           label: 'IME / composition attempt',             hint: 'if an IME is installed; includes beforeinput' }
+    { id: 'ime',           label: 'IME / composition attempt',             hint: 'if an IME is installed; includes beforeinput' },
+    { id: 'prefix-help',   label: 'Ctrl+B then ? (help)',                  hint: 'often Shift+/; note whether Shift survives the prefix' },
+    { id: 'prefix-shift-n', label: 'Ctrl+B then Shift+N',                  hint: 'capital N; record whether Shift is still set' },
+    { id: 'prefix-shift-t', label: 'Ctrl+B then Shift+T',                  hint: 'capital T' },
+    { id: 'prefix-minus',  label: 'Ctrl+B then -',                         hint: 'minus/hyphen key' },
+    { id: 'prefix-hjkl',   label: 'Ctrl+B then h/j/k/l (pane focus)',      hint: 'one direction at a time' },
+    { id: 'prefix-copy-mode', label: 'Ctrl+B then [ (copy-mode entry)',    hint: 'sequential prefix then bracket; distinct from Ctrl+[ alone (#7)' },
+    { id: 'enter',         label: 'Enter (plain)',                         hint: 'plain Enter, no prefix' }
   ];
   var RESULTS = ['untested', 'delivered', 'intercepted', 'partial'];
   var STORE_KEY = 'herdr-keyboard-probe-v1';
@@ -428,10 +435,11 @@ code column shows <code>code</code>, or the input data for <code>beforeinput</co
     var out = [];
     function ok(name, cond) { out.push((cond ? 'PASS ' : 'FAIL ') + name); }
 
-    ok('checklist has 11 items', CHORDS.length === 11);
+    ok('checklist has 18 items', CHORDS.length === 18);
     ok('checklist order',
       CHORDS.map(function (c) { return c.id; }).join(',') ===
-      'ctrl-b,ctrl-b-w,ctrl-w,ctrl-w-field,ctrl-b-keys,esc,ctrl-bracket,emacs,tab,altgr,ime');
+      'ctrl-b,ctrl-b-w,ctrl-w,ctrl-w-field,ctrl-b-keys,esc,ctrl-bracket,emacs,tab,altgr,ime,' +
+      'prefix-help,prefix-shift-n,prefix-shift-t,prefix-minus,prefix-hjkl,prefix-copy-mode,enter');
 
     var prevLabel = state.labels.esc;
     state.labels.esc = 'partial';

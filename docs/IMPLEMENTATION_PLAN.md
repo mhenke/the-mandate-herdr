@@ -6,9 +6,9 @@ Status: proposal for review. No implementation is authorized; this plan defines 
 
 Deliverable: the review-gate report and the user's approval decision. Inputs already on the repo: research baseline, fidelity contracts, architecture, learning design, story trio, ADRs 1–3, LEVEL.md, feasibility skeleton. Outstanding inputs at gate time:
 
-1. Full-package reconciliation audit (skeptic) over all ten documents — narrative consistency, curriculum traceability, fidelity violations, cross-document contradictions.
-2. The manual keyboard pass, or an explicit user decision to gate shipping on "untested" (see M1).
-3. User decisions on the staged deltas (IQ-1 evidence item) and any reconciliation findings.
+1. Full-package reconciliation audit (skeptic) over all documents — narrative consistency, curriculum traceability, fidelity violations, cross-document contradictions. (Audit delivered; blocker fixes in progress — see the review-gate report.)
+2. The manual keyboard pass, or an explicit user decision to gate shipping on "untested" (see M1). (Decision recorded: gate proceeds unresolved; M2 blocked until M1.)
+3. Staged deltas: IQ-1 decision recorded (approved optional evidence, reconciled).
 
 Acceptance: user approves (or amends) scope, story, curriculum, and the feasibility-first sequencing. Approval of M0 authorizes M1 only — not gameplay content.
 

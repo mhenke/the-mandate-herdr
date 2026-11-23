@@ -37,9 +37,14 @@ The exact behavior behind each skill is governed by `HERDR_FIDELITY.md`. The cur
 | S09 | Zoom and restore a pane without changing its topology | 6 | 7 | 9 | 11, 14 | 10, 15 |
 | S10 | Distinguish detected agent identity/status from process output and task completion | 7 | 8 | 9 | 11, 13 | 10, 15 |
 | S11 | Copy-mode search, selection, copy, and exit | 8 | 9 | 11 | 12, 14 | 12, 15 |
-| S12 | Detach/reattach versus close and server restart | 9 | 11 | 13 | 14 | 15 |
+| S12 | Detach/reattach versus close and server restart | 9 (close half) · full intro 11 | 11 | 13 | 14 | 15 |
 
 A reinforcement counts only when the player selects and performs the operation in a changed context. Replaying a tutorial animation or reopening the same completed task does not count.
+
+Notes on the matrix:
+
+- S12's level-9 cell covers the close half only (the skill's full content — detach/reattach versus close — is introduced at level 11). Level contracts must not claim level 9 taught detach.
+- S05/S06 are assessed at the level-5 checkpoint after introduction and one reinforcement. This is deliberate for early-operation skills the checkpoint exercises directly; the general two-reinforcement-before-final-mastery rule still governs later skills. Both facts belong in the traceability walk, not in dispute.
 
 ### Scope limits
 

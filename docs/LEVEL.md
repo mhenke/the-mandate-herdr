@@ -36,8 +36,10 @@
   claimed. A capture lesson ships only after the cited probe items record `delivered` on the target
   envelope (physical-key pass; synthetic runs are non-certifying). Probe item numbers below refer to
   that document's checklist (#1 Ctrl+B alone, #2 sequential Ctrl+B-then-key, #3 Ctrl+W plain,
-  #4 Ctrl+W in field, #5 prefix+letter chords, #6 Esc, #7 Ctrl+[, #8 field keys, #9 Tab,
-  #10 AltGr, #11 IME/composition).
+  #4 Ctrl+W in field, #5 prefix+letter chords incl. h/j/k/l, #6 Esc, #7 Ctrl+[ alone,
+  #8 field keys, #9 Tab, #10 AltGr, #11 IME/composition; #12–#18: prefix+? help,
+  prefix+shift+n/t, prefix+minus, prefix+h/j/k/l, sequential prefix+[ (copy-mode entry,
+  the most-assessed chord), plain Enter).
 - **Never taught, never touched.** Close-workspace confirmation branches, sidebar-list navigation
   keys, checkout-deletion claims, background-ack agent semantics, close-pane confirmation accept
   path, `--handoff` timing. Page reload/pause is neither detach nor reattach. A Reconnect-style
@@ -76,7 +78,7 @@ S03 intro (session/workspace/tab/pane/process hierarchy: one workspace, one tab,
 assignment pane + memo pane).
 
 **Objectives (testable predicates):**
-- O1 (S01/S03): Starting from the memo pane focused, perform `prefix+w`-free pane focus via
+- O1 (S01/S03): Starting from the memo pane focused, perform prefix-only pane focus via
   `prefix+h/l` (admissible alternative: no alternative at intro — guided demonstration first, then
   one guided attempt). Resulting state: focus in the assignment pane; a subsequent typed character
   is accepted by the assignment process (input-destination evidence). Provenance: player action
@@ -353,7 +355,7 @@ arrives as a fixture document — process evidence); M-47-FWD-03 (Vane-signed). 
 preliminary (public correction costs later: L14 extra step + editor-trust dip/recover) vs hold
 (cleaner record; L14 uses the SOC record path instead).
 
-**Interface lesson:** S12 intro — close half (close a disposable scratch pane after the cross-walk;
+**Interface lesson:** close-half groundwork (close a disposable scratch pane after the cross-walk;
 runtime stops synchronously — verified; explicitly contrasted with detach, which is NOT taught
 here), S11 reinf (select + copy the `21:4_` artifact line: `v`/`Space` selection, `y` copy, exit),
 S01/S03 further, S07 reinf (cross-walk workspace: move the twins between workspaces and state the
@@ -366,13 +368,13 @@ twin faces).
 - O2 (S11 reinf): select the artifact line in copy mode, copy, exit; place it into the
   cross-walk note via the story control (standing paste rule — resulting content only, no paste
   key asserted). Provenance: player action. FIDELITY: Copy-mode contract.
-- O3 (S12 intro): close ONLY a non-last scratch pane (hard constraint: the workspace always
+- O3 (close-half groundwork for S12; full S12 detach/reattach is introduced at L11): close ONLY a non-last scratch pane (hard constraint: the workspace always
   retains ≥2 panes at close time, so the confirmation overlay path is never entered); state the
   contrast (closed pane's runtime stops; detach — untaught here — is the operation that preserves).
   Provenance: player action; runtime-stop observed in fixture chrome.
   FIDELITY: Close-pane row (synchronous runtime stop; platform kill per pinned platform; distinct
   from detach in every explanation).
-- O4 (S07–S10 reinf): cross-walk staged across workspaces/panes with stated arrangement — a goto-located twin pair, zoomed for the line comparison, output-read (not badge-read). Fixture twins are re-located (not pre-opened) by the player.
+- O4 (S07–S10 reinf): cross-walk staged across workspaces/panes with stated arrangement — a goto-located twin pair, zoomed for the line comparison, output-read (not badge-read). Fixture twins are re-located (not pre-opened) by the player. Focus is re-established explicitly at the start of O4 (no reliance on post-close focus placement).
   Provenance: player action. FIDELITY: Workspaces/Goto/Zoom/Agent rows.
 
 **Input context:** deliberate capture for copy-mode/close/picker ops. Publish/hold choice via
@@ -383,6 +385,7 @@ Presentation safety (never present close as detach-like).
 
 **BLOCKED-ON:** standing prefix line. Close-pane confirmation accept path (FIDELITY #5): contract
 forbids last-pane closes — any lesson build that can reach a last-pane close is rejected at review.
+Focus reflow after close (FIDELITY #4): L9 objectives never rely on post-close focus placement — after O3's close, O4 re-establishes focus explicitly rather than assuming where focus landed; the unresolved reflow contract is additionally named here.
 Copy-mode IME edges (field-edge constraint).
 
 **Failure/recovery:** close attempted on a last pane → refused by contract with a clerk line (the
@@ -393,8 +396,7 @@ overlay path is not entered, not taught); copy-mode fumbles → exit/retry.
 ## L10 — Nov 20 — prove common root — RETENTION II — "Two Sources, One Root"
 
 **Discoveries:** faces + receipts + comparison states (no lodging, no law text — required proof).
-Proof argued from R-1/R-3 shared root + VN-12 non-independence (portal access logs show no player
-session). IQ-1 (intake-queue snapshot, released Nov 17) present in the paperwork as OPTIONAL
+Proof argued from R-1/R-3 shared root + VN-12 non-independence (VP-1109 records request through the Theo Park vendor channel at L10; log shows no player-credential session in the L4–L13 window, demo portal only, stated completeness limit). L10 paperwork also carries the Beck intake registry-check record BC-10 (signatures verify, registry confirmed — which is WHY faces alone mislead; cited in the proof). IQ-1 (intake-queue snapshot, released Nov 17) present in the paperwork as OPTIONAL
 examination — queue-depth-vs-finding-date comparison, explicitly not scored for retention; L10's
 common-root proof requirements unchanged.
 
@@ -570,9 +572,9 @@ controls (field-edge constraint on draft typing).
 **Hints:** tiers 0–3, recorded. Scope/naming consequences stated before deciding; both recorded
 for the ending card.
 
-## L15 — Nov 24 (08:00 filing; 10:00 hearing) — file + read aloud — "Into the Record" (CUMULATIVE)
+## L15 — Nov 24 (08:00 filing; 10:00 convene, Housekeeping to 10:30) — file + read aloud — "Into the Record" (CUMULATIVE)
 
-**Discoveries:** CPF-9 filed by 08:00 story-clock (SE-L15-filing); hearing 10:00 from a separate
+**Discoveries:** CPF-9 filed by 08:00 story-clock (SE-L15-filing; late until 09:30 draws one untimely slip + one cure path under Housekeeping to 10:30); Board convenes 10:00, hearing from a separate
 hearing-room client; Board rejects the extraordinary package, continues standard measures, enters
 referrals + costs on the record (per Bible §10); ending card reflects all five choices.
 
@@ -595,13 +597,9 @@ Provenance: player action. FIDELITY: split/focus/zoom rows. **Score line T2: ___
 assisted / not observed.**
 
 **Subtask T3 — verify output (S08/S10 + S02):** Starting state: verification-agent process running
-in the packet workspace (fixture process). Locate it via the goto picker using Home/End row jumps
-— taught through the help overlay: open help, filter for the goto entries with listed field keys
-only (field-edge constraint), then use the `Home/End/G` keys the help text itself documents for
-the picked overlay (S02 unfamiliar-task assessment). Focus the agent pane, read output, cite output lines (never the
+in the packet workspace (fixture process). Use the help overlay (`prefix+?` + `/` filter, listed field keys only) to resolve which binding opens the goto picker, then perform that binding to locate the process (S02 unfamiliar-task assessment: the binding is documented in help itself — upstream Help lists bindings only, verified: no Home/End or on-screen overlay hints exist to discover from). Focus the agent pane, read output, cite output lines (never the
 badge). Resulting state: citation on record; help consultation logged. Provenance: player action
-(picker/focus/reading); agent output = simulated process event. FIDELITY: Goto row (Home/End/G
-verified in overlay_input.rs:637–786); Agent-status rows; Help row; Field editing (filter typing). **Score line T3: ___ independent / assisted / not observed.**
+(picker/focus/reading); agent output = simulated process event. FIDELITY: Goto row (rows/search/move/exit verified in overlay_input.rs:637–786 — no Home/End dependency); Agent-status rows; Help row; Field editing (filter typing). **Score line T3: ___ independent / assisted / not observed.**
 
 **Subtask T4 — search/copy passage (S11):** Starting state: lodged-passage document open (fixture).
 Locate the verbatim reading passage via copy-mode search, select + copy, exit cleanly; place it
@@ -619,8 +617,8 @@ independent / assisted / not observed.**
 process evidence with resulting state). Scene entry or filing alone completes nothing; all five
 subtask predicates plus the disclosure are required for the level.
 
-**Story-clock deadlines:** filing due 08:00 (declared event); late → Beck untimely slip + one
-explicit recovery (never rewritten evidence). Hearing 10:00. No wall-time.
+**Story-clock deadlines:** filing due 08:00 (declared event); late until 09:30 → Beck untimely slip + one
+explicit recovery under Housekeeping (convenes 10:00, docket opens to 10:30); never rewritten evidence. No wall-time.
 
 **Input context:** deliberate capture for T1–T5 (page affordance). External controls may complete
 any subtask as story access (modality recorded, that subtask scores not-observed for transfer).
@@ -663,7 +661,7 @@ transfer record).
 ## Staging notes (decided items removed; open items only)
 
 **LEARNING_DESIGN deltas proposed:** none. The matrix is followed exactly (see verification walk);
-L12 S11 assessment and L15 Home/End-via-help are matrix-sanctioned cells.
+L12 S11 assessment is a matrix-sanctioned cell (S11 assess: 12). L15 T3's S02 assessment resolves a binding from the help overlay's own list — no untaught-key dependency.
 
 ## Verification checks performed (traceability walk, no self-approval)
 
@@ -673,11 +671,11 @@ L12 S11 assessment and L15 Home/End-via-help are matrix-sanctioned cells.
   S05: I3 R4 R6 F8 F12 → A5 A10 A15 · S06: I3 R4 R6 F8 F12 F14 → A5 A10 A15 ·
   S07: I4 R6 R9 F11 F13 → A10 A15 · S08: I6 R8 R9 F12 F14 → A10 A15 ·
   S09: I6 R7 R9 F11 F14 → A10 A15 · S10: I7 R8 R9 F11 F13 → A10 A15 ·
-  S11: I8 R9 R11 F12 F13 F14 → A12 A15 · S12: I9 R11 R13 F14 → A15.
+  S11: I8 R9 R11 F12 F13 F14 → A12 A15 · S12: L9 close-half groundwork; full detach/reattach intro at L11 (matrix records the split); A15.
   (I=intro R=reinforcement F=further A=assessment; letters keyed to LEARNING_DESIGN matrix cells.)
 - **Checkpoint purity:** L5 uses S01/S03–S06 + S02 only (all introduced L1–L4); L10 uses
-  S07–S10 + S01/S04–S06 retrieval (all introduced ≤L9); L15 introduces no new commands and no
-  story-critical facts (Home/End via help is the matrix-sanctioned unfamiliar-task pattern).
+  S07–S10 + S01/S04–S06 retrieval (all introduced ≤L9, where L9's close half is groundwork, not the S12 intro); L15 introduces no new commands and no
+  story-critical facts (T3's S02 assessment resolves the goto-picker binding from the help overlay's own binding list).
 - **Predicate provenance:** every objective states starting state, admissible actions (with authentic
   alternatives where the contract allows), resulting state, and provenance kind. Fixture-provided
   states (lodged docs, diff, relay deliveries, agent output) are never credited as player action.
@@ -687,17 +685,17 @@ L12 S11 assessment and L15 Home/End-via-help are matrix-sanctioned cells.
   IME/AltGr edges (all typing/search lessons), background-ack (L7/L10/L15 excluded-by-design with
   lines), close-confirmation accept path (L9 avoidance constraint + line). Untouched contracts
   (close-workspace, sidebar-list keys, checkout-deletion, handoff timing) are globally excluded
-  with the exclusion stated.
-- **Choice hooks:** all five stable choices recorded with consequence hooks — L4 (NL-1 + L9/L13
+  with the exclusion stated. Focus reflow (FIDELITY #4) additionally named at L9 (no-reliance statement + BLOCKED-ON).
+- **Choice hooks:** five choice points, six recorded decisions (L14 holds scope + naming) — L4 (NL-1 + L9/L13
   conditions + L14 workload + ending card), L8 (single-source taint → L14 weight + ending card),
   L9 (publish → L14 extra step + trust beat; hold → SOC path; ending card), L13 (chain weight →
   Beck requirement + hearing weight + ending card), L14 scope + naming (Board weight, Okafor/Desai
   outcomes, credit cost, ending card).
 - **Dates/story gates:** every block carries its ARC date-table date; receipt order
   (DR-1 Nov 10 → DR-3 Nov 13 → DR-2 Nov 14), SUB-ACK-12 vs INT-RECEIPT-12 split, L6 weekend-hold
-  release, and Q-118/leave at L6 match the story docs. No level consumes undelivered knowledge.
-- **Weaknesses:** W1/W3/W4/W5 resolved in-contract; W2 approved-optional via IQ-1 (user decision
-  recorded in IMPLEMENTATION_PLAN.md §Review-gate decisions; BIBLE §7 canon row, Nov 17 release).
+  release, Q-118/leave at L6, VP-1109 request at L10 + BC-10 citation in L10 proof, IQ-1 Nov 17
+  request-fulfillment, and docket-buffer recovery at L15 match the story docs. No level consumes
+  undelivered knowledge.
 - **Remaining for parent:** FEASIBILITY manual passes (all probe items untested — no capture lesson
   ships without its cited `delivered` cells); Gate-1 hold-policy decisions (blur, capture release);
   FIDELITY re-verification if the upstream baseline moves; playtest of correction-notice staging
