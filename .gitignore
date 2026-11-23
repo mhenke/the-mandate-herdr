@@ -1,2 +1,9 @@
-the-mandate-concept-art.zip
+coverage/
+dist/
+node_modules/
 .playwright-mcp/
+playwright-report/
+.stryker-tmp/
+test-results/
+the-mandate-concept-art.zip
+*.tsbuildinfo
