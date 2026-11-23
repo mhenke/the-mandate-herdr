@@ -1,7 +1,9 @@
 # Feasibility: Keyboard Delivery (Gate 1)
 
-Status: **probe built, no results.** Nothing in this document certifies browser keyboard behavior.
-Every matrix cell is `untested` until a physical-key manual pass fills it.
+Status: **probe built; one synthetic pass recorded (non-certifying); physical manual pass still
+pending.** Nothing in this document certifies browser keyboard behavior.
+The physical-pass matrix cells are `untested` until a physical-key manual pass fills them; the
+synthetic section below records what automation could and could not establish.
 
 Gate decision (user, review-gate phase): the review gate proceeds with keyboard feasibility
 unresolved; **M2 gameplay implementation stays blocked until M1 establishes a supported input
@@ -133,13 +135,52 @@ The page's own wording, quoted for the report:
 
 ## Synthetic pass (non-certifying)
 
-To be filled by the parent. Headless or scripted results may be recorded here only with an explicit
-statement that they are non-certifying and cannot establish interception. They test the probe, not
-the browser.
+Headless or scripted results may be recorded here only with an explicit statement that they are
+non-certifying and cannot establish interception. They test the probe, not the browser.
+
+### Run 1 — Playwright CDP input, Chromium 158 (recorded 2026-11-23)
+
+- Harness: Playwright `page.keyboard.press` (CDP `Input.dispatchKeyEvent` — trusted, isTrusted=true,
+  but injected below browser chrome).
+- Environment: Linux x86_64, Chromium 158.0.0.0, `en-US`, no IME. **Not Firefox** — the proposed
+  certification target is untested by this run.
+- Probe self-check: PASS (9/9, `#selftest` path unchanged).
+- Result: 18/18 markers inserted, 191 rows captured (87 keydown, 86 keyup, 18 marks), zero
+  misrouted/dropped events at the page level.
+
+| # | Test | Synthetic label | Observed |
+| --- | --- | --- | --- |
+| 1 | Ctrl+B alone | delivered | `keydown b KeyB ctrl=yes`, correct release order |
+| 2 | Ctrl+B then w (sequential) | delivered | follow-up `w` arrives plain (ctrl=no) — matches prefix second-press semantics |
+| 3 | Ctrl+W plain | delivered* | *CDP bypasses chrome; proves nothing about Firefox, which is expected to intercept (tab close) |
+| 4 | Ctrl+W with focus in page text field | delivered* | same caveat as #3 |
+| 5 | Ctrl+B then c/v/x/z/g/b/1/n/p/q | delivered | every command char arrived plain after the prefix |
+| 6 | Esc | delivered | `Escape/Escape` |
+| 7 | Ctrl+[ | delivered | `keydown [ BracketLeft ctrl=yes` |
+| 8 | Ctrl+A/E/K/Y in field | delivered | all four arrived with ctrl=yes |
+| 9 | Tab | delivered | `Tab/Tab`, no text insertion |
+| 10 | AltGr sequence | partial | CDP decomposes AltGr to Control+Alt; `e`/`q` arrive with ctrl+alt but no composed character (é/€) — character production untestable synthetically |
+| 11 | IME / composition | untested | composition requires a real IME; cannot be synthesized |
+| 12 | Ctrl+B then ? (help) | partial | `?` arrived (key=`?`, code=`Slash`) but with **shift=no** — a CDP dispatch artifact; the real question (does Shift survive the prefix) is unanswered |
+| 13 | Ctrl+B then Shift+N | delivered | Shift keydown precedes; `n KeyN shift=yes` — modifier survives |
+| 14 | Ctrl+B then Shift+T | delivered | same as #13 |
+| 15 | Ctrl+B then - | delivered | `Minus` plain after prefix |
+| 16 | Ctrl+B then h/j/k/l | delivered | all four arrive plain after prefix |
+| 17 | Ctrl+B then [ (copy-mode) | delivered | prefix then plain `[ BracketLeft` — distinct from #7 as designed |
+| 18 | Enter (plain) | delivered | `Enter/Enter` |
+
+Additional policy-relevant observations:
+
+- **Clipboard:** `navigator.clipboard.writeText` succeeded (CDP grants permission without a user
+  gesture). Not representative of real-browser behavior; the fallback path (summary selected in
+  textarea) exists in the probe and its handler was exercised.
+- **Prefix semantics signal:** in every prefix chord, the follow-up key arrived with modifiers
+  cleared — the property Herdr's second-press semantics depend on. Encouraging, but certification
+  still requires the physical pass.
 
 | Run | Command / harness | Probe self-check | Notes |
 | --- | --- | --- | --- |
-| _pending_ | | | |
+| 1 | Playwright CDP (`page.keyboard.press`), Chromium 158 headless-capable, Linux x86_64, 2026-11-23 | PASS 9/9 | Non-certifying; results table above. Does not test Firefox or any browser-chrome interception |
 
 Known limitation: synthetic `KeyboardEvent`s are untrusted, never pass through browser chrome, and
 carry whatever fields the dispatcher sets. They cannot show that Ctrl+W is consumed before the page.
