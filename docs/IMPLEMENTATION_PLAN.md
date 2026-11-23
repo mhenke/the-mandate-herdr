@@ -45,6 +45,7 @@ As before (manual accessibility audits, performance budgets, learner study, rele
 - The feasibility probe stays a diagnostic page; nothing migrates into an application without post-gate approval.
 - Any upstream Herdr baseline move re-triggers the ADR-0002 upgrade protocol before affected lessons ship.
 - Narrative and assessment never share an authority path; story completion never manufactures keyboard-transfer credit.
+- **Stack minimality (user, 2026-11-23):** the M2 stack stays minimal — React (presentation only) + CSS Modules + the deterministic TypeScript core as authoritative state owner, subscribed via `useSyncExternalStore` with immutable snapshots and no render-time mutation. No router, query cache, global-state, styling, form, or validation libraries without a concrete requirement; save-validation library choice (Zod vs explicit functions) is decided at the M3 persistence work, not in M2.
 - Physical passes remain the only *measured* keyboard evidence; synthetic runs are labeled non-certifying wherever they appear. The Gate-1 envelope rests on the recorded user authorization of 2026-11-23 (acceptance, not measurement); a measured cross-browser claim reopens it.
 
 ## Current blocker summary

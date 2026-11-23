@@ -12,6 +12,8 @@ Status: **selected for review (user decisions, extended).** Documentation and te
 | CSS Modules + CSS custom properties | (built-in) | Styling system | Chosen over Tailwind: Herdr's dense terminal geometry (row heights, borders, spacing, focus states) is explicit CSS agents can reason about. No original "Herdr-like" theme may be invented; tokens extracted from the pinned upstream source. No external fonts, no runtime CDN — self-contained assets |
 | IndexedDB | (platform) | Persistence | Versioned manifests, deterministic event replay; React never owns it |
 
+**Subscription boundary (user decision, 2026-11-23):** `useSyncExternalStore` is the React-to-simulation subscription seam — immutable snapshots, stable subscription identity, no state mutation during rendering. React state libraries (Zustand etc.), routers (React Router, TanStack Router, Expo), server-state caches (TanStack Query), Tailwind, shadcn/ui, and React Hook Form are **not adopted** absent a concrete requirement; the deterministic TypeScript simulation is the authoritative state owner. Runtime save validation is deferred to the persistence milestone (M3): at that point, compare Zod against explicit validation functions for versioned checkpoints and imported event journals — no validation library is installed in M2.
+
 Structure sketch (proposal): `src/core/herdr` (pure simulation) · `src/core/narrative` · `src/core/assessment` · `src/content` (levels, fictional evidence) · `src/adapters` (browser, storage, clipboard) · `src/ui` (React presentation, `herdr/` chrome components + fictional-app components separated) · `src/styles` (`tokens.css`, `typography.css`, `themes.css`, `accessibility.css`).
 
 ## Testing
