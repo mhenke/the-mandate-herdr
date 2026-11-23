@@ -1,8 +1,22 @@
 # The Mandate: Herdr
 
+![Investigator at terminal](assets/images/01-investigator-terminal.png)
+
 A keyboard-first browser political thriller set in Washington, D.C., in November 2026. Investigate a missing analyst, uncover Directive 47, and learn authentic Herdr TUI workflows.
 
 All institutions, characters, and conspiracy events are fictional. The working design targets fifteen interconnected levels across three episodes, with retention checkpoints at levels 5 and 10 and a cumulative mastery challenge at level 15.
+
+## Concept art
+
+| Episode | Image |
+|---|---|
+| — | ![Terminal](assets/images/01-investigator-terminal.png) |
+| E1 THE LEAK | ![The Leak](assets/images/02-the-leak-office.png) |
+| E2 THE CONTAINMENT | ![The Containment](assets/images/03-the-containment-investigation.png) |
+| E3 THE MANDATE | ![The Mandate](assets/images/04-the-mandate-hearing.png) |
+| — | ![Atmosphere](assets/images/05-political-thriller-atmosphere.png) |
+
+*Concept renders for tone and setting; not in-game UI. All depicted institutions are fictional.*
 
 ## Status
 
