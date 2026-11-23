@@ -206,9 +206,10 @@ the synthetic pass results and the live probe state. Accepted basis:
    hardware → OS → browser → page delivery, Chromium, delivered.
 3. The user's designation of Firefox as their default browser.
 
-**This is an acceptance decision, not a measurement.** No Firefox data exists. The consequences and
-residual risks are recorded in "Claim status" and "Supported envelope" below. Any future claim of
-a *measured* Firefox envelope (e.g., for a wider release) still requires the physical pass.
+**This is an acceptance decision, not a measurement.** No Firefox data exists. The decision is
+recorded as ADR-0005. The consequences and residual risks are recorded in "Claim status" and
+"Supported envelope" below. Any future claim of a *measured* Firefox envelope (e.g., for a wider
+release) still requires the physical pass.
 
 ## Supported envelope (published 2026-11-23, basis: user authorization above)
 
