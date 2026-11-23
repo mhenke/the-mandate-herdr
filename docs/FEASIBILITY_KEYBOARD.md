@@ -3,6 +3,12 @@
 Status: **probe built, no results.** Nothing in this document certifies browser keyboard behavior.
 Every matrix cell is `untested` until a physical-key manual pass fills it.
 
+Gate decision (user, review-gate phase): the review gate proceeds with keyboard feasibility
+unresolved; **M2 gameplay implementation stays blocked until M1 establishes a supported input
+envelope.** Initial proposed test target for the first manual pass: **Linux + Firefox + a physical
+US-layout keyboard.** This is a proposed test target, not a claim of compatibility; the matrix
+expands from measured results only.
+
 ## Purpose and scope
 
 The Mandate: Herdr depends on the player's browser delivering the keys Herdr teaches (prefix,

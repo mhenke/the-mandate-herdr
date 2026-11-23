@@ -63,8 +63,14 @@ Exit: all 15 levels complete with batch acceptance records; playtest of the W3 c
 
 ## Current blocker summary
 
-1. Skeptic full-package reconciliation (running next) — gate input.
-2. Manual keyboard pass — user action, gates M1 exit.
-3. IQ-1 staged delta — user decision, gates one optional L10 predicate.
-4. Gate-1 hold policies — parent decisions recorded at M1.
-5. No runtime performance, accessibility, or learner-retention evidence exists yet — all are M3/M4 gates, not current claims.
+1. Skeptic full-package reconciliation (running) — gate input.
+2. Manual keyboard pass — user action, gates M1 exit; initial proposed target Linux + Firefox + US-layout keyboard.
+3. Gate-1 hold policies — parent decisions recorded at M1.
+4. No runtime performance, accessibility, or learner-retention evidence exists yet — all are M3/M4 gates, not current claims.
+
+## Review-gate decisions recorded (user)
+
+1. **IQ-1 approved as optional evidence**: stage its Nov 17 release, reconcile across BIBLE/ARC/NARRATIVE_DESIGN/LEVEL, preserve L10 checkpoint purity — available before L10, examinable during L10, never required for retention scoring, existing common-root proof requirements unchanged, optional discovery recorded in the knowledge ledger without becoming an E3 prerequisite.
+2. **Keyboard certification pending**: M0 proceeds unresolved; no manual-pass labels inferred from synthetic tests; Linux + Firefox + US-layout keyboard is the initial proposed test target; M2 blocked until M1 is accepted.
+3. **Milestone structure accepted for review** — not an authorization for gameplay implementation. M1 is the next authorized work after M0 approval, subject to the same boundary; M2 requires separate approval.
+4. **L15 detach/reattach must be validated as an authentic Herdr workflow** — a simulated page reload is never credited as a Herdr detach/reattach action (consistent with ARCHITECTURE §Fidelity and FIDELITY presentation-safety rules).
