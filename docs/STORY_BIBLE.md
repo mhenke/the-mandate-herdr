@@ -40,11 +40,15 @@ The guidance is lawful and reasonable at volume — but it counts faces, not roo
 
 **The count.** EIAB Rule E-3 intake applies IG-E3-02: R-1 (Nov 10) + R-3 (Nov 13) + R-2 (Nov 14) = three distinct receipt paths, overlapping indicators, no shared origin on faces → finding F-47-E3 (Nov 14, 16:00) → extraordinary package recommended → Board vote Nov 24. Remove any one report and the count falls to two: no finding. The player's VN-12 is the third received — the counterfactual is material (see revision audit in STORY_ARC).
 
-**Fair-play receipt artifact (no late gotcha).** The moment the player files VN-12 (L4), the fiction returns intake receipt INT-RECEIPT-12 on screen, kept in the player's file thereafter:
+**Fair-play receipt artifacts (no late gotcha), in two parts.** The moment the player files VN-12 (L4, Nov 13 19:05), the fiction returns submission acknowledgment SUB-ACK-12 on screen, kept in the player's file thereafter:
 
-> INT-RECEIPT-12 — R-2 accepted 11/14 09:00. Basis metadata: ORIGIN-EVENT-ID: [blank — optional field]. Counting status: independent pending verification. Retraction receivable at any time. — EIAB Intake
+> SUB-ACK-12 — VN-12 received 11/13 19:05. Basis metadata: ORIGIN-EVENT-ID: [blank — optional field]. Retraction receivable at any time. Counting review at next intake cycle. — EIAB Intake
 
-The blank, the presumption, and the retraction right are visible *before* any reveal. L7 re-reads this same receipt with new understanding — reinterpretation, not ambush.
+The blank and the retraction right are visible *before* any reveal. At the next intake cycle (Nov 14 09:00) the accepted intake receipt INT-RECEIPT-12 (= dispatch receipt DR-2) arrives in morning paperwork (L5), adding the counting line:
+
+> INT-RECEIPT-12 — R-2 accepted 11/14 09:00. Counting status: independent pending verification. — EIAB Intake
+
+L7 re-reads the accepted receipt with new understanding — reinterpretation, not ambush.
 
 **Genuine event vs false independence (repeated in-fiction):** the scan happened; the patch is deserved; standard measures continue. What is false is that three reports are three sightings. Proving common source must never imply "no threat" — the ending keeps standard measures running while rejecting only the extraordinary package.
 
@@ -83,7 +87,7 @@ The blank, the presumption, and the retraction right are visible *before* any re
 - **Nov 10, 09:12:** Vendor signs VT-1109-0214 (origin retained). **14:05:** EIAB intake → R-1 (receipt DR-1).
 - **Nov 10, 22:30:** SOC memo UM-1109-88 written. **Nov 11, 11:20:** shared with cooperative (Quill; headers stripped in shared PDF).
 - **Nov 12, 10:00:** Vane signs M-47-FWD-03. **11:00:** CONTINUITY-FWD profile active. **15:40:** OCC forwards ticket copy via stripped profile. **Nov 13, 08:20:** EIAB intake → R-3 (receipt DR-3).
-- **Nov 12–13:** Player assignment (L1–L3). **Nov 13, 19:05:** player files VN-12 (origin blank). **Nov 14, 09:00:** EIAB intake → R-2 (receipt DR-2 = INT-RECEIPT-12).
+- **Nov 12–13:** Player assignment (L1–L3). **Nov 13, 19:05:** player files VN-12 (origin blank); SUB-ACK-12 returned same night. **Nov 14, 09:00:** EIAB intake → R-2 (receipt DR-2 = INT-RECEIPT-12, delivered in L5 morning paperwork).
 - **Nov 14, 16:00:** EIAB finding F-47-E3 (R-1+R-2+R-3) → extraordinary package recommended. Board vote set Nov 24.
 - **Nov 15, 10:30:** Ellison files Q-118. **Nov 16, 09:00:** directed leave + credential suspension effective; her final desk log entry (opening line): *"The vote wasn't the target. The response was. Find Directive 47 before they certify the emergency."* **Nov 16, 13:15:** BCR personal-paper lodging C-1, receipted.
 - **Nov 21:** Counsel relays Ellison's lodging index. **Nov 24, 08:00:** counter-provenance filing due. **10:00:** hearing and vote.
@@ -99,7 +103,8 @@ No box moves, no renewals, no 72-hour chaining apparatus — deleted as non-load
 | UM-1109-88 | SOC memo | Campus SOC → cooperative (Quill) | Accurate observation, same event | Written Nov 10 22:30; shared Nov 11 11:20 | Second vantage on same event. NOT independence by itself. |
 | SM-1 | SOC sent-mail + headers | SOC mail store, Quill interview via counsel | Authenticates shared PDF against SOC original by comparison (not truth, not tamper-proof) | Nov 11 11:20 | Shows when/what shared. Content truth comes from VT + logs. |
 | VN-12 | Player verifier note | Player → EIAB | Accurate banner reading; origin blank (form default) | Filed Nov 13 19:05; intake Nov 14 09:00 | Player's causal role. Retractable anytime. |
-| INT-RECEIPT-12 | Intake receipt for VN-12 | EIAB intake → player file | Accurate as receipt | Nov 14 09:00 | Fair-play artifact: blank origin + "independent pending verification" visible pre-reveal. |
+| SUB-ACK-12 | Submission acknowledgment for VN-12 | EIAB intake → player file (same-night return) | Accurate as receipt | Nov 13 19:05 | Fair-play clue part 1: blank origin + retraction right visible at filing, pre-reveal. Shows nothing about counting (that comes next cycle). |
+| INT-RECEIPT-12 | Accepted intake receipt for VN-12 (= DR-2) | EIAB intake → player file (morning paperwork) | Accurate as receipt | Nov 14 09:00 | Fair-play clue part 2: "independent pending verification" counting line. Re-read target at L7. |
 | M-47-FWD-03 | Forwarding memo (Vane-signed) | OCC file → obtained by request | Accurate as order text | Signed Nov 12 10:00; active 11:00 | Who authorized stripping + stated reason. Effect shown by profile diff + DR-3, not memo alone. |
 | DR-1/DR-2/DR-3 | Dispatch receipts | EIAB intake log + OPCI mirror | Accurate receipt record | Nov 10 / Nov 14 / Nov 13 | Three paths + timestamps. NOT independence — that's the trap. |
 | R-1/R-2/R-3 | EIAB designations | EIAB intake | Content accurate; R-2/R-3 origin blank | On intake | What the rule counted. |
@@ -115,8 +120,9 @@ Comparison discipline: hashes and signatures authenticate a copy against a trust
 
 ## 8. Knowledge ledger
 
-- After E1: a real scan happened; you verified part of it; your note went onward (you don't yet know it was counted). INT-RECEIPT-12 sits in your file, its "pending verification" line not yet understood.
-- After L7: EIAB counted three reports; your note is R-2 (reinterpretation of the receipt).
+- After E1 (L1–L5, Nov 12–14): a real scan happened; you verified part of it; your note was submitted (SUB-ACK-12 in hand at L4; the accepted receipt arrives with L5 morning paperwork, its counting line not yet understood). You have heard of no analyst and no query — Ellison files Q-118 on Nov 15, after E1 closes.
+- After L6 (Nov 16): leave/personnel order for Ellison posts as new paperwork alongside F-47-E3 — "asked a question and was removed" lands here, not in E1. Q-118's content becomes readable at L6 via the mirror.
+- After L7: EIAB counted three reports; your note is R-2 (reinterpretation of the accepted receipt).
 - After L9: R-3 is R-1's twin (shared `LT-47B` + truncation artifact); profile + memo exist.
 - After L11: full D-47 §4 + IG-E3-02 — the law demands genuine independence; the guidance presumed it from faces. The fight is provenance, not authority text.
 - After L13: Ellison's lodging index via counsel; she is on leave and credential-barred, not hiding, not a puzzle.
@@ -134,11 +140,11 @@ No choice locks content. Failure is procedural and re-triable (cure-and-refile; 
 
 ## 10. Ending (resolves architects and human costs)
 
-At the Nov 24 hearing the Board finds the counter-provenance filing meets the two-source rule: R-1/R-2/R-3 share EVT-1109-A (vendor signature + SOC headers + dispatch receipts + profile diff + retraction). It rejects the extraordinary package and continues standard measures (advisory stands, patch verified, monitoring extended 30 days). On the record: Vane's M-47-FWD-03 caused false independence (conduct referral; reassignment — stated); Okafor implemented a written order (retraining, no misconduct — stated); Cole counseled + assigned IG-E3-03 revision (stated); Ellison's leave lifted with back-crediting, testifies as custodian of Q-118; Park's termination stayed contingent on completed remediation (self-report credited); Quill's confidentiality holds unless the player exposed them in L4 (then the cooperative funds counsel — cost shown). The player reads the retraction aloud, is attested as corroborating verifier, and takes the credit hit. Final card reflects all five choices. The only open item is policy homework, not mystery: EIAB's rulemaking review of face-counting.
+At the Nov 24 hearing — held from a separate hearing-room client the player must move to mid-level — the Board finds the counter-provenance filing meets the two-source rule: R-1/R-2/R-3 share EVT-1109-A (vendor signature + SOC headers + dispatch receipts + profile diff + retraction). It rejects the extraordinary package and continues standard measures (advisory stands, patch verified, monitoring extended 30 days). On the record: Vane's M-47-FWD-03 caused false independence (conduct referral; reassignment — stated); Okafor implemented a written order (retraining, no misconduct — stated); Cole counseled + assigned IG-E3-03 revision (stated); Ellison's leave lifted with back-crediting, testifies as custodian of Q-118; Park's termination stayed contingent on completed remediation (self-report credited); Quill's confidentiality holds unless the player exposed them in L4 (then the cooperative funds counsel — cost shown). The player reads the retraction aloud, is attested as corroborating verifier, and takes the credit hit. Final card reflects all five choices. The only open item is policy homework, not mystery: EIAB's rulemaking review of face-counting.
 
 ## 11. Lexicon
 
-Use: verification, provenance, corroboration, retraction, receipt path, originating event, derivative report, rebuttal, finding aid. Avoid: hack, breach (cyber sense), decrypt, backdoor, mole, double-cross, stolen election, rigged. The crisis is a provenance dispute inside a real-but-minor incident — not a cyberattack, not a vote-tampering claim.
+Use: verification, provenance, corroboration, retraction, receipt path, originating event, derivative report, rebuttal. Avoid: hack, breach (cyber sense), decrypt, backdoor, mole, double-cross, stolen election, rigged. The crisis is a provenance dispute inside a real-but-minor incident — not a cyberattack, not a vote-tampering claim.
 
 ## 12. Explicitly out
 
