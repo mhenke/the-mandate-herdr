@@ -4,6 +4,8 @@
 
 Work is restricted to research and design documents. Gameplay code, application scaffolding, and dependency installation require explicit user approval after the review gate.
 
+Authorized exception: the isolated keyboard feasibility probe (architecture Gate 1). One static HTML page under `feasibility/` with no dependencies, no build step, and no gameplay content, plus a method-and-results report at `docs/FEASIBILITY_KEYBOARD.md`. It is a diagnostic harness, not a product start; nothing from it migrates into an application without post-review-gate approval.
+
 ## Behavioral authority
 
 Before specifying interface behavior, read `docs/HERDR_RESEARCH.md` and `docs/HERDR_FIDELITY.md`. Verify claims against the pinned upstream commit. If these documents are not available, research the official documentation and source first.
