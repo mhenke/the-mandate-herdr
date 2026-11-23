@@ -30,6 +30,8 @@ Exit criteria additions from the technology decisions:
 3. CI workflow green: typecheck, lint (incl. Stylelint), tests incl. fast-check properties, Playwright smoke + visual + axe-core floor, Knip + fallow baselines; Actions pinned to SHAs; branch protection with required checks configured.
 4. React render purity demonstrated: strict-mode development runs with zero side-effecting renders (no story advance, keybinding record, or level evaluation from a re-render).
 5. Both Escape paths tested: authentic Herdr Escape inside the simulated TUI, and the separate external release control reachable/activatable by keyboard without entering the Herdr input path.
+6. **Real e2e suite, not an empty one (user, 2026-11-23).** Green CI does not establish gameplay quality: the current `--pass-with-no-tests` path is acceptable only during scaffolding. At slice integration the flag is removed and the e2e job must run genuine L1–L3 browser tests (keyboard delivery, visual comparison, accessibility floor, objective provenance). An empty or trivially-passing e2e suite fails the M2 exit review.
+7. **Visual baseline provenance (user, 2026-11-23).** Every upstream baseline must be captured from the real pinned Herdr binary (`e8d7d9705a7a2c89cef4dd42079379f05685af87`, 0.9.5) — never a reconstructed illustration — and its manifest must record: upstream commit, terminal dimensions (rows/cols and pixel size), font family+size, theme/colors, the terminal configuration used, and the exact interface state (which keys produced it). These baselines are the visual authority for the React implementation; the illustrative images in `assets/reference/` remain non-authority.
 
 ## Milestone 3 — full content (on M2 acceptance)
 

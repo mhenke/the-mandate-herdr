@@ -35,6 +35,8 @@ The contract for any coding agent modifying this repository. It exists because T
 
 ### Boundaries between pstack and this repository's rules
 
+**Adoption restraint (user, 2026-11-23):** do not begin using the full pstack skill set merely because it is documented. Only workflows verified per harness are used as automation; the verification log above records what actually functions under OpenCode, OMP, and Antigravity. Where a Cursor-specific capability does not exist in the running harness, agents use the skill **instructions only** and must never claim the automation executed. pstack skills are invoked when the task matches their purpose, not as a completeness exercise.
+
 pstack never overrides the repo's own authorities. In any conflict, this order wins:
 
 1. Herdr fidelity contracts (`HERDR_FIDELITY.md`, `HERDR_RESEARCH.md`) — pstack skills may not repurpose bindings or invent behavior to satisfy a playbook step.
@@ -70,7 +72,7 @@ pstack's model-role configuration (`/setup-pstack`) may be used to map its roles
 
 ## Parallel agents
 
-Parallel agents must own separate modules or separate worktrees with one named integrator responsible for reconciliation. Worktrees follow the project convention: created under **`.worktrees/`** (git-ignored) as `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`, one branch per lane, merged back to main by the integrator. Two agents must never edit the same file concurrently; when lanes would touch a shared file (contracts, glossary, story canon), the integrator serializes the edits and reconciles dependents. Agents do not approve their own work; the integrator (or the user at milestone gates) owns acceptance.
+Parallel agents must follow **one task, one branch, one worktree**: worktrees created under **`.worktrees/`** (git-ignored) as `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`, one branch per lane. All changes are submitted through pull requests; **direct commits to protected `main` are prohibited** (branch protection enforces this technically). Worktree cleanup happens only after the lane's PR merges or on explicitly abandoned work. Two agents must never edit the same file concurrently; when lanes would touch a shared file (contracts, glossary, story canon), the integrator serializes the edits and reconciles dependents. Agents do not approve their own work; the integrator (or the user at milestone gates) owns acceptance. The integrator verifies, before merging any pre-convention lane, that it did not modify files outside its declared scope or overlap another lane's files.
 
 ## Exploration tools
 
