@@ -2,56 +2,36 @@
 
 Status: proposal for review. No implementation is authorized; this plan defines what authorization would cover, in what order, and what each milestone must prove. Milestones map to the gates in `docs/ARCHITECTURE.md` §Gates; level content comes from `docs/LEVEL.md`; teaching claims are bounded by `docs/HERDR_FIDELITY.md` and `docs/HERDR_RESEARCH.md`.
 
-## Milestone 0 — review gate (this document's exit)
+## Milestone 0 — review gate — **APPROVED** (user decision)
 
-Deliverable: the review-gate report and the user's approval decision. Inputs already on the repo: research baseline, fidelity contracts, architecture, learning design, story trio, ADRs 1–3, LEVEL.md, feasibility skeleton. Outstanding inputs at gate time:
+The user approved M0 with recorded decisions (see "Review-gate decisions recorded" below). The reconciliation audit's seven blockers were fixed and verified (`10199ad`); the report is `docs/REVIEW_GATE.md`. No narrative reopening without a concrete new finding.
 
-1. Full-package reconciliation audit (skeptic) over all documents — narrative consistency, curriculum traceability, fidelity violations, cross-document contradictions. (Audit delivered; blocker fixes in progress — see the review-gate report.)
-2. The manual keyboard pass, or an explicit user decision to gate shipping on "untested" (see M1). (Decision recorded: gate proceeds unresolved; M2 blocked until M1.)
-3. Staged deltas: IQ-1 decision recorded (approved optional evidence, reconciled).
+## Milestone 1 — feasibility — **authorized, in progress**
 
-Acceptance: user approves (or amends) scope, story, curriculum, and the feasibility-first sequencing. Approval of M0 authorizes M1 only — not gameplay content.
+Scope (user-approved): 18-item checklist documentation (physical-key observations come from the user only; synthetic results non-certifying), capture-release and pending-prefix cancellation policies, clipboard-failure behavior and its assessment impact, completion or explicit resolution of the outstanding fidelity-audit dimensions, published supported envelope with limitations and blocked lessons, updated gate documents with per-criterion evidence. **Explicitly excluded: application scaffolding, gameplay implementation, the L1–L3 vertical slice.**
 
-## Milestone 1 — feasibility (authorized probe exists; expansion on approval)
+Progress: probe extended to 18 chords (self-test 9/9); synthetic pass recorded (non-certifying); fidelity-audit dimensions completed (close-pane chain, help-listed bindings, chrome rows, Yazi citations, web citations verified; copy-mode command-char rule verified); hold-policy and clipboard-failure sections drafted pending the physical pass.
 
-Already done: `feasibility/keyboard-probe.html` (self-tested 9/9, zero external references) and `docs/FEASIBILITY_KEYBOARD.md` skeleton. Remaining:
+Remaining: the user's manual pass on Linux + Firefox + US layout; hold-policy decisions recorded from its results; the published envelope (or its narrowed form).
 
-1. Manual physical-key pass per browser/OS/layout the user intends to support; results filled into the matrix. Certifying.
-2. Synthetic pass (parent-run, non-certifying) recorded as such.
-3. Gate-1 hold-policy decisions: pending-prefix on host blur (void-vs-queue), capture-release affordance, clipboard failure behavior.
-4. Decision rule: any taught chord that cannot be delivered on the chosen envelope narrows the envelope (explicitly approved) or blocks its lessons — never a replacement binding.
+## Milestone 2 — vertical slice (requires separate approval)
 
-Exit: published support envelope + hold policy, recorded in FEASIBILITY_KEYBOARD.md and FIDELITY unresolved-items resolution notes.
+Scope: L1–L3 only (per LEVEL.md contracts), in-memory attempt, no settings surface — and the first dependency installation with the exact TECH_STACK versions (React 19.3.1, TS 5.9.3 strict, Vite 8.3.8, Vitest 5.1.1, fast-check, Playwright, ESLint stack, pnpm 12.23.0 pinned, Node 22.12+, lockfile committed).
 
-## Milestone 2 — vertical slice (on M1 exit + explicit approval)
+Exit criteria additions from the technology decisions:
 
-Scope: the smallest playable cut — L1–L3 only (per LEVEL.md contracts), no saves yet beyond an in-memory attempt, no settings surface.
-
-1. Simulation core: pinned Herdr model subset (workspace/tab/pane/split-tree, prefix state machine, focus geometry, fictional pane apps for assignment/memo/transcript), typed transitions, ordered loop, narrative/assessment observers — per ARCHITECTURE boundaries.
-2. Presentation: chrome projection (tab row, mode bar in bottom pane area, zoom pill), capture context state machine, external controls, transcript.
-3. Assessment: L1–L3 predicates with three-evidence-kind provenance; assisted/independent recording.
-4. Tests: fixture tests per cited FIDELITY row; determinism (same events → same state); replay without host effects; adversarial checks (completion click, fixture credit, scripted focus cannot satisfy objectives).
-
-Exit: L1–L3 playable end-to-end on the M1 envelope with all L1–L3 predicates passing and zero dropped/misrouted keys in the input corpus.
+1. Boundary enforcement live: ESLint import rules + bare-Node core import test prove `src/core/*` has zero React/DOM/adapter imports.
+2. Visual baselines captured from the pinned upstream Herdr build for the taught interface states; visual regression running with the acceptance rule (screenshot evidence for CSS changes; justified baseline updates only).
+3. CI workflow green: typecheck, lint (incl. Stylelint), tests incl. fast-check properties, Playwright smoke + visual + axe-core floor, Knip + fallow baselines; Actions pinned to SHAs; branch protection with required checks configured.
+4. React render purity demonstrated: strict-mode development runs with zero side-effecting renders (no story advance, keybinding record, or level evaluation from a re-render).
 
 ## Milestone 3 — full content (on M2 acceptance)
 
-Scope: L4–L15 per LEVEL.md, in episode batches (L4–L7, L8–L10, L11–L13, L14–L15), plus:
-
-1. Persistence: IndexedDB checkpoints + event journal, versioned manifests, import/export validation (ARCHITECTURE §Persistence).
-2. Settings: reduced motion, announcement policy, transcript, capture release — accessibility requirements from ARCHITECTURE §Presentation.
-3. Checkpoint levels L5/L10 exactly per contract (no new skills, tier-0 start, deficiency-retry).
-4. L15: five scored subtasks + hearing-room detach/reattach per the detach contract; disclosure never passes alone.
-5. Content gates per batch: fidelity fixtures green, story triggers idempotent/re-entrant, dates and knowledge gates match the ARC table.
-
-Exit: all 15 levels complete with batch acceptance records; playtest of the W3 correction-notice staging and L9 copy-artifact readability (ARC weaknesses carried into contracts).
+As before (episode batches, persistence, settings, checkpoints, L15), plus: visual regression across all chrome states; axe-core checks per batch; StrykerJS remains scheduled/manual report-only until thresholds are earned; AGENT_WORKFLOW contract enforced in every batch's review.
 
 ## Milestone 4 — release validation
 
-1. Accessibility: manual screen-reader, keyboard-only, reduced-motion, 200% zoom, capture-escape walks on the published envelope; results recorded.
-2. Performance budgets measured on named hardware and the worst-case scene (ARCHITECTURE §Deployment): input latency, zero lost/duplicate/misrouted actions, render long tasks, persistence latency, import/replay bounds.
-3. Learner study: novice playtest + delayed fresh-task retrieval (LEARNING_DESIGN §Validation) — honest per-skill reporting, no opaque mastery claim.
-4. Release record: pinned upstream commit, fidelity profile, supported envelope, known limitations, license/attribution notes (ADR-0002).
+As before (manual accessibility audits, performance budgets, learner study, release record), plus: mutation-score evidence for `src/core/*` at whatever threshold the report-only history earned; dependency-security posture documented (Dependabot history, pinned SHAs audit).
 
 ## Standing constraints across all milestones
 

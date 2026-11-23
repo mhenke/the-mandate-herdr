@@ -9,7 +9,7 @@ The game must teach Herdr deterministically, replayably, and around fictional st
 ## Considered options
 
 - **A. Browser simulation (chosen).** Deterministic state transitions implement the contracts recorded in `docs/HERDR_FIDELITY.md`; fictional pane applications carry the story. Static deployment, no backend, replayable action evidence.
-- **B. Same simulation with a framework presentation** (e.g. React). Viable later if presentation complexity earns it; not needed now.
+- **B. Same simulation with a framework presentation** (e.g. React). Viable later if presentation complexity earns it; not needed now. **Update:** selected in ADR-0004.
 - **C. Live Herdr behind a backend (rejected).** Real upstream behavior, but real processes per player, nondeterministic timing, no replay guarantee, and the browser/host interception problem remains unsolved — it adds a second problem instead of fixing the first.
 
 ## Consequences

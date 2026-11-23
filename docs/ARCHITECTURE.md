@@ -1,16 +1,16 @@
 # Architecture
 
-Status: proposed, not approved. No gameplay, scaffolding, dependencies, or feasibility prototype is authorized by this document.
+Status: proposed, refined by M0 approval and the technology selection (ADR-0004). No gameplay content beyond the authorized milestones exists; dependency installation awaits M2 approval.
 
 ## Decision and alternatives
 
-Recommend a static HTTPS browser application with a deterministic simulation core and semantic DOM presentation. TypeScript is proposed for domain contracts. No framework is selected or installed.
+Recommend a static HTTPS browser application with a deterministic simulation core. **Presentation is React 19 with CSS Modules and CSS custom properties** (selected per ADR-0004, replacing the earlier "native DOM first, React not required" default): React renders committed view models and owns no authoritative simulation, narrative, or assessment state. TypeScript 5.9 strict supplies domain contracts. A feasibility study remains a gate before content implementation (M1); no browser/OS/layout/assistive-technology combination is verified as supported.
 
 | Alternative | Benefits | Costs and decision |
 |---|---|---|
-| Pure simulation plus native DOM | Small runtime surface; direct input/focus control; static deployment; reproducible tests | Requires explicit fidelity modeling and careful rendering. Proposed starting point. |
-| Same core plus React presentation | Declarative components if presentation complexity earns them | Adds dependencies and potential competing component state. Viable alternative, not required. React rendering must remain pure [B12]. |
-| Browser terminal connected to live Herdr | Uses upstream behavior rather than reproducing it | Requires backend PTY isolation, authentication, process cleanup, resource limits, and nondeterministic coordination. Browser interception still applies. Reject for initial scope. |
+| Pure simulation core with React presentation | Declarative chrome projection; deterministic core testable in bare Node | Selected (ADR-0004). The core must not import React or browser APIs — enforced by ESLint import boundaries plus a bare-Node import test, not convention |
+| Same core with native DOM presentation | Smallest runtime surface | Superseded as the default; remains a fallback if React's machinery demonstrably harms fidelity or performance |
+| Browser terminal connected to live Herdr | Uses upstream behavior rather than reproducing it | Requires backend PTY isolation, authentication, process cleanup, resource limits, and nondeterministic coordination; browser interception still applies. Reject for initial scope |
 
 A terminal emulator interprets terminal sequences. It does not implement Herdr workspaces, modes, focus, agent detection, or lifecycle. A canvas, WASM terminal, or desktop wrapper does not automatically solve fidelity or host-key interception.
 
@@ -144,7 +144,15 @@ Confirm before overwriting progress. Checksums detect accidental corruption, not
 
 ## Deployment, measurement, and upgrades
 
-Propose self-contained static HTTPS assets, without accounts, analytics, backend, cloud saves, service workers, external fonts, or runtime CDNs. Keep active-run assets and content/rules on compatible version manifests.
+Delivery is static, self-contained assets over HTTPS on **GitHub Pages via GitHub Actions**, after required validation gates (M1 envelope for slices, M3/M4 gates for content releases). No accounts, analytics, backend, cloud saves, service workers, external fonts, or runtime CDNs. Keep active-run assets and content/rules on compatible version manifests.
+
+### Engineering enforcement (added with the technology selection)
+
+- **Boundary enforcement:** ESLint import restrictions plus a bare-Node import test prove `src/core/*` runs without React, DOM, or adapters — TypeScript interfaces alone do not stop an agent from violating the state-ownership table above.
+- **Visual regression:** Playwright screenshot comparisons with fixed viewports, seeded states, deterministic fonts. Interface baselines are captured from a real build of the pinned upstream Herdr (M2) and pinned with their commit; the illustrative images in `assets/reference/` (a community fork, a third-party product) are never baselines or authority. A baseline update requires recorded justification and reviewer sign-off.
+- **Automated accessibility floor:** @axe-core/playwright in the Playwright runs; a floor that never substitutes for the manual audits in the presentation section.
+- **CI gates and dependency security:** typecheck, lint (ESLint + Stylelint + Prettier), unit/property tests, Playwright smoke + visual, Knip + fallow with recorded baselines, vulnerability gate, Dependabot, Actions pinned to immutable SHAs, branch protection with required checks. StrykerJS runs scheduled/manual in report-only mode first (policy in TECH_STACK).
+- **Agent workflow:** `docs/AGENT_WORKFLOW.md` is the contract for agent contributions; its prohibitions are review failures.
 
 No runtime performance was measured. After authorization, establish budgets on named hardware and a worst-case scene: input-transition latency, dropped/duplicate/misrouted actions, render long tasks with effects/zoom/transcript, output/log growth, persistence latency, and bounded import/replay.
 

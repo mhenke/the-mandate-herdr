@@ -2,9 +2,17 @@
 
 ## Current gate
 
-Work is restricted to research and design documents. Gameplay code, application scaffolding, and dependency installation require explicit user approval after the review gate.
+**M0 approved; M1 (feasibility) authorized and in progress.** M1 scope and exclusions are recorded in `docs/IMPLEMENTATION_PLAN.md` — no application scaffolding, gameplay implementation, or dependency installation until M2 is explicitly approved. The technology stack is selected and documented in `docs/TECH_STACK.md` (React 19 presentation, deterministic framework-independent core); selection is not installation.
 
-Authorized exception: the isolated keyboard feasibility probe (architecture Gate 1). One static HTML page under `feasibility/` with no dependencies, no build step, and no gameplay content, plus a method-and-results report at `docs/FEASIBILITY_KEYBOARD.md`. It is a diagnostic harness, not a product start; nothing from it migrates into an application without post-review-gate approval.
+## Agent workflow
+
+`docs/AGENT_WORKFLOW.md` is the binding contract for agent contributions: understand → scope → implement → verify → inspect (screenshots for presentation changes) → review (independent for fidelity/assessment-sensitive changes) → report with commands and exit statuses. Its prohibitions (contract tampering, silent snapshot updates, weakened assertions, generated-artifact commits, authority leakage into React) are review failures.
+
+**Engineering skill system:** [pstack](https://github.com/cursor/plugins/tree/main/pstack) (official Cursor plugin, MIT) is the preferred skill system for substantial coding tasks — `poteto-mode` selects playbooks; `architect`, `tdd`, `interrogate`, `blast-radius`, `typescript-best-practices`, and the verification skills are prioritized; the visual-parity playbook is mandatory for Herdr UI layout changes; a project-specific verification skill is created once M2 produces a runnable application. pstack is referenced, never vendored. Harness status: the project is developed with **OpenCode, OMP, and Antigravity (agy)** — none of which has a documented pstack adapter, so **compatibility is unverified and must be tested per harness before any agent relies on its automation**; until then agents read the `SKILL.md` files as instructions. Cursor and Claude Code remain the officially documented pstack harnesses. obra/superpowers is excluded entirely (no dependency, submodule, skill collection, or recommended workflow). pstack never overrides the Herdr fidelity contracts, milestone approvals, or this file's prohibitions.
+
+## Stack boundaries (enforced, not convention)
+
+`src/core/herdr` (pure simulation) must not import React, DOM APIs, adapters, or own narrative/assessment state; `src/core/narrative` and `src/core/assessment` observe committed facts and never own Herdr state; `src/ui` renders committed view models and never mutates simulation state. ESLint import rules plus a bare-Node core import test enforce this. React Strict Mode and `eslint-plugin-react-hooks` recommended rules are required configuration. Graphify is a local exploration aid, never a runtime dependency or architectural authority.
 
 ## Behavioral authority
 
