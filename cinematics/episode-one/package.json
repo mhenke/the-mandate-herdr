@@ -1,0 +1,17 @@
+{
+  "name": "episode-one",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Mandate — Episode I cold-open cinematic (HyperFrames POC)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check": "npx --no-install hyperframes@0.9.86 check",
+    "snapshot": "npx --no-install hyperframes@0.9.86 snapshot",
+    "render": "npx --no-install hyperframes@0.9.86 render",
+    "timeline": "npx --no-install hyperframes@0.9.86 timeline --json"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "hyperframes": "0.9.86"
+  }
+}

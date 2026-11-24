@@ -1,0 +1,20 @@
+THE MANDATE — MISSION OUTRO 03: FIVE MINUTES
+Mission Outro Transcript (20s Documentary Cut)
+Setting: Washington D.C. — November 13, 2026 // 03:15 EST
+
+[00:00:00.200] THE MANDATE // INVESTIGATION RECORD — MISSION 03
+[00:00:01.000] Case File: EVT-1109-A // Technical Interview Record
+Subject: Theo Park — Night Systems Technician, Vendor NOC
+Consent State: Recorded with Informed Consent · Transcript Logged
+Finding: Event Confirmed Firsthand · Origin Floor Established
+Status: Story Floor Verified (ARCHIVAL RECORD: EVT-1109-A / PARK-01)
+
+[00:00:04.800] THEO PARK (SWORN STATEMENT // TICKET VT-1109-0214):
+"It was not an attack. Script LT-47B misfired against our staging demo portal for five minutes. I documented and logged it myself on ticket VT-1109-0214."
+Target: demo.vendor.internal · Window: 21:47 — 21:52 EST · Duration: 5 minutes (300s)
+Ground Truth: EVT-1109-A Real & Owned · No systemic breach · Demo environment only.
+
+[00:00:12.300] JUNE ADEBAYO (COOPERATIVE DESK FEED // SECURE DISPATCH):
+"Theo Park's statement holds: script LT-47B, five minutes, demo portal only. Draft Verifier Note VN-12 before tonight's 19:00 intake closes. Do not contact the vendor again."
+Next Objective: L4 // File Note VN-12
+[Mission 03 Complete · Proceed to Workspace]

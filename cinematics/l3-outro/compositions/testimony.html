@@ -1,0 +1,132 @@
+<template>
+  <style>
+    #root-testimony {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      background: radial-gradient(circle at 50% 50%, #070d17 0%, #020407 100%);
+      color: #f0f4f8;
+      font-family: "JetBrains Mono", monospace;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .grid-backdrop {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(143, 163, 180, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(143, 163, 180, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .testimony-card {
+      position: relative;
+      width: 1260px;
+      padding: 48px 56px;
+      background: rgba(9, 14, 22, 0.96);
+      border: 1px solid rgba(137, 180, 250, 0.3);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(137, 180, 250, 0.18);
+      padding-bottom: 14px;
+      margin-bottom: 26px;
+    }
+    .source-label {
+      color: #89b4fa;
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .ticket-ref {
+      color: #cf9b52;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    .quote-block {
+      font-family: "Oswald", sans-serif;
+      font-size: 36px;
+      line-height: 1.45;
+      color: #f0f4f8;
+      margin-bottom: 34px;
+      letter-spacing: 0.02em;
+    }
+    .quote-block span.highlight {
+      color: #cf9b52;
+    }
+    .technical-specs {
+      display: flex;
+      gap: 36px;
+      padding: 16px 20px;
+      background: rgba(2, 4, 7, 0.65);
+      border: 1px solid rgba(143, 163, 180, 0.16);
+      margin-bottom: 28px;
+      font-size: 18px;
+    }
+    .spec-item {
+      color: #8c9ba8;
+    }
+    .spec-item strong {
+      color: #f0f4f8;
+      font-weight: 500;
+    }
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(143, 163, 180, 0.14);
+      padding-top: 16px;
+      font-size: 15px;
+      color: #8c9ba8;
+    }
+    .cert-tag {
+      color: #89b4fa;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  </style>
+  <div id="root-testimony" data-composition-id="scene-testimony" data-width="1920" data-height="1080">
+    <div class="grid-backdrop" data-layout-ignore></div>
+    <div class="testimony-card" id="card-testimony" data-hold>
+      <div class="header-row">
+        <span class="source-label" data-layout-ignore>Sworn Statement // Theo Park</span>
+        <span class="ticket-ref" data-layout-ignore>SIGNED LOG: VT-1109-0214</span>
+      </div>
+      <div class="quote-block">
+        "It was not an attack. Script <span class="highlight">LT-47B</span> misfired against our staging demo portal for five minutes. 
+        I documented and logged it myself on ticket VT-1109-0214."
+      </div>
+      <div class="technical-specs" data-layout-ignore>
+        <div class="spec-item">SCRIPT ID: <strong>LT-47B</strong></div>
+        <div class="spec-item">TARGET: <strong>DEMO.VENDOR.INTERNAL</strong></div>
+        <div class="spec-item">WINDOW: <strong>21:47 — 21:52 EST</strong></div>
+        <div class="spec-item">DURATION: <strong>5 MINUTES</strong></div>
+      </div>
+      <div class="footer-row">
+        <span class="cert-tag" data-layout-ignore>GROUND TRUTH: EVT-1109-A REAL & OWNED</span>
+        <span data-layout-ignore>NO SYSTEMIC BREACH // DEMO ENVIRONMENT ONLY</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo(
+        "#card-testimony",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        0.1,
+      );
+      tl.to("#card-testimony", { opacity: 0, duration: 0.35, ease: "power2.in" }, 7.15);
+      window.__timelines["scene-testimony"] = tl;
+    })();
+  </script>
+</template>

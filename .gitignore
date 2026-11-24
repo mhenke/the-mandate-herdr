@@ -1,6 +1,8 @@
 coverage/
 dist/
 node_modules/
+**/node_modules
+**/node_modules/
 .playwright-mcp/
 playwright-report/
 .stryker-tmp/
@@ -8,3 +10,7 @@ test-results/
 the-mandate-concept-art.zip
 *.tsbuildinfo
 .worktrees/
+.claude/
+**/.hyperframes/
+**/.thumbnails/
+**/renders/

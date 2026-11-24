@@ -1,0 +1,76 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .cap {
+      position: absolute;
+      left: 0;
+      bottom: 60px;
+      width: 1920px;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .cap-inner {
+      font-family: var(--font-mono);
+      font-size: 30px;
+      line-height: 1.4;
+      letter-spacing: 0.04em;
+      color: #e8edf2;
+      background: rgba(4, 6, 10, 0.62);
+      border-radius: 6px;
+      padding: 10px 26px;
+      max-width: 80%;
+      text-align: center;
+    }
+    .cap-inner .who {
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1920" data-height="1080">
+    <div id="cap-1" class="cap clip" data-start="0.3" data-duration="3.9" data-layout-allow-occlusion>
+      <div class="cap-inner">WASHINGTON D.C. — NOVEMBER 12, 2026 — RAIN</div>
+    </div>
+    <div id="cap-2" class="cap clip" data-start="4.5" data-duration="2.3" data-layout-allow-occlusion>
+      <div class="cap-inner">THE MANDATE — EPISODE ONE: THE LEAK</div>
+    </div>
+    <div id="cap-3" class="cap clip" data-start="7.2" data-duration="3.0" data-layout-allow-occlusion>
+      <div class="cap-inner"><span class="who">JUNE ADEBAYO (COOPERATIVE):</span>&nbsp; A source has come forward on a vendor security incident.</div>
+    </div>
+    <div id="cap-4" class="cap clip" data-start="10.4" data-duration="2.8" data-layout-allow-occlusion>
+      <div class="cap-inner">Confirm what is known before anyone contacts them.</div>
+    </div>
+    <div id="cap-5" class="cap clip" data-start="13.6" data-duration="4.8" data-layout-allow-occlusion>
+      <div class="cap-inner">SOURCE-HANDLING MEMO: verify origin · preserve attribution · no assumed confirmation.</div>
+    </div>
+    <div id="cap-6" class="cap clip" data-start="19.2" data-duration="5.3" data-layout-allow-occlusion>
+      <div class="cap-inner">Your desk is live. — INCOMING ASSIGNMENT</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Each caption: fade+blur in, hard kill out (no stale groups)
+      const groups = [
+        ["#cap-1", 0.3, 4.2],
+        ["#cap-2", 4.5, 6.8],
+        ["#cap-3", 7.2, 10.2],
+        ["#cap-4", 10.4, 13.2],
+        ["#cap-5", 13.6, 18.4],
+        ["#cap-6", 19.2, 24.5],
+      ];
+      for (const [sel, start, end] of groups) {
+        tl.fromTo(sel, { opacity: 0, y: 14, filter: "blur(4px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.18, ease: "power2.out" }, start);
+        tl.to(sel, { opacity: 0, duration: 0.12, ease: "power2.in" }, end - 0.12);
+        tl.set(sel, { visibility: "hidden" }, end);
+      }
+      window.__timelines["captions"] = tl;
+    })();
+  </script>
+</template>

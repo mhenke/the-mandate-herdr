@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #020407;
+        --ink: #e6edf3;
+        --muted: #728495;
+        --steel: #8fa3b4;
+        --accent: #8fa3b4;
+        --amber: #cf9b52;
+        --font-display: "Oswald", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-zqi5"
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="25"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <div data-hf-id="hf-7nf3"
+        id="scene-title"
+        data-composition-id="scene-title"
+        data-composition-src="compositions/title.html"
+        data-start="0"
+        data-duration="7.0"
+        data-track-index="0"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-4b42"
+        id="scene-briefing"
+        data-composition-id="scene-briefing"
+        data-composition-src="compositions/briefing.html"
+        data-start="7.0"
+        data-duration="6.5"
+        data-track-index="0"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-pgzw"
+        id="scene-memo"
+        data-composition-id="scene-memo"
+        data-composition-src="compositions/memo.html"
+        data-start="13.5"
+        data-duration="5.5"
+        data-track-index="0"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-tqye"
+        id="scene-workspace"
+        data-composition-id="scene-workspace"
+        data-composition-src="compositions/workspace.html"
+        data-start="19.0"
+        data-duration="6.0"
+        data-track-index="0"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>
