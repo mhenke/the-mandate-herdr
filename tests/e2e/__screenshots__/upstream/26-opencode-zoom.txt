@@ -1,0 +1,40 @@
+ spaces                  │   1       Agents Z    +
+                         │┌────────────────────────────────────────────────────────────────────────────────────────────┐
+ ● the-mandate           ││                                                                                            │
+   main                  ││                                                                                            │
+ · Reference             ││                                                                                            │
+   main                  ││                                                                                            │
+ ○ Confirmation          ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                            ▄                               │
+                         ││                           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                          │
+                         ││                           █  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀                          │
+                         ││                           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                          │
+                         ││                                                                                            │
+ new               ● menu││                                  /update to install v2.4.1                                 │
+─────────────────────────││                                                                                            │
+ agents           grouped││         ┃                                                                                  │
+                         ││         ┃  Ask anything… "What is the tech stack of this project?"                         │
+ ○ the-mandate · 1       ││         ┃                                                                                  │
+   claude                ││         ┃                                                                                  │
+ ● the-mandate · 1       ││         ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀        │
+   codex                 ││         /tmp/herdr-baseline.VVfQvh/agents         shift+tab agents  ctrl+p commands        │
+ ○ Confirmation · Agents ││                                                                                            │
+   omp                   ││                                                                                            │
+ · Confirmation · Agents ││                                                                                            │
+   opencode              ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                            │
+                         ││                                                                                     2.4.0  │
+                         ││                                                                                            │
+                        «│ NAVIGATE  esc back  ↑/↓ workspace  tab pane  ? keybinds

@@ -1,0 +1,40 @@
+ spaces                  │   1      +
+                         │┌─────────────────────────────────────────────┐┌─────────────────────────────────────────────┐
+ ● the-mandate           ││$                                            ││$                                            │
+   main                  ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                      ┌──────────────────────────────────────────────────────────────────────────┐                     │
+                      │keybinds                                                       esc close  │                     │
+                      │ / press / to filter by command or shortcut                               │                     │
+                      │                                                                          │                     │
+                      │ global                                                                  ▐│                     │
+                      │ ctrl+b                       prefix mode                                ▐│                     │
+                      │ prefix+?                     keybinds                                   ▐│                     │
+                      │ prefix+s                     settings                                   ▐│                     │
+                      │ prefix+q                     detach                                     ▐│                     │
+                      │ prefix+shift+r               reload config                              ▐│                     │
+ new               ● m│ prefix+o                     open notification target                   ▐│                     │
+──────────────────────│                                                                         ▐│                     │
+ agents           grou│ navigation                                                              ▐│                     │
+                      │ esc                          back                                       ▐│                     │
+ ● the-mandate        │ up / down                    workspace list                             ▐│                     │
+   claude             │ h / j / k / l / left / right move focus                                 ▐│                     │
+ ● the-mandate        │ tab / shift+tab              cycle pane                                 ▐│                     │
+   codex              │ enter                        open workspace                             ▐│                     │
+                      │ 1..9                         switch workspace                           ▐│                     │
+                      │                                                                          │                     │
+                      │ search / · scroll j/k/↑↓/pgup/pgdn · close esc/enter                     │                     │
+                      └──────────────────────────────────────────────────────────────────────────┘                     │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                        «│└─────────────────────────────────────────────┘└─────────────────────────────────────────────┘
