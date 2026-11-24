@@ -228,10 +228,12 @@ describe("FIDELITY row: core five split (focus lands in new pane)", () => {
 });
 
 describe("FIDELITY row: tabs (prefix+c / n / p / shift+t)", () => {
-  it("prefix+c creates an active tab with its own pane", () => {
+  it("prefix+c opens the new-tab prompt; Enter creates an active tab with its own pane", () => {
     const s = store(2);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("c"));
+    expect(s.snapshot().overlay).toMatchObject({ kind: "rename", target: "new-tab" });
+    s.dispatch(press("enter"));
     const ws = s.snapshot().workspaces[0];
     expect(ws?.tabs).toHaveLength(2);
     expect(ws?.activeTabId).toBe(ws?.tabs[1]?.id);
@@ -242,6 +244,7 @@ describe("FIDELITY row: tabs (prefix+c / n / p / shift+t)", () => {
     const s = store(2);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("c"));
+    s.dispatch(press("enter"));
     const second = s.snapshot().workspaces[0]?.activeTabId;
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("p"));
@@ -314,6 +317,7 @@ describe("FIDELITY row: tabs (prefix+c / n / p / shift+t)", () => {
     const s = store(2);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("c"));
+    s.dispatch(press("enter"));
     const second = s.snapshot().workspaces[0]?.activeTabId;
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("x", ["shift"]));
@@ -351,6 +355,7 @@ describe("FIDELITY row: close pane stops the runtime (shell/actions.rs:115-123)"
     const s = store(2);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("c"));
+    s.dispatch(press("enter"));
     expect(s.snapshot().workspaces[0]?.tabs).toHaveLength(2);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("x"));

@@ -38,6 +38,8 @@ export {
 } from "./keymap";
 export type {
   AgentState,
+  ChromeEvent,
+  ChromeOrigin,
   CopySearchPrompt,
   CopyState,
   Effect,

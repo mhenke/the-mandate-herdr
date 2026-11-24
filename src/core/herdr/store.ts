@@ -34,6 +34,7 @@ import type {
   TabView,
   WorkspaceState,
   WorkspaceView,
+  ChromeEvent,
 } from "./types";
 
 const TERMINAL_AREA: Rect = { x: 0, y: 0, width: 120, height: 40 };
@@ -338,27 +339,48 @@ function actionName(action: PrefixAction): string {
 
 // --- actions ----------------------------------------------------------------
 
+/** Immediate tab creation: the commit path of the new-tab prompt
+ * (overlay_input.rs:967-979). label null → the auto name. */
+function createNewTabState(state: HerdrState, label: string | null): HerdrState {
+  const ws = activeWorkspace(state);
+  const id = `t${state.nextTabId}`;
+  const paneId = `p${state.nextPaneId}`;
+  const name = label ?? `tab ${ws.tabs.length + 1}`;
+  const tab: TabState = {
+    id,
+    name,
+    root: paneNode(paneId),
+    focusedPaneId: paneId,
+    prevFocusId: null,
+    zoomedPaneId: null,
+    splitApp: ws.newTabApp,
+    panes: [seedPane(paneId, { app: ws.newTabApp, title: name })],
+  };
+  return {
+    ...withWorkspace(state, { ...ws, tabs: [...ws.tabs, tab], activeTabId: id }),
+    nextTabId: state.nextTabId + 1,
+    nextPaneId: state.nextPaneId + 1,
+  };
+}
+
 function applyAction(state: HerdrState, action: PrefixAction, index?: number): HerdrState {
   switch (action) {
-    // Tabs row (FIDELITY): new tab becomes active with its own pane.
+    // Tabs row (FIDELITY): upstream default prompt_new_tab_name=true
+    // (config/model.rs:1214) routes NewTab through a "new tab" rename overlay
+    // (actions.rs:135-139, overlay_input.rs:386-408) instead of creating
+    // immediately; the tab is created on Enter and not created on Escape.
     case "newTab": {
       const ws = activeWorkspace(state);
-      const id = `t${state.nextTabId}`;
-      const paneId = `p${state.nextPaneId}`;
-      const tab: TabState = {
-        id,
-        name: `tab ${ws.tabs.length + 1}`,
-        root: paneNode(paneId),
-        focusedPaneId: paneId,
-        prevFocusId: null,
-        zoomedPaneId: null,
-        splitApp: ws.newTabApp,
-        panes: [seedPane(paneId, { app: ws.newTabApp, title: `tab ${ws.tabs.length + 1}` })],
-      };
+      const defaultName = String(ws.tabs.length + 1);
       return {
-        ...withWorkspace(state, { ...ws, tabs: [...ws.tabs, tab], activeTabId: id }),
-        nextTabId: state.nextTabId + 1,
-        nextPaneId: state.nextPaneId + 1,
+        ...state,
+        overlay: {
+          kind: "rename",
+          target: "new-tab",
+          workspaceId: ws.id,
+          text: defaultName,
+          defaultName,
+        },
       };
     }
     case "nextTab":
@@ -589,6 +611,63 @@ interface Routed {
   readonly state: HerdrState;
   readonly effect: Effect;
   readonly action: string | null;
+}
+
+/**
+ * Chrome controls (src/client/shell/mouse.rs, endpoint_navigation.rs):
+ * workspace and tab selection commit, new-tab runs the shared NewTab action,
+ * and pane focus uses PaneFocus. Any modeled overlay is outside the chrome
+ * surface: a first chrome click dismisses it and does nothing else.
+ * Drag, reorder, grouping, scroll, and context menus are out of scope.
+ */
+function routeChrome(state: HerdrState, event: ChromeEvent): Routed {
+  if (!state.attached) return { state, effect: "none", action: event.action };
+  if (state.overlay) {
+    return {
+      state: { ...state, overlay: null },
+      effect: "mode-changed",
+      action: "overlay-dismiss",
+    };
+  }
+  switch (event.action) {
+    case "select-workspace": {
+      if (!state.workspaces.some((workspace) => workspace.id === event.workspaceId)) {
+        return { state, effect: "none", action: event.action };
+      }
+      return {
+        state: { ...state, activeWorkspaceId: event.workspaceId },
+        effect: "action",
+        action: event.action,
+      };
+    }
+    case "select-tab": {
+      const ws = activeWorkspace(state);
+      if (!ws.tabs.some((tab) => tab.id === event.tabId)) {
+        return { state, effect: "none", action: event.action };
+      }
+      return {
+        state: withWorkspace(state, { ...ws, activeTabId: event.tabId }),
+        effect: "action",
+        action: event.action,
+      };
+    }
+    case "new-tab": {
+      const next = applyAction(state, "newTab");
+      return next === state
+        ? { state, effect: "none", action: event.action }
+        : { state: next, effect: "action", action: event.action };
+    }
+    case "focus-pane": {
+      const tab = activeTab(state);
+      if (!tab.panes.some((pane) => pane.id === event.paneId)) {
+        return { state, effect: "none", action: event.action };
+      }
+      const next = focusPane(state, event.paneId);
+      return next === state
+        ? { state, effect: "none", action: event.action }
+        : { state: next, effect: "action", action: event.action };
+    }
+  }
 }
 
 function routeKey(state: HerdrState, event: KeyEvent): Routed {
@@ -926,6 +1005,26 @@ function routeOverlayKey(state: HerdrState, key: string, mods: readonly Modifier
       };
     }
     if (key === "enter") {
+      if (overlay.target === "new-tab") {
+        // overlay_input.rs:967-979: label is kept only when non-empty and
+        // different from the pre-filled default; otherwise the tab is created
+        // with its auto name (empty input still creates, unlike rename).
+        const trimmed = overlay.text.trim();
+        const label = trimmed.length > 0 && trimmed !== overlay.defaultName ? trimmed : null;
+        const ws = state.workspaces.find((w) => w.id === overlay.workspaceId);
+        if (!ws) {
+          return {
+            state: { ...state, overlay: null },
+            effect: "none",
+            action: "rename-cancel",
+          };
+        }
+        return {
+          state: createNewTabState({ ...state, overlay: null }, label),
+          effect: "action",
+          action: "rename-commit",
+        };
+      }
       // overlay_input.rs:939-996: the field is trimmed, the overlay always
       // closes, and an empty-after-trim name emits no rename (the old name
       // stands). This is not the L2 "field stays open" recovery: upstream
@@ -1068,6 +1167,14 @@ function assertProvenance(event: InputEvent): void {
   if (event.kind === "host" && event.origin !== "host") {
     throw new RangeError(`host event cannot originate from "${event.origin}"`);
   }
+  if (
+    event.kind === "chrome" &&
+    event.origin !== "player" &&
+    event.origin !== "script" &&
+    event.origin !== "fixture"
+  ) {
+    throw new RangeError(`chrome event cannot originate from "${event.origin}"`);
+  }
 }
 
 /**
@@ -1091,6 +1198,7 @@ function copyEvent(event: InputEvent): InputEvent {
   if (event.kind === "host") {
     return event.modifiers ? { ...event, modifiers: [...event.modifiers] } : { ...event };
   }
+  if (event.kind === "chrome") return { ...event };
   return { ...event, process: { ...event.process } };
 }
 
@@ -1182,7 +1290,9 @@ export function createStore(initial: HerdrState): HerdrStore {
           ? routeKey(composed, copy)
           : copy.kind === "process"
             ? routeProcess(composed, copy)
-            : routeHost(composed, copy);
+            : copy.kind === "chrome"
+              ? routeChrome(composed, copy)
+              : routeHost(composed, copy);
       // Frame boundary: reconcile copy state against the committed hierarchy so
       // every pane/tab/workspace/focus change is covered by one rule
       // (state.rs:1478-1503).

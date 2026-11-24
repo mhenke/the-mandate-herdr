@@ -494,3 +494,58 @@ describe("L1 review regressions (attempt lifecycle and provenance)", () => {
     expect(snapshot.assessment.objectives.some((o) => o.met)).toBe(false);
   });
 });
+
+describe("input policy (cooperative security notice)", () => {
+  it("defaults to Standard keyboard-only mode", () => {
+    const session = createInvestigationSession();
+    expect(session.getSnapshot().inputPolicy).toBe("standard");
+  });
+
+  it("Standard mode refuses chrome clicks: no dispatch, no state change, no credit", () => {
+    const session = createInvestigationSession();
+    toWorkspace(session);
+    const before = JSON.stringify(session.getSnapshot().herdr);
+    expect(session.dispatchChrome({ action: "new-tab" })).toBe(false);
+    expect(session.dispatchChrome({ action: "select-tab", tabId: "t99" })).toBe(false);
+    expect(session.dispatchChrome({ action: "focus-pane", paneId: "p99" })).toBe(false);
+    expect(JSON.stringify(session.getSnapshot().herdr)).toBe(before);
+    expect(session.getSnapshot().inputPolicy).toBe("standard");
+    expect(session.getSnapshot().objectivesMet).toBe(false);
+  });
+
+  it("Accessible mode dispatches chrome as alternative modality without keyboard credit", () => {
+    const session = createInvestigationSession();
+    toWorkspace(session);
+    session.setAccessibleMode(true);
+    expect(session.getSnapshot().inputPolicy).toBe("accessible");
+    expect(session.dispatchChrome({ action: "new-tab" })).toBe(true);
+    expect(session.getSnapshot().herdr.overlay).toMatchObject({ kind: "rename", target: "new-tab" });
+    expect(session.getSnapshot().objectivesMet).toBe(false);
+  });
+
+  it("Accessible mode settles on the story condition alone; mastery stays uncredited", () => {
+    const session = createInvestigationSession();
+    toWorkspace(session);
+    session.setAccessibleMode(true);
+    session.storyAction("read-memo");
+    session.dispatch(prefix);
+    session.dispatch(key("h"));
+    session.dispatch(key("x"));
+    session.storyAction("acknowledge-assignment");
+    expect(session.getSnapshot().storyConditionMet).toBe(true);
+    expect(session.getSnapshot().objectivesMet).toBe(false);
+    expect(session.getSnapshot().phase).toBe("response");
+  });
+
+  it("Standard mode still requires both story and skill for the response", () => {
+    const session = createInvestigationSession();
+    toWorkspace(session);
+    session.storyAction("read-memo");
+    session.dispatch(prefix);
+    session.dispatch(key("h"));
+    session.dispatch(key("x"));
+    session.storyAction("acknowledge-assignment");
+    expect(session.getSnapshot().storyConditionMet).toBe(true);
+    expect(session.getSnapshot().phase).toBe("workspace");
+  });
+});

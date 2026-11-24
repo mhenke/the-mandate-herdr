@@ -126,7 +126,11 @@ const BRIEFING: Record<Level, string> = {
   1:
     "Incoming assignment: verify the vendor security incident. The source-handling memo sits " +
     "beside the assignment in one workspace — read it before you decide. Quill stays out of " +
-    "the copy; nothing here is independent confirmation yet.",
+    "the copy; nothing here is independent confirmation yet.\n\n" +
+    "COOPERATIVE SECURITY NOTICE — this remote console is running keyboard-only for the " +
+    "secure session. Pointer operations are unavailable inside the investigation workspace; " +
+    "all navigation goes through the console's own keybindings. Accessible-investigation " +
+    "assist remains available from the console footer.",
   2:
     "The cooperative shared the SOC memo as a PDF with its headers stripped. Examine the " +
     "shared copy: banner text, window, and the origin line as it actually appears.",

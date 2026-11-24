@@ -51,7 +51,31 @@ export interface HostEvent {
   readonly modifiers?: readonly Modifier[];
 }
 
-export type InputEvent = KeyEvent | ProcessEvent | HostEvent;
+/** Chrome controls are mouse/native-control activation, never keyboard transfer. */
+export type ChromeOrigin = "player" | "script" | "fixture";
+
+export type ChromeEvent =
+  | {
+      readonly kind: "chrome";
+      readonly origin: ChromeOrigin;
+      readonly action: "select-workspace";
+      readonly workspaceId: string;
+    }
+  | {
+      readonly kind: "chrome";
+      readonly origin: ChromeOrigin;
+      readonly action: "select-tab";
+      readonly tabId: string;
+    }
+  | { readonly kind: "chrome"; readonly origin: ChromeOrigin; readonly action: "new-tab" }
+  | {
+      readonly kind: "chrome";
+      readonly origin: ChromeOrigin;
+      readonly action: "focus-pane";
+      readonly paneId: string;
+    };
+
+export type InputEvent = KeyEvent | ProcessEvent | HostEvent | ChromeEvent;
 
 export type Effect =
   | "none"
@@ -140,6 +164,15 @@ export type Overlay =
       readonly target: "tab" | "workspace";
       readonly id: string;
       readonly text: string;
+    }
+  | {
+      // overlay_input.rs:386-408: NewTab with default prompt_new_tab_name opens
+      // a rename overlay titled "new tab", pre-filled with the next tab number.
+      readonly kind: "rename";
+      readonly target: "new-tab";
+      readonly workspaceId: string;
+      readonly text: string;
+      readonly defaultName: string;
     }
   | { readonly kind: "confirmClose"; readonly tabId: string; readonly paneId: string };
 

@@ -33,6 +33,7 @@ function twoTabs(): HerdrState {
   const s = createStore(createScenario(2));
   s.dispatch(press("b", ["ctrl"]));
   s.dispatch(press("c"));
+  s.dispatch(press("enter"));
   s.dispatch(press("b", ["ctrl"]));
   s.dispatch(press("p"));
   return s.getState();
