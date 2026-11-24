@@ -1,0 +1,914 @@
+/* The Mandate: Herdr — preview shell.
+   Experience-forward scenes (title / cold open / briefing / response) carry
+   the world: rainy-night imagery, paper-warm accent. The workspace stays
+   Operate: precise Herdr-style chrome, mono, dense. */
+
+.mandate {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #07090c;
+  color: var(--color-fg);
+}
+
+.mandate-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid #26303c;
+  padding-bottom: 1rem;
+}
+
+.mandate-head h1 {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.mandate-sub {
+  max-width: 65ch;
+  color: #b9c2cc;
+  margin: 0.5rem 0 0;
+}
+
+.mandate-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 32rem;
+}
+
+.mandate-capture button {
+  align-self: start;
+  font: inherit;
+  background: #e8b53a;
+  color: #171204;
+  border: 1px solid #e8b53a;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.mandate-capture button:hover {
+  background: #f2c659;
+}
+
+.mandate-capture button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.mandate-capture p {
+  margin: 0;
+  color: #b9c2cc;
+  font-size: 0.875rem;
+}
+
+.mandate-notice {
+  color: #f0d48a;
+}
+
+/* --- scenes: full-bleed cinematic frames (Experience) --- */
+
+.scene {
+  position: relative;
+  overflow: hidden;
+  min-height: min(92vh, 56rem);
+  display: grid;
+}
+
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.5) saturate(1.05);
+}
+
+.scene-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(4 6 9 / 0.92) 0%,
+    rgb(4 6 9 / 0.45) 42%,
+    rgb(4 6 9 / 0.25) 70%,
+    rgb(4 6 9 / 0.45) 100%
+  );
+}
+
+.scene-bg-plain {
+  background: #0b0e12;
+}
+
+.scene-card {
+  position: relative;
+  align-self: end;
+  justify-self: start;
+  width: min(46rem, calc(100% - 2rem));
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem) clamp(2.5rem, 7vh, 4.5rem);
+  background: none;
+  border: none;
+}
+
+.scene-card h1,
+.scene-card h2 {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: #f4f1e8;
+  text-wrap: balance;
+}
+
+.scene-lede {
+  color: #cfd6dd;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  max-width: 62ch;
+  margin: 0.875rem 0 0;
+}
+
+.scene-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+}
+
+.scene-actions button {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9375rem;
+  background: #e8b53a;
+  color: #171204;
+  border: 1px solid #e8b53a;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1.75rem;
+  cursor: pointer;
+}
+
+/* --- cinema: ONE dominant stage on a plain quiet surround.
+   The film and the backdrop are never the same artwork twice. --- */
+
+.cinema {
+  background: #05070a;
+  padding: clamp(1rem, 4vh, 2.5rem) clamp(1rem, 4vw, 2rem) clamp(1.5rem, 5vh, 3rem);
+  display: grid;
+  justify-items: center;
+}
+
+.cinema-card {
+  width: min(64rem, 100%);
+}
+
+.cinema-kicker {
+  color: #8d97a3;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: 0 0 0.75rem;
+}
+
+.cinema-stage {
+  background: #000;
+  border: 1px solid #1c232c;
+}
+
+.cinema-stage .scene-video {
+  margin: 0;
+  border: none;
+}
+
+.cinema-stage .scene-poster {
+  margin: 0;
+  border: none;
+}
+
+.cinema-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.cinema-primary {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9375rem;
+  background: #e8b53a;
+  color: #171204;
+  border: 1px solid #e8b53a;
+  padding: 0.625rem 1.5rem;
+  cursor: pointer;
+}
+
+.cinema-primary:hover {
+  background: #f2c659;
+}
+
+.cinema-primary:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.cinema-transcript {
+  color: #8d97a3;
+  font-size: 0.875rem;
+}
+
+.cinema-transcript summary {
+  cursor: pointer;
+  color: #b9c2cc;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.cinema-transcript summary:focus-visible {
+  outline: 2px solid #e8b53a;
+  outline-offset: 2px;
+}
+
+.cinema-transcript p {
+  max-width: 65ch;
+  line-height: 1.6;
+}
+
+.scene-actions button:hover {
+  background: #f2c659;
+}
+
+.scene-actions button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.scene-actions button + button,
+.scene-actions .scene-skip-inline {
+  background: transparent;
+  color: #f0d48a;
+  border-color: rgb(232 181 58 / 0.65);
+}
+
+.scene-note {
+  color: #a9b2bc;
+  font-size: 0.875rem;
+  margin: 1rem 0 0;
+  max-width: 62ch;
+}
+
+.scene-kicker {
+  color: #e8b53a;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: 0;
+}
+
+.scene-video,
+.scene-poster {
+  display: block;
+  width: 100%;
+  border: 1px solid rgb(51 64 78 / 0.9);
+  border-radius: 0.375rem;
+  background: #05070a;
+}
+
+.mandate-focus-anchor {
+  outline: none;
+}
+
+/* release control + quiet disclosures live below the chrome (App renders
+   .mandate-release / .hints-quiet / .provenance-quiet under .terminal) */
+
+/* --- story action inside the focused pane (in-world modality, never a
+   Herdr command and never objective credit) --- */
+
+.tui-story {
+  font: inherit;
+  font-size: 0.8125rem;
+  align-self: start;
+  margin-top: 0.5rem;
+  background: #0d1117;
+  color: #e6edf3;
+  border: 1px solid #4c5663;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+}
+
+.tui-story:focus-visible,
+.tui-story:hover {
+  outline: 2px solid #2f81f7;
+  outline-offset: 1px;
+}
+
+/* --- terminal: full-viewport Herdr-style chrome (Operate).
+   Narrow full-height sidebar left, tabs top-right of the main area,
+   edge-to-edge terminal body, compact pane headers, flat fills, sharp
+   corners. Blue marks selection/focus; no gold dashboard cards here. --- */
+
+.terminal {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0d11;
+  color: #c9d1d9;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.herdr {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 24rem;
+  position: relative;
+}
+
+.herdr-tabbar {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #1c232c;
+  background: #0d1117;
+  font-size: 0.8125rem;
+}
+
+.herdr-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.herdr-tab,
+.herdr-tab-active {
+  border: 0;
+  border-right: 1px solid #1c232c;
+  border-radius: 0;
+  background: #0d1117;
+  padding: 0.35rem 0.9rem;
+  color: #7d8894;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.herdr-tab-active {
+  background: #9ec5ff;
+  color: #0a0d11;
+}
+
+.herdr-tab:focus-visible,
+.herdr-tab-active:focus-visible,
+.herdr-newtab:focus-visible {
+  outline: 1px solid #9ec5ff;
+  outline-offset: -1px;
+}
+
+.herdr-newtab {
+  min-width: 2rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #5b6570;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.herdr-newtab:hover {
+  color: #c9d1d9;
+  background: #11161f;
+}
+
+.herdr-zoom {
+  font-weight: 700;
+}
+
+.herdr-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.herdr-sidebar {
+  flex: none;
+  width: 13rem;
+  border-right: 1px solid #1c232c;
+  background: #0a0d11;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #aeb7c2;
+  display: flex;
+  flex-direction: column;
+}
+
+.herdr-side-spaces {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.5rem 0.625rem 0;
+}
+
+.herdr-side-head {
+  margin: 0 0 0.25rem;
+  color: #7d8894;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.herdr-ws {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  width: 100%;
+  margin: 0 0 0.125rem;
+  padding: 0.3rem 0.35rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #aeb7c2;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.herdr-ws:hover {
+  background: #11161f;
+}
+
+.herdr-ws:focus-visible {
+  outline: 1px solid #2f81f7;
+  outline-offset: -1px;
+}
+
+.herdr-ws-name {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.herdr-ws-dot {
+  color: #e879f9;
+  font-size: 0.5rem;
+  line-height: 1;
+}
+
+.herdr-ws-tab {
+  padding-left: 0.85rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #7d8894;
+  font-size: 0.6875rem;
+}
+
+.herdr-side-footer {
+  flex: none;
+  padding: 0 0.625rem 0.5rem;
+  background: #0a0d11;
+}
+
+.herdr-side-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0 0.45rem;
+  color: #7d8894;
+  font-size: 0.75rem;
+}
+
+.herdr-menu-dot {
+  color: #5b9dff;
+  font-size: 0.5rem;
+}
+
+.herdr-access {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0 0.1rem;
+  color: #8d97a3;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.herdr-access input {
+  margin: 0;
+  accent-color: #9ec5ff;
+}
+
+.herdr-access:focus-within {
+  color: #e6edf3;
+  outline: 1px solid #2f81f7;
+  outline-offset: 2px;
+}
+
+.keyboard-reminder {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #9ec5ff;
+  background: #151b2f;
+  color: #e6edf3;
+  font-size: 0.8125rem;
+  pointer-events: none;
+  animation: keyboard-reminder-fade 2s ease forwards;
+}
+
+@keyframes keyboard-reminder-fade {
+  0%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .keyboard-reminder {
+    animation: none;
+  }
+}
+
+.herdr-side-rule {
+  border-top: 1px solid #1c232c;
+}
+
+.herdr-side-agents-head {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.35rem 0 0.25rem;
+}
+
+.herdr-agent {
+  margin: 0.2rem 0 0.35rem;
+}
+
+.herdr-agent p {
+  margin: 0;
+}
+
+.herdr-agent-name {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #e6edf3;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.herdr-agent-dot {
+  font-size: 0.5rem;
+  line-height: 1;
+}
+
+.herdr-agent-meta {
+  padding-left: 0.85rem;
+  color: #7d8894;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.herdr-sidebar p {
+  margin: 0.125rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.herdr-ws-active {
+  background: #151b2f;
+  color: #e6edf3;
+}
+
+.herdr-pane-active {
+  color: #e6edf3;
+}
+
+.herdr-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.herdr-surface {
+  position: relative;
+  flex: 1;
+  min-height: 22rem;
+  background: #0a0d11;
+  outline-offset: -2px;
+}
+
+.herdr-surface:focus-visible {
+  outline: 2px solid #2f81f7;
+}
+
+.herdr-released {
+  outline: 1px dashed #4c5663;
+  outline-offset: -1px;
+}
+
+.tui-panes {
+  position: absolute;
+  inset: 0;
+}
+
+.tui-pane {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid #30363d;
+  background: #0a0d11;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tui-pane-focused {
+  border: 1px solid #2f81f7;
+}
+
+.tui-pane-title {
+  display: none;
+}
+
+.agent {
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+.agent-working {
+  color: #7fd08a;
+}
+
+.agent-blocked {
+  color: #f08a7a;
+}
+
+.agent-done {
+  color: #f0d48a;
+}
+
+.agent-idle {
+  color: #8d97a3;
+}
+
+.agent-unknown {
+  color: #69727d;
+}
+
+.tui-pane-body {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #e6edf3;
+  overflow: auto;
+}
+
+.tui-pane-body p {
+  margin: 0.125rem 0;
+}
+
+.tui-forwarded {
+  color: #e6edf3;
+  border-top: 1px solid #1c232c;
+  padding-top: 0.375rem;
+  margin-top: 0.375rem;
+}
+
+.tui-empty {
+  color: #69727d;
+}
+
+/* Mode bar: only the core projection, flat, bottom of the pane surface. */
+.herdr-modebar {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #7d8894;
+  background: #0d1117;
+  border-top: 1px solid #1c232c;
+  padding: 0.3125rem 0.75rem;
+}
+
+.tui-overlay {
+  position: absolute;
+  inset: 2.5rem 1rem 1rem;
+  background: #0e1319;
+  border: 1px solid #e8b53a;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+}
+
+.tui-overlay-title {
+  color: #f0d48a;
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.tui-overlay-filter {
+  color: #d7dde4;
+  margin: 0 0 0.5rem;
+}
+
+.tui-overlay-rows p {
+  margin: 0.125rem 0;
+  color: #b9c2cc;
+}
+
+.tui-overlay-rows code {
+  color: #f0d48a;
+}
+
+.tui-overlay-group {
+  color: #fff;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.tui-overlay-field {
+  background: #05070a;
+  border: 1px solid #33404e;
+  padding: 0.375rem 0.5rem;
+  color: #fff;
+}
+
+.tui-overlay-hint {
+  color: #8d97a3;
+}
+
+.tui-paused {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: #0d1117;
+  border: 0;
+  border-top: 1px solid #1c232c;
+  border-radius: 0;
+  padding: 0.4rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+
+.tui-paused p {
+  margin: 0;
+  color: #b9c2cc;
+}
+
+.tui-paused button {
+  font: inherit;
+  background: transparent;
+  color: #9ec5ff;
+  border: 0;
+  border-radius: 0;
+  padding: 0.15rem 0.25rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.tui-paused button:focus-visible,
+.tui-paused button:hover {
+  outline: 1px solid #9ec5ff;
+  outline-offset: 1px;
+  color: #e6edf3;
+}
+
+/* --- below the chrome: quiet disclosure + control, never overlaying --- */
+
+.terminal-under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #05070a;
+  border-top: 1px solid #1c232c;
+  font-size: 0.75rem;
+  color: #7d8894;
+}
+
+.hints-quiet,
+.provenance-quiet {
+  font-size: 0.75rem;
+  color: #7d8894;
+}
+
+.hints-quiet summary,
+.provenance-quiet summary {
+  cursor: pointer;
+  color: #aeb7c2;
+}
+
+.hints-quiet summary:focus-visible,
+.provenance-quiet summary:focus-visible {
+  outline: 2px solid #2f81f7;
+  outline-offset: 2px;
+}
+
+.hints-quiet button {
+  font: inherit;
+  background: transparent;
+  color: #e6edf3;
+  border: 1px solid #4c5663;
+  padding: 0.25rem 0.625rem;
+  cursor: pointer;
+}
+
+.hints-quiet ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+  max-width: 65ch;
+}
+
+.hints-quiet li {
+  line-height: 1.6;
+  margin: 0.25rem 0;
+}
+
+.mandate-release {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: #05070a;
+  border-top: 1px solid #1c232c;
+  font-size: 0.75rem;
+}
+
+.release-link {
+  font: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #8d97a3;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.release-link:hover {
+  color: #e6edf3;
+}
+
+.release-link:focus-visible {
+  outline: 2px solid #2f81f7;
+  outline-offset: 2px;
+}
+
+.release-hint {
+  color: #4c5663;
+}
+
+.provenance-scene {
+  padding: 0.5rem clamp(1rem, 4vw, 2rem);
+  font-size: 0.75rem;
+  color: #4c5663;
+  background: #05070a;
+}
+
+.provenance-scene summary {
+  cursor: pointer;
+}
+
+::selection {
+  background: #e8b53a;
+  color: #171204;
+}
+
+.herdr-side-grouped {
+  color: #5b6570;
+}

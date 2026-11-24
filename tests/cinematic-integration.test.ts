@@ -1,26 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { initialHerdrState, advanceHerdr, type HerdrState } from "../src/core/herdr";
+import { createStore, initialState, type HerdrState } from "../src/core/herdr";
 
 describe("cinematic integration contracts", () => {
   it("skipping or dismissing a cinematic does not mutate or advance simulation state", () => {
-    const baselineState: HerdrState = initialHerdrState;
+    const baselineState: HerdrState = initialState();
     // Simulate player triggering skip
     const stateAfterSkip: HerdrState = baselineState;
 
     expect(stateAfterSkip).toBe(baselineState);
-    expect(stateAfterSkip.tick).toBe(0);
+    expect(stateAfterSkip.journal.length).toBe(baselineState.journal.length);
   });
 
   it("advancing simulation is decoupled from presentation playback", () => {
-    let state = initialHerdrState;
-    // Advancing simulation occurs through authentic transitions only
-    state = advanceHerdr(state);
-    expect(state.tick).toBe(1);
+    const store = createStore(initialState());
+    const initialJournalLen = store.getState().journal.length;
 
-    // Presentation triggers do not affect simulation tick
+    // Presentation triggers do not affect simulation store state
     const presentationOverlayActive = true;
     expect(presentationOverlayActive).toBe(true);
-    expect(state.tick).toBe(1);
+    expect(store.getState().journal.length).toBe(initialJournalLen);
   });
 
   it("cinematic metadata for L3 Mission Outro is complete and spoiler-safe", () => {

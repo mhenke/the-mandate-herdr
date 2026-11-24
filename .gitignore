@@ -9,6 +9,7 @@ playwright-report/
 test-results/
 the-mandate-concept-art.zip
 *.tsbuildinfo
+.vitest/
 .worktrees/
 .claude/
 **/.hyperframes/
