@@ -111,13 +111,25 @@
     <div id="head" class="clip" data-start="0.15" data-duration="6.35">
       THE&nbsp;COOPERATIVE&nbsp;—&nbsp;DESK&nbsp;FEED&nbsp;&nbsp;·&nbsp;&nbsp;SECURE&nbsp;DISPATCH
     </div>
-    <div id="envelope" class="envelope-card clip" data-start="0.3" data-duration="6.2" data-layout-allow-overlap data-hold>
+    <div
+      id="envelope"
+      class="envelope-card clip"
+      data-start="0.3"
+      data-duration="6.2"
+      data-layout-allow-overlap
+      data-hold
+    >
       <div id="seal" data-layout-ignore>[&nbsp;OFF-RECORD&nbsp;//&nbsp;RESTRICTED&nbsp;]</div>
       <div class="env-from" id="env-from">
         FROM&nbsp;&nbsp;<b>JUNE ADEBAYO</b>&nbsp;<span class="dim">// EDITOR OF RECORD</span><br />
-        TO&nbsp;&nbsp;&nbsp;&nbsp;<b>STRINGER ON DESK</b>&nbsp;<span class="dim">// VERIFIER CREDENTIAL ACTIVE</span>
+        TO&nbsp;&nbsp;&nbsp;&nbsp;<b>STRINGER ON DESK</b>&nbsp;<span class="dim"
+          >// VERIFIER CREDENTIAL ACTIVE</span
+        >
       </div>
-      <div class="env-subject" id="env-subject">A source has come forward on a vendor security incident. Confirm what is known before contact.</div>
+      <div class="env-subject" id="env-subject">
+        A source has come forward on a vendor security incident. Confirm what is known before
+        contact.
+      </div>
       <div class="env-meta" id="env-meta">
         <span><span class="tag">REF</span>&nbsp;NOV 12 · 23:00 EST</span>
         <span><span class="tag">DIRECTIVE</span>&nbsp;DO NOT CONTACT SOURCE</span>
@@ -137,74 +149,79 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       }
 
-      // Exterior rain streaks outside in the night sky over Capitol dome (90 drops)
-      // Placed strictly in the window area (x: 1000 to 1920)
+      // Exterior rain streaks strictly on the window glass (70 drops)
+      // Horizontal bounds: x = 920 to 1710 (clear of desk lamp on left, clear of wall/mullion on right)
       const DROPS_EXT = [];
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 70; i++) {
         DROPS_EXT.push({
-          x: 1000 + rand() * 920,
-          y: rand() * 660,
-          len: 28 + rand() * 42,
-          speed: 850 + rand() * 450,
-          alpha: 0.14 + rand() * 0.20,
-          drift: 35 + rand() * 30,
+          x: 920 + rand() * (1710 - 920),
+          y: rand() * 320,
+          len: 24 + rand() * 32,
+          speed: 650 + rand() * 350,
+          alpha: 0.18 + rand() * 0.22,
+          drift: 20 + rand() * 20,
         });
       }
 
-      // Condensation trickles running down the window glass pane (22 trails)
-      // Placed strictly on the window pane overlooking the Capitol dome (x: 1250 to 1900)
+      // Condensation trickles on the window pane overlooking the Capitol dome (16 trails)
       const TRICKLES = [];
-      for (let i = 0; i < 22; i++) {
+      for (let i = 0; i < 16; i++) {
         TRICKLES.push({
-          x: 1250 + rand() * 650,
-          y: rand() * 600,
-          len: 25 + rand() * 50,
-          speed: 65 + rand() * 85,
-          radius: 1.4 + rand() * 1.4,
-          alpha: 0.28 + rand() * 0.38,
-          drift: (rand() - 0.5) * 6,
+          x: 1050 + rand() * (1700 - 1050),
+          y: rand() * 280,
+          len: 20 + rand() * 35,
+          speed: 45 + rand() * 65,
+          radius: 1.2 + rand() * 1.2,
+          alpha: 0.25 + rand() * 0.35,
         });
       }
 
       function drawWindowRain(t) {
         ctx.clearRect(0, 0, 1920, 1080);
+        ctx.save();
+
+        // Strict geometric clip to physical window glass:
+        // Region 1: Sky over Capitol dome strictly above dispatch card (y <= 205)
+        // Region 2: Pane to the right of card, strictly above laptop screen (y <= 300)
+        // Never inside room, never over dispatch card, never over laptop or desk
+        ctx.beginPath();
+        ctx.rect(920, 0, 660, 205);
+        ctx.rect(1580, 0, 130, 300);
+        ctx.clip();
+
         ctx.lineCap = "round";
 
         // Draw exterior falling rain streaks
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1.3;
         for (const d of DROPS_EXT) {
-          const y = (d.y + t * d.speed) % 680 - 40;
-          const x = (d.x + t * d.drift) % (1920 - 1000 + 80) + 1000 - 40;
-          // Rain is strictly OUTSIDE the window; NEVER inside the room or over the dispatch card
-          if (x < 1000 || x > 1920 || y < 0 || y > 620) continue;
-          if (x < 1580 && y >= 200) continue; // Skip card / desk area completely
+          const y = ((d.y + t * d.speed) % 360) - 40;
+          const x = ((d.x + t * d.drift - 920) % (1710 - 920)) + 920;
+
           let a = d.alpha;
-          if (x < 1080) a *= (x - 1000) / 80;
-          if (y > 520) a *= (620 - y) / 100;
-          ctx.strokeStyle = "rgba(180, 210, 235, " + a + ")";
+          if (x < 960) a *= (x - 920) / 40;
+          if (x > 1670) a *= (1710 - x) / 40;
+
+          ctx.strokeStyle = "rgba(180, 215, 240, " + a + ")";
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x + d.drift * 0.03, y + d.len);
           ctx.stroke();
         }
 
-        // Draw window glass trickles (droplet head + wet trail)
+        // Draw window glass condensation trickles (droplet head + wet trail)
         for (const tr of TRICKLES) {
-          const y = (tr.y + t * tr.speed) % 580;
-          const x = tr.x + Math.sin(y * 0.04) * 2;
-          // Glass trickles strictly on the window pane
-          if (x < 1250 || x > 1900 || y < 20 || y > 560) continue;
-          if (x < 1580 && y >= 200) continue; // Skip card area completely
+          const y = (tr.y + t * tr.speed) % 320;
+          const x = tr.x + Math.sin(y * 0.05) * 2;
+
           let a = tr.alpha;
-          if (x < 1320) a *= (x - 1250) / 70;
-          if (y > 480) a *= (560 - y) / 80;
+          if (y < 40) a *= y / 40;
 
           // Trail streak
           const grad = ctx.createLinearGradient(x, y - tr.len, x, y);
           grad.addColorStop(0, "rgba(190, 220, 245, 0)");
-          grad.addColorStop(1, "rgba(190, 220, 245, " + (a * 0.8) + ")");
+          grad.addColorStop(1, "rgba(190, 220, 245, " + a * 0.75 + ")");
           ctx.strokeStyle = grad;
-          ctx.lineWidth = 1.6;
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(x, y - tr.len);
           ctx.lineTo(x, y);
@@ -216,6 +233,8 @@
           ctx.arc(x, y, tr.radius, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        ctx.restore();
       }
 
       const tl = gsap.timeline({
@@ -226,12 +245,7 @@
       });
       // Desk plate: rock-solid locked camera (zero pan, zero zoom wobble)
       // Header fades in calmly in place
-      tl.fromTo(
-        "#head",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: "power2.out" },
-        0.15,
-      );
+      tl.fromTo("#head", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 0.15);
       // Envelope: calm fade in place (zero sliding, zero hopping)
       tl.fromTo(
         "#envelope",
