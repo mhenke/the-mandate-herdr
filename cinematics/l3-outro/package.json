@@ -1,0 +1,16 @@
+{
+  "name": "mandate-l3-outro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Mandate — Level 3 Mission Outro: Five Minutes (HyperFrames)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check": "npx --no-install hyperframes@0.9.86 check",
+    "render": "npx --no-install hyperframes@0.9.86 render",
+    "timeline": "npx --no-install hyperframes@0.9.86 timeline --json"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "hyperframes": "0.9.86"
+  }
+}

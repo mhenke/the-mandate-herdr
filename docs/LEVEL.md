@@ -173,6 +173,8 @@ never fails the level).
 
 **Hints:** tiers 0–3; fading begins (no unsolicited key sequences after this level's reinforcement).
 
+**Cinematic outro:** Mission Outro 03 — "Five Minutes" (16s documentary sequence; Theo Park consent interview payoff; script `LT-47B` misfire, story floor confirmed; lead to L4 "Write it up"). Triggers only on committed `SE-L3-interview`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
+
 ## L4 — Nov 13 (evening, 19:05 filing) — file note — CHOICE 1 (source protection) — "Filed 19:05"
 
 **Discoveries:** VN-12 filed (origin blank, form default); SUB-ACK-12 same-night return (blank
@@ -244,6 +246,8 @@ destination distinguished); evidence preserved; retry same story day. Pass → E
 **Hints:** start tier 0. Tier 1 concept cue / tier 2 binding entry / tier 3 worked example in a
 separate practice task — each recorded; an assisted pass completes the story but banks an assisted
 mark, with a fresh equivalent task available for independent retrieval.
+
+**Cinematic outro:** Episode I Finale — "The Third Count" (28s documentary sequence; morning paperwork arrival of `INT-RECEIPT-12`, counting line added, emergency recommendation sealed; cliffhanger question: why three distinct channels for one internal misfire?). Triggers only on committed `SE-L5-retention1`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
 
 ## L6 — Nov 16 — read finding — "Three Votes"
 
@@ -440,6 +444,8 @@ distinguished); evidence preserved; retry same story day. Pass → E3.
 
 **Hints:** start tier 0; tiers 1–3 recorded as assisted (story may complete; independent retrieval
 via a fresh equivalent task for transfer credit).
+
+**Cinematic outro:** Episode II Finale — "The Twin" (32s documentary sequence; common-root proof established; R-1 and R-3 proved twins; OCC forwarding rule exposed; containment turning point). Triggers only on committed `SE-L10-retention2`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
 
 ## L11 — Nov 21 (morning) — read law + guidance — "Genuine Independence"
 
@@ -640,6 +646,8 @@ focused-pane rule only).
 with that subtask marked assisted (no in-hearing re-demonstration possible under the story clock;
 fresh equivalent tasks after the hearing may still establish independent retrieval for the
 transfer record).
+
+**Cinematic outro:** Episode III Finale & Game Ending — "The Record" (45–60s choice-sensitive documentary resolution; Board orders and personal/institutional consequences reflecting the five player choice points). Triggers only on committed `SE-L15-reading`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
 
 ---
 
