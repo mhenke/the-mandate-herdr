@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { createStore, initialState, type HerdrState } from "../src/core/herdr";
+import { resolveAsset } from "../src/ui/scenes";
 
 describe("cinematic integration contracts", () => {
+  it("resolves asset URLs respecting base URL configuration", () => {
+    expect(resolveAsset(undefined)).toBeUndefined();
+    expect(resolveAsset("")).toBeUndefined();
+    expect(resolveAsset("https://example.com/poster.png")).toBe("https://example.com/poster.png");
+    expect(resolveAsset("data:image/png;base64,abc")).toBe("data:image/png;base64,abc");
+    expect(resolveAsset("/images/Rainy%20Night.webp")).toMatch(/\/images\/Rainy%20Night\.webp$/);
+  });
+
   it("skipping or dismissing a cinematic does not mutate or advance simulation state", () => {
     const baselineState: HerdrState = initialState();
     // Simulate player triggering skip

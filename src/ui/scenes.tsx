@@ -28,6 +28,13 @@ function CinemaShell({
   );
 }
 
+export function resolveAsset(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (/^(?:[a-z]+:)?\/\//i.test(url) || url.startsWith("data:")) return url;
+  const base = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
+}
+
 function SceneShell({
   imageUrl,
   labelledBy,
@@ -37,12 +44,13 @@ function SceneShell({
   readonly labelledBy: string;
   readonly children: ReactNode;
 }): JSX.Element {
+  const resolvedImage = resolveAsset(imageUrl);
   return (
     <div className="scene">
-      {imageUrl ? (
+      {resolvedImage ? (
         <div
           className="scene-bg"
-          style={{ backgroundImage: `url("${imageUrl}")` }}
+          style={{ backgroundImage: `url("${resolvedImage}")` }}
           aria-hidden="true"
         />
       ) : (
@@ -77,18 +85,21 @@ function CinematicPlayer({
 }): JSX.Element {
   const [failed, setFailed] = useState(false);
   const [stalled, setStalled] = useState(false);
+  const resolvedSrc = resolveAsset(src) ?? src;
+  const resolvedPoster = resolveAsset(poster) ?? poster;
+  const resolvedCaptions = resolveAsset(captions);
   const prefersReduced =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (failed || stalled || prefersReduced) {
-    return <img className="scene-poster" src={poster} alt="" data-fallback="still" />;
+    return <img className="scene-poster" src={resolvedPoster} alt="" data-fallback="still" />;
   }
   return (
     <video
       className="scene-video"
-      src={src}
-      poster={poster}
+      src={resolvedSrc}
+      poster={resolvedPoster}
       muted
       playsInline
       preload="metadata"
@@ -100,7 +111,7 @@ function CinematicPlayer({
       onEnded={onEnded}
       data-fallback="video"
     >
-      {captions ? <track kind="captions" src={captions} label="English" /> : null}
+      {resolvedCaptions ? <track kind="captions" src={resolvedCaptions} label="English" /> : null}
     </video>
   );
 }
