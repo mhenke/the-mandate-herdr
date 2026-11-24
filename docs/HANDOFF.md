@@ -22,6 +22,7 @@ M0, M1 approved. **M2 (L1–L3) approved 2026-11-23, in progress.** L4–L15 una
 ## Completed and verified
 
 - Deterministic core committed as `6d05b11`; L1 runtime/provenance as `be08449`.
+- L1 browser slice committed as `ab03b98`; PR open at https://github.com/mhenke/the-mandate-herdr/pull/9.
 - Oracle-approved L1 runtime: 33 tests + 17 adversarial probes; Escape-based help-exit fix approved.
 - Core `ChromeEvent` routing, new-tab prompt (core `types.ts`, `store.ts`), accessibility policy adapter (`investigation-session.ts`), L1 cooperative security notice in BRIEFING, recovery v2 — all on disk.
 - Fixer visual pass: tabs inside main; quiet `+` in `.herdr-tabbar`; sidebar footer `grouped`; neutral divider; `« NAVIGATE` mode bar; overlay title `new tab`; axe green; `preload="metadata"` fallback fix. Evidence: `/tmp/opencode/mandate-final/final-*.png`, `l1-*.png`.
@@ -38,7 +39,7 @@ M0, M1 approved. **M2 (L1–L3) approved 2026-11-23, in progress.** L4–L15 una
 
 ## In flight (do not duplicate)
 
-None. Fixer lane `ses_df1b987dcffeNfjXn4zBu8g2Gw` is complete and verified against code and test suites. Ready for git staging and branch finalization.
+None. L1 slice is committed and PR #9 is submitted. Awaiting PR CI completion and merge before proceeding to Level 2.
 
 ## Files
 
