@@ -1,0 +1,40 @@
+ spaces                  │   1       Interview    +
+                         │┌─────────────────────────────────────────────┐┌─────────────────────────────────────────────┐
+ ● the-mandate           ││Assignment terminal                          ││Interview terminal                           │
+   main                  ││Reference material stays in this pane.       ││Source: baseline demonstration               │
+ · Reference             ││$                                            ││Evidence: inspect process output, not the st │
+   main                  ││                                             ││atus dot.                                    │
+ ○ Confirmation          ││                                             ││$                                            │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││     ┌──────────────────────────────────────────────────────┐                               │
+                         ││     │new tab                                               │                               │
+                         ││     │                                                      │                               │
+ new               ● menu││     │ 3                                                    │                               │
+─────────────────────────││     │           ↵ save    ^c clear    esc cancel           │───────────────────────────────┘
+ agents           grouped││     │                                                      │───────────────────────────────┐
+                         ││     └──────────────────────────────────────────────────────┘                               │
+ ○ the-mandate · 1       ││                                             ││                                             │
+   claude                ││                                             ││                                             │
+ ● the-mandate · 1       ││                                             ││                                             │
+   codex                 ││                                             ││                                             │
+ ○ Confirmation · Agents ││                                             ││                                             │
+   omp                   ││                                             ││                                             │
+ · Confirmation · Agents ││                                             ││                                             │
+   opencode              ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                        «│└─────────────────────────────────────────────┘└─────────────────────────────────────────────┘

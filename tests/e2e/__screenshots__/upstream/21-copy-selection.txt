@@ -1,0 +1,40 @@
+ spaces                  │   1       Interview    +
+                         │┌─────────────────────────────────────────────┐┌─────────────────────────────────────────────┐
+ ● the-mandate           ││Assignment terminal                          ││Interview terminal                           │
+   main                  ││Reference material stays in this pane.       ││Source: baseline demonstration               │
+ · Reference             ││$                                            ││Evidence: inspect process output, not the st │
+   main                  ││                                             ││atus dot.                                    │
+                         ││                                             ││$                                            │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+ new               ● menu││                                             ││                                             │
+─────────────────────────││                                             │└─────────────────────────────────────────────┘
+ agents           grouped││                                             │┌─────────────────────────────────────────────┐
+                         ││                                             ││$ ^[                                         │
+ ● the-mandate · 1       ││                                             ││                                             │
+   claude                ││                                             ││                                             │
+ ● the-mandate · 1       ││                                             ││                                             │
+   codex                 ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                        «│ COPY  h/j/k/l w/b/e { } move  / ? search  n/N repeat 1/1  v/space selecting  y/enter copy  es
