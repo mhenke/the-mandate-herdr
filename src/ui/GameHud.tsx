@@ -1,5 +1,5 @@
 // Cooperative Intelligence Desk — Game HUD.
-// Sits clearly outside the simulated Herdr TUI, framing the educational
+// Sits cleanly outside the simulated Herdr TUI, framing the educational
 // mission, active objective, keyboard capture state, and investigative docket.
 
 import type { JSX, ReactNode, Ref } from "react";
@@ -38,10 +38,15 @@ function HudStep({
       <span className={complete ? "hud-step-badge hud-step-badge-done" : "hud-step-badge"}>
         {badge}
       </span>
-      <div className="hud-step-body">
-        <p className="hud-step-heading">{heading}</p>
-        {instruction ? <p className="hud-step-instruction">{instruction}</p> : null}
-      </div>
+      <span className="hud-step-heading">{heading}</span>
+      {instruction ? (
+        <>
+          <span className="hud-step-sep" aria-hidden="true">
+            ·
+          </span>
+          <span className="hud-step-instruction">{instruction}</span>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -57,29 +62,12 @@ function HudCaptureIndicator({
 }): JSX.Element {
   return (
     <div className="game-hud-capture-indicator">
-      {captured ? (
-        <span className="hud-badge hud-badge-captured">
-          <span className="hud-dot" aria-hidden="true">
-            ●
-          </span>
-          Keys route to Herdr TUI (
-          <span className="key-badge" aria-hidden="true">
-            Tab
-          </span>{" "}
-          releases)
-        </span>
-      ) : (
-        <span className="hud-badge hud-badge-released">
-          <span className="hud-dot" aria-hidden="true">
-            ○
-          </span>
-          Typing in page (
-          <span className="key-badge" aria-hidden="true">
-            Tab
-          </span>{" "}
-          or click terminal to capture)
-        </span>
-      )}
+      <span
+        className={captured ? "hud-dot hud-dot-captured" : "hud-dot hud-dot-released"}
+        aria-hidden="true"
+      >
+        {captured ? "●" : "○"}
+      </span>
       <button
         ref={releaseButtonRef}
         type="button"
@@ -113,8 +101,7 @@ function LevelOneMission({
         heading="Review the source-handling memo in the right pane."
         instruction={
           <>
-            Herdr shortcut: Press <kbd>Ctrl+B</kbd> then <kbd>O</kbd> (or <kbd>L</kbd>) to cycle
-            pane focus, then mark the memo read.
+            Shortcut: <kbd>Ctrl+B</kbd> then <kbd>O</kbd> (or <kbd>L</kbd>) to cycle pane focus
           </>
         }
       />
@@ -127,8 +114,7 @@ function LevelOneMission({
         heading="Return to the assignment pane and accept the cooperative assignment."
         instruction={
           <>
-            Herdr shortcut: Press <kbd>Ctrl+B</kbd> then <kbd>H</kbd> to return to the left pane,
-            then type your confirmation or click Accept.
+            Shortcut: <kbd>Ctrl+B</kbd> then <kbd>H</kbd> to return to left pane
           </>
         }
       />
@@ -155,9 +141,8 @@ function LevelTwoMission({
         heading="Create a new tab and examine the supplied goods artifact."
         instruction={
           <>
-            Herdr shortcut: <kbd>Ctrl+B</kbd> <kbd>C</kbd> to create tab, <kbd>Ctrl+B</kbd>{" "}
-            <kbd>Shift+T</kbd> to rename, <kbd>Ctrl+B</kbd> <kbd>P</kbd>/<kbd>N</kbd> to switch
-            tabs.
+            Shortcut: <kbd>Ctrl+B</kbd> <kbd>C</kbd> (new tab), <kbd>Ctrl+B</kbd> <kbd>Shift+T</kbd>{" "}
+            (rename)
           </>
         }
       />
@@ -219,6 +204,17 @@ export function GameHud({
         <div className="game-hud-brand">
           <span className="game-hud-kicker">Cooperative Intelligence Desk</span>
           <h1 className="game-hud-title">Episode I · Level {level}</h1>
+          <span className="hud-sep" aria-hidden="true">
+            ·
+          </span>
+          <p className="objectives-quiet" aria-live="polite">
+            {metCount > 0
+              ? `Objectives met: ${objectives
+                  .filter((o) => o.met)
+                  .map((o) => o.id)
+                  .join(", ")}`
+              : "No objectives met yet."}
+          </p>
         </div>
 
         <div className="game-hud-controls">
@@ -236,45 +232,7 @@ export function GameHud({
             />
             Accessible navigation
           </label>
-        </div>
-      </div>
 
-      <HudMission
-        level={level}
-        memoRead={memoRead}
-        assignmentAccepted={assignmentAccepted}
-        artifactExamined={artifactExamined}
-      />
-
-      <div className="game-hud-bar">
-        <div className="hud-reference">
-          <span className="hud-ref-label">Herdr TUI shortcuts:</span>
-          <span className="hud-ref-item">
-            Prefix: <kbd>Ctrl+B</kbd>
-          </span>
-          <span className="hud-ref-item">
-            Switch pane: <kbd>Ctrl+B</kbd> <kbd>O</kbd>
-          </span>
-          <span className="hud-ref-item">
-            Directional: <kbd>Ctrl+B</kbd> <kbd>H</kbd>/<kbd>L</kbd>
-          </span>
-          <span className="hud-ref-item">
-            Help list: <kbd>Ctrl+B</kbd> <kbd>?</kbd>
-          </span>
-          <span className="hud-ref-item">
-            New tab: <kbd>Ctrl+B</kbd> <kbd>C</kbd>
-          </span>
-        </div>
-
-        <div className="hud-status">
-          <p className="objectives-quiet" aria-live="polite">
-            {metCount > 0
-              ? `Objectives met: ${objectives
-                  .filter((o) => o.met)
-                  .map((o) => o.id)
-                  .join(", ")}`
-              : "No objectives met yet."}
-          </p>
           <details className="hints-quiet">
             <summary>Hints (optional{hintsUsed > 0 ? ", recorded" : ""})</summary>
             <div className="hints-body">
@@ -295,8 +253,50 @@ export function GameHud({
               </button>
             </div>
           </details>
+
+          <details className="hud-shortcuts-menu">
+            <summary>Shortcuts</summary>
+            <div className="hud-shortcuts-popover">
+              <p className="hud-popover-title">Herdr TUI Shortcuts</p>
+              <div className="hud-shortcut-row">
+                <span className="hud-shortcut-desc">Prefix chord</span>
+                <kbd>Ctrl+B</kbd>
+              </div>
+              <div className="hud-shortcut-row">
+                <span className="hud-shortcut-desc">Switch pane</span>
+                <span>
+                  <kbd>Ctrl+B</kbd> <kbd>O</kbd>
+                </span>
+              </div>
+              <div className="hud-shortcut-row">
+                <span className="hud-shortcut-desc">Directional focus</span>
+                <span>
+                  <kbd>Ctrl+B</kbd> <kbd>H</kbd> / <kbd>L</kbd>
+                </span>
+              </div>
+              <div className="hud-shortcut-row">
+                <span className="hud-shortcut-desc">Help modal</span>
+                <span>
+                  <kbd>Ctrl+B</kbd> <kbd>?</kbd>
+                </span>
+              </div>
+              <div className="hud-shortcut-row">
+                <span className="hud-shortcut-desc">New tab</span>
+                <span>
+                  <kbd>Ctrl+B</kbd> <kbd>C</kbd>
+                </span>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
+
+      <HudMission
+        level={level}
+        memoRead={memoRead}
+        assignmentAccepted={assignmentAccepted}
+        artifactExamined={artifactExamined}
+      />
     </header>
   );
 }

@@ -20,17 +20,22 @@ export interface PreviewKeyInput {
   readonly repeat: boolean;
 }
 
+export interface KeyboardToast {
+  readonly chord: string;
+  readonly altChord?: string;
+  readonly action: string;
+}
+
 export interface MandatePreviewProps {
   readonly snapshot: HerdrSnapshot;
   readonly captured: boolean;
-  /** Show the brief Standard-mode keyboard reminder while true. */
-  readonly reminder: boolean;
+  /** Show the brief Standard-mode keyboard reminder while set. */
+  readonly reminder: KeyboardToast | null;
   readonly focusedApp: string | null;
   readonly assignmentAccepted: boolean;
   readonly memoRead: boolean;
   readonly artifactExamined: boolean;
   readonly onPreviewKey: (input: PreviewKeyInput) => void;
-  readonly onReleaseRequest: () => void;
   readonly onReadMemo: () => void;
   readonly onAcknowledgeAssignment: () => void;
   readonly onExamineArtifact: () => void;
@@ -255,7 +260,7 @@ function ActiveTabView({
             // Pointer focus is view-only: route through the chrome callback
             // (no story ack here, no focus theft from the story buttons).
             if (event.target instanceof HTMLElement && event.target.closest("button")) return;
-            if (pane.id !== tab.focusedPaneId) onFocusPane(pane.id);
+            onFocusPane(pane.id);
           }}
         >
           <div className="tui-pane-body">
@@ -377,7 +382,7 @@ function WorkspaceItem({
       className={isActive ? "herdr-ws herdr-ws-active" : "herdr-ws"}
       aria-current={isActive ? "true" : undefined}
       onClick={() => {
-        if (!isActive) onSelect();
+        onSelect();
       }}
     >
       <span className="herdr-ws-name">
@@ -411,7 +416,7 @@ function TabButton({
       aria-label={tab.name}
       className={isActive ? "herdr-tab-active" : "herdr-tab"}
       onClick={() => {
-        if (!isActive) onSelect();
+        onSelect();
       }}
     >
       {label}
@@ -429,7 +434,6 @@ export function MandatePreview({
   memoRead,
   artifactExamined,
   onPreviewKey,
-  onReleaseRequest,
   onReadMemo,
   onAcknowledgeAssignment,
   onExamineArtifact,
@@ -445,6 +449,47 @@ export function MandatePreview({
   useEffect(() => {
     if (captured) surfaceRef.current?.focus();
   }, [captured]);
+
+  useEffect(() => {
+    if (!captured) return;
+
+    function handleWindowKeyDown(event: KeyboardEvent) {
+      if (
+        event.target instanceof HTMLElement &&
+        (event.target.tagName === "INPUT" ||
+          event.target.tagName === "TEXTAREA" ||
+          event.target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (
+        event.target === surfaceRef.current ||
+        (event.target instanceof Node &&
+          surfaceRef.current?.contains(event.target) &&
+          !(event.target instanceof HTMLButtonElement))
+      ) {
+        return;
+      }
+
+      if (event.ctrlKey && (event.key === "b" || event.key === "B")) {
+        event.preventDefault();
+        surfaceRef.current?.focus();
+        onPreviewKey({
+          key: event.key,
+          code: event.code,
+          ctrlKey: event.ctrlKey,
+          altKey: event.altKey,
+          shiftKey: event.shiftKey,
+          metaKey: event.metaKey,
+          repeat: event.repeat,
+        });
+      }
+    }
+
+    window.addEventListener("keydown", handleWindowKeyDown, true);
+    return () => window.removeEventListener("keydown", handleWindowKeyDown, true);
+  }, [captured, onPreviewKey]);
 
   return (
     <div className="herdr">
@@ -517,7 +562,7 @@ export function MandatePreview({
               type="button"
               className="herdr-newtab"
               aria-label="New tab"
-              title="New tab"
+              title="New tab (Ctrl+B C)"
               onClick={onNewTab}
             >
               +
@@ -579,14 +624,6 @@ export function MandatePreview({
               <p className="tui-empty">Detached.</p>
             )}
             {snapshot.overlay ? <OverlayView overlay={snapshot.overlay} /> : null}
-            {captured ? null : (
-              <div className="tui-paused">
-                <p>Capture released — typing stays in the page.</p>
-                <button type="button" onClick={onReleaseRequest}>
-                  Re-engage capture
-                </button>
-              </div>
-            )}
           </div>
           {snapshot.modeBar.visible ? (
             <p className="herdr-modebar" aria-live="polite">
@@ -596,9 +633,21 @@ export function MandatePreview({
         </div>
       </div>
       {reminder ? (
-        <p className="keyboard-reminder" role="status">
-          Keyboard-only console — use Herdr&apos;s key bindings.
-        </p>
+        <aside className="keyboard-reminder" role="status" aria-live="polite">
+          <span className="toast-icon" aria-hidden="true">
+            ⌨
+          </span>
+          <span className="toast-msg">
+            Keyboard-only console — use <kbd className="toast-kbd">{reminder.chord}</kbd>
+            {reminder.altChord ? (
+              <>
+                {" "}
+                or <kbd className="toast-kbd">{reminder.altChord}</kbd>
+              </>
+            ) : null}{" "}
+            {reminder.action}.
+          </span>
+        </aside>
       ) : null}
     </div>
   );

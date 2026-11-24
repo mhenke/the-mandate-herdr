@@ -11,17 +11,20 @@ describe("navigation adapter", () => {
     expect(phaseToPath("workspace")).toBe("/workspace");
     expect(phaseToPath("response")).toBe("/response");
     expect(phaseToPath("complete")).toBe("/complete");
-    expect(Object.keys(PHASE_PATHS).length).toBe(7);
+    expect(phaseToPath("not-found")).toBe("/404");
+    expect(Object.keys(PHASE_PATHS).length).toBe(8);
 
     expect(PHASE_TITLES.title).toBe("The Mandate: Herdr");
     expect(PHASE_TITLES["cold-open"]).toBe("Cold Open — The Mandate: Herdr");
     expect(PHASE_TITLES.workspace).toBe("Workspace — The Mandate: Herdr");
+    expect(PHASE_TITLES["not-found"]).toBe("404 Record Not Found — The Mandate: Herdr");
   });
 
   it("handles base URLs correctly when generating paths", () => {
     expect(phaseToPath("title", "/the-mandate/")).toBe("/the-mandate/");
     expect(phaseToPath("cold-open", "/the-mandate/")).toBe("/the-mandate/cold-open");
     expect(phaseToPath("workspace", "/the-mandate")).toBe("/the-mandate/workspace");
+    expect(phaseToPath("not-found", "/the-mandate/")).toBe("/the-mandate/404");
   });
 
   it("parses pathnames to phases accurately", () => {
@@ -34,13 +37,16 @@ describe("navigation adapter", () => {
     expect(pathToPhase("/workspace")).toBe("workspace");
     expect(pathToPhase("/response")).toBe("response");
     expect(pathToPhase("/complete")).toBe("complete");
-    expect(pathToPhase("/unknown-route")).toBe(null);
+    expect(pathToPhase("/404")).toBe("not-found");
+    expect(pathToPhase("/unknown-route")).toBe("not-found");
   });
 
   it("parses hash URLs with fallback support", () => {
     expect(pathToPhase("/", "#/cold-open")).toBe("cold-open");
     expect(pathToPhase("/", "#cold-open")).toBe("cold-open");
     expect(pathToPhase("/", "#/workspace")).toBe("workspace");
+    expect(pathToPhase("/", "#/404")).toBe("not-found");
+    expect(pathToPhase("/", "#/unknown")).toBe("not-found");
     expect(pathToPhase("/", "#/")).toBe("title");
     expect(pathToPhase("/", "#title")).toBe("title");
   });
@@ -75,5 +81,11 @@ describe("navigation adapter", () => {
     // Returning to workspace preserves session
     expect(session.goToPhase("workspace")).toBe(true);
     expect(session.getSnapshot().phase).toBe("workspace");
+
+    // Can transition to not-found and back to title
+    expect(session.goToPhase("not-found")).toBe(true);
+    expect(session.getSnapshot().phase).toBe("not-found");
+    expect(session.goToPhase("title")).toBe(true);
+    expect(session.getSnapshot().phase).toBe("title");
   });
 });

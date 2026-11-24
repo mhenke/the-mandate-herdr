@@ -420,3 +420,59 @@ export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): 
     </SceneShell>
   );
 }
+
+export function NotFoundScene({
+  onReturn,
+  onWorkspace,
+}: {
+  readonly onReturn: () => void;
+  readonly onWorkspace: () => void;
+}): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "r" || key === "enter") {
+      onReturn();
+      return true;
+    }
+    if (key === "w" || key === "o") {
+      onWorkspace();
+      return true;
+    }
+  });
+
+  return (
+    <SceneShell
+      imageUrl="/images/Redacted%20Nighttime%20Investigation%20Dossier-2.webp"
+      labelledBy="notfound-heading"
+    >
+      <p className="scene-kicker">THE COOPERATIVE · DISPATCH 404 // ROUTE UNRESOLVED</p>
+      <h1 id="notfound-heading">No record on file</h1>
+      <p className="scene-lede">
+        The requested docket or transmission route does not exist in the newsroom log. The lead was
+        either redacted, purged under Directive 47 protocol, or never filed from the desk.
+      </p>
+      <div className="scene-actions">
+        <button type="button" autoFocus onClick={onReturn} aria-keyshortcuts="R">
+          <span className="key-badge" aria-hidden="true">
+            R
+          </span>{" "}
+          Return to the desk
+        </button>
+        <button
+          type="button"
+          className="scene-skip-inline"
+          onClick={onWorkspace}
+          aria-keyshortcuts="W"
+        >
+          <span className="key-badge" aria-hidden="true">
+            W
+          </span>{" "}
+          Open the workspace
+        </button>
+      </div>
+      <p className="scene-note">
+        Newsroom log NL-1 · Capitol Press & Analyst Cooperative. Unverified dispatches are dropped
+        without trace.
+      </p>
+    </SceneShell>
+  );
+}

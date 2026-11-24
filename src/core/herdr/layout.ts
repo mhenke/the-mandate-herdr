@@ -55,15 +55,16 @@ export function validSplitRatio(ratio: number): number {
 
 /** src/layout.rs:700-720 */
 export function splitRect(area: Rect, direction: SplitDirection, ratio: number): [Rect, Rect] {
+  const safeRatio = validSplitRatio(ratio);
   if (direction === "horizontal") {
-    const firstW = Math.round(area.width * ratio);
+    const firstW = Math.round(area.width * safeRatio);
     const secondW = Math.max(0, area.width - firstW);
     return [
       { x: area.x, y: area.y, width: firstW, height: area.height },
       { x: area.x + firstW, y: area.y, width: secondW, height: area.height },
     ];
   }
-  const firstH = Math.round(area.height * ratio);
+  const firstH = Math.round(area.height * safeRatio);
   const secondH = Math.max(0, area.height - firstH);
   return [
     { x: area.x, y: area.y, width: area.width, height: firstH },

@@ -11,6 +11,7 @@ export const PHASE_PATHS: Record<Phase, string> = {
   workspace: "workspace",
   response: "response",
   complete: "complete",
+  "not-found": "404",
 };
 
 export const PHASE_TITLES: Record<Phase, string> = {
@@ -21,6 +22,7 @@ export const PHASE_TITLES: Record<Phase, string> = {
   workspace: "Workspace — The Mandate: Herdr",
   response: "Filed — The Mandate: Herdr",
   complete: "Complete — The Mandate: Herdr",
+  "not-found": "404 Record Not Found — The Mandate: Herdr",
 };
 
 export function phaseToPath(phase: Phase, baseUrl = "/"): string {
@@ -32,12 +34,13 @@ export function phaseToPath(phase: Phase, baseUrl = "/"): string {
 export function pathToPhase(pathname: string, hash = "", baseUrl = "/"): Phase | null {
   if (hash) {
     const cleanedHash = hash.replace(/^#\/?/, "").split("?")[0] ?? "";
-    if (cleanedHash in PHASE_PATHS) {
+    if (Object.hasOwn(PHASE_PATHS, cleanedHash)) {
       return cleanedHash as Phase;
     }
     if (cleanedHash === "" || cleanedHash === "title") {
       return "title";
     }
+    return "not-found";
   }
 
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
@@ -52,8 +55,10 @@ export function pathToPhase(pathname: string, hash = "", baseUrl = "/"): Phase |
   if (!relative || relative === "title") {
     return "title";
   }
-  if (relative in PHASE_PATHS) {
-    return relative as Phase;
+  for (const [phaseKey, subPath] of Object.entries(PHASE_PATHS)) {
+    if (subPath && relative === subPath) {
+      return phaseKey as Phase;
+    }
   }
-  return null;
+  return "not-found";
 }

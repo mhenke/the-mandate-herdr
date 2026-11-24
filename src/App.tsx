@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInvestigationSession, RECOVERY_STORAGE_KEY } from "./adapters/investigation-session";
 import { pathToPhase, phaseToPath, PHASE_TITLES } from "./adapters/navigation";
 import { toInputEvent } from "./adapters/herdr-browser";
-import { MandatePreview } from "./ui/MandatePreview";
+import { MandatePreview, type KeyboardToast } from "./ui/MandatePreview";
 import { GameHud } from "./ui/GameHud";
 import { useInvestigationSnapshot } from "./ui/useHerdrSnapshot";
 import {
@@ -16,6 +16,7 @@ import {
   ColdOpenScene,
   CompleteScene,
   EpisodeScene,
+  NotFoundScene,
   ResponseScene,
   TitleScene,
 } from "./ui/scenes";
@@ -81,7 +82,9 @@ function usePhaseNavigation(
     }
 
     const currentPath = window.location.pathname;
-    if (currentPath !== targetPath) {
+    if (phase === "not-found") {
+      window.history.replaceState({ phase }, "", targetPath);
+    } else if (currentPath !== targetPath) {
       window.history.pushState({ phase }, "", targetPath);
     } else if (!window.history.state || window.history.state.phase !== phase) {
       window.history.replaceState({ phase }, "", targetPath);
@@ -116,7 +119,7 @@ export function App() {
 
   const snapshot = useInvestigationSnapshot(session.subscribe, session.getSnapshot);
   const [captured, setCaptured] = useState(true);
-  const [reminder, setReminder] = useState(false);
+  const [reminder, setReminder] = useState<KeyboardToast | null>(null);
   const reminderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const releaseButtonRef = useRef<HTMLButtonElement>(null);
   const sceneTopRef = useRef<HTMLDivElement>(null);
@@ -124,11 +127,11 @@ export function App() {
 
   usePhaseNavigation(session, snapshot.phase);
 
-  // Standard mode refuses pointer chrome; nudge keyboard users once, briefly.
-  const showReminder = useCallback(() => {
-    setReminder(true);
+  // Standard mode refuses pointer chrome; nudge keyboard users with the exact chord.
+  const showReminder = useCallback((toast: KeyboardToast) => {
+    setReminder(toast);
     if (reminderTimer.current) clearTimeout(reminderTimer.current);
-    reminderTimer.current = setTimeout(() => setReminder(false), 2000);
+    reminderTimer.current = setTimeout(() => setReminder(null), 2000);
   }, []);
 
   useEffect(
@@ -233,7 +236,12 @@ export function App() {
   const handleSelectWorkspace = useCallback(
     (workspaceId: string) => {
       if (!session.dispatchChrome({ action: "select-workspace", workspaceId })) {
-        showReminder();
+        showReminder({
+          chord: "Ctrl+B W",
+          altChord: "Ctrl+B N",
+          action: "to navigate workspaces",
+        });
+        if (captured) focusSurface();
         return;
       }
       if (captured) focusSurface();
@@ -244,7 +252,12 @@ export function App() {
   const handleSelectTab = useCallback(
     (tabId: string) => {
       if (!session.dispatchChrome({ action: "select-tab", tabId })) {
-        showReminder();
+        showReminder({
+          chord: "Ctrl+B P",
+          altChord: "Ctrl+B N",
+          action: "to switch tabs",
+        });
+        if (captured) focusSurface();
         return;
       }
       if (captured) focusSurface();
@@ -254,7 +267,11 @@ export function App() {
 
   const handleNewTab = useCallback(() => {
     if (!session.dispatchChrome({ action: "new-tab" })) {
-      showReminder();
+      showReminder({
+        chord: "Ctrl+B C",
+        action: "to create a new tab",
+      });
+      if (captured) focusSurface();
       return;
     }
     if (captured) focusSurface();
@@ -263,7 +280,12 @@ export function App() {
   const handleFocusPane = useCallback(
     (paneId: string) => {
       if (!session.dispatchChrome({ action: "focus-pane", paneId })) {
-        showReminder();
+        showReminder({
+          chord: "Ctrl+B O",
+          altChord: "Ctrl+B H/L",
+          action: "to switch panes",
+        });
+        if (captured) focusSurface();
         return;
       }
       if (captured) focusSurface();
@@ -315,6 +337,11 @@ export function App() {
           />
         ) : snapshot.phase === "complete" ? (
           <CompleteScene onReturn={() => session.returnToTitle()} />
+        ) : snapshot.phase === "not-found" ? (
+          <NotFoundScene
+            onReturn={() => session.returnToTitle()}
+            onWorkspace={() => session.goToPhase("workspace")}
+          />
         ) : null}
       </div>
 
@@ -346,7 +373,6 @@ export function App() {
               memoRead={snapshot.story.events.includes("SE-L1-assignment")}
               artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
               onPreviewKey={handlePreviewKey}
-              onReleaseRequest={engage}
               onReadMemo={handleReadMemo}
               onAcknowledgeAssignment={handleAcknowledge}
               onExamineArtifact={handleExamineArtifact}

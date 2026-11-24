@@ -54,4 +54,19 @@ test.describe("browser history & navigation", () => {
     await expect(page).toHaveURL(/\/cold-open$/);
     await expect(page.locator(".cinema-stage")).toBeVisible();
   });
+
+  test("direct URL navigation to unrecognized route loads 404 NotFoundScene with theme and controls", async ({
+    page,
+  }) => {
+    await page.goto("/unrecognized-docket");
+    await expect(page).toHaveURL(/\/404$/);
+    await expect(page).toHaveTitle(/404 Record Not Found/);
+    await expect(page.getByRole("heading", { name: "No record on file" })).toBeVisible();
+    await expect(page.getByText(/THE COOPERATIVE · DISPATCH 404/)).toBeVisible();
+
+    // Keyboard shortcut R returns to desk (title)
+    await page.keyboard.press("r");
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { name: "The Mandate: Herdr" })).toBeVisible();
+  });
 });

@@ -36,7 +36,14 @@ import {
 } from "../core/narrative";
 
 export type Phase =
-  "title" | "cold-open" | "episode" | "briefing" | "workspace" | "response" | "complete";
+  | "title"
+  | "cold-open"
+  | "episode"
+  | "briefing"
+  | "workspace"
+  | "response"
+  | "complete"
+  | "not-found";
 
 export interface AssessmentProgress {
   readonly objectives: readonly ObjectiveRecord[];
@@ -156,6 +163,7 @@ const RECOVERY_PHASE_SET = new Set<Phase>([
   "workspace",
   "response",
   "complete",
+  "not-found",
 ]);
 const RECOVERY_POLICY_SET = new Set<string>(["standard", "accessible"]);
 
@@ -386,7 +394,7 @@ export function createInvestigationSession(): InvestigationSession {
     },
     returnToTitle() {
       if (phase === "title") return;
-      if (attempt) suspendedPhase = phase;
+      if (attempt && phase !== "not-found") suspendedPhase = phase;
       phase = "title";
       commit();
     },
@@ -395,6 +403,11 @@ export function createInvestigationSession(): InvestigationSession {
       if (targetPhase === "title") {
         if (attempt) suspendedPhase = phase;
         phase = "title";
+        commit();
+        return true;
+      }
+      if (targetPhase === "not-found") {
+        phase = "not-found";
         commit();
         return true;
       }
