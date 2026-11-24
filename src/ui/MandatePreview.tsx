@@ -30,11 +30,13 @@ export interface MandatePreviewProps {
   readonly focusedApp: string | null;
   readonly assignmentAccepted: boolean;
   readonly memoRead: boolean;
+  readonly artifactExamined: boolean;
   readonly onPreviewKey: (input: PreviewKeyInput) => void;
   readonly onReleaseRequest: () => void;
   readonly onSetAccessible: (on: boolean) => void;
   readonly onReadMemo: () => void;
   readonly onAcknowledgeAssignment: () => void;
+  readonly onExamineArtifact: () => void;
   readonly onSelectWorkspace: (workspaceId: string) => void;
   readonly onSelectTab: (tabId: string) => void;
   readonly onNewTab: () => void;
@@ -46,16 +48,20 @@ function ActiveTabView({
   focusedApp,
   assignmentAccepted,
   memoRead,
+  artifactExamined,
   onReadMemo,
   onAcknowledgeAssignment,
+  onExamineArtifact,
   onFocusPane,
 }: {
   readonly tab: TabView;
   readonly focusedApp: string | null;
   readonly assignmentAccepted: boolean;
   readonly memoRead: boolean;
+  readonly artifactExamined: boolean;
   readonly onReadMemo: () => void;
   readonly onAcknowledgeAssignment: () => void;
+  readonly onExamineArtifact: () => void;
   readonly onFocusPane: (paneId: string) => void;
 }): JSX.Element {
   const panes =
@@ -72,6 +78,10 @@ function ActiveTabView({
     ) : focusedApp === "assignment" && memoRead && !assignmentAccepted ? (
       <button type="button" className="tui-story" onClick={onAcknowledgeAssignment}>
         Accept the assignment
+      </button>
+    ) : focusedApp === "artifact" && !artifactExamined ? (
+      <button type="button" className="tui-story" onClick={onExamineArtifact}>
+        Examine the artifact
       </button>
     ) : null;
   return (
@@ -151,8 +161,14 @@ function OverlayView({ overlay }: { readonly overlay: Overlay }): JSX.Element {
     );
   }
   if (overlay.kind === "rename") {
-    // Upstream titles the new-tab prompt "new tab" (overlay_input.rs:386-408).
-    const title = overlay.target === "new-tab" ? "new tab" : `Rename ${overlay.target}`;
+    // Upstream titles the new-tab prompt "new tab", tab rename "rename tab",
+    // workspace rename "rename workspace" (overlay_input.rs:386-408, captures 10/11/15b).
+    const title =
+      overlay.target === "new-tab"
+        ? "new tab"
+        : overlay.target === "tab"
+          ? "rename tab"
+          : "rename workspace";
     return (
       <div className="tui-overlay" role="dialog" aria-label={title}>
         <p className="tui-overlay-title">{title}</p>
@@ -183,11 +199,13 @@ export function MandatePreview({
   focusedApp,
   assignmentAccepted,
   memoRead,
+  artifactExamined,
   onPreviewKey,
   onReleaseRequest,
   onSetAccessible,
   onReadMemo,
   onAcknowledgeAssignment,
+  onExamineArtifact,
   onSelectWorkspace,
   onSelectTab,
   onNewTab,
@@ -351,8 +369,10 @@ export function MandatePreview({
                 focusedApp={focusedApp}
                 assignmentAccepted={assignmentAccepted}
                 memoRead={memoRead}
+                artifactExamined={artifactExamined}
                 onReadMemo={onReadMemo}
                 onAcknowledgeAssignment={onAcknowledgeAssignment}
+                onExamineArtifact={onExamineArtifact}
                 onFocusPane={onFocusPane}
               />
             ) : (

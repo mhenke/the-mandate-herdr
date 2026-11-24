@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T10:16:30Z | Mode: FULL
+> Generated: 2026-11-24T17:35:00Z | Mode: DELTA
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -59,7 +59,8 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `src/styles/`: Application styles, typography tokens, layout CSS.
 - `docs/`: Story bible, design contracts, architectural decision records (ADRs), research baselines.
 - `docs/adr/`: Architecture Decision Records (0001 through 0006).
-- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties).
+- `cinematics/`: Offline HyperFrames composition projects (cold open, L3 mission outro) generating static MP4/VTT assets.
+- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties, cinematics).
 - `tests/e2e/`: Playwright end-to-end suites (visual parity, smoke journeys, axe accessibility, keyboard policy).
 - `public/`: Static assets (cinematic MP4, VTT captions, posters, transcripts).
 - `scripts/`: Upstream baseline capture scripts and validation utilities.
@@ -93,8 +94,8 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 10 Vitest test files (**161 unit, property, and fidelity tests passing**).
-  - 5 Playwright test files (**16 E2E, accessibility, and visual tests passing**).
+  - 12 Vitest test files (**170 unit, property, fidelity, and cinematic integration tests passing**).
+  - 6 Playwright test files (**18 E2E, accessibility, and visual tests passing**).
 - Test patterns:
   - Core purity tests (bare Node process invocation).
   - Fast-check generative property tests for state transitions and determinism.
@@ -109,7 +110,18 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- N/A (FULL scan)
+- `src/core/herdr/index.ts` (barrel export narrowing, unused type elimination)
+- `src/core/herdr/keymap.ts` (complexity reduction and help group extraction)
+- `src/core/herdr/layout.ts` (directional scoring helper extraction)
+- `src/core/herdr/store.ts` (clone group elimination, function decomposition, L2 newTabOutput)
+- `src/core/herdr/types.ts` (WorkspaceState newTabOutput)
+- `src/core/assessment/index.ts` (L2 assessment and tab rename recognition)
+- `src/ui/MandatePreview.tsx` (L2 artifact examination button)
+- `src/App.tsx` (examine-artifact story handler)
+- `GLOSSARY.md` (sharpened hit targets, mode bar, named session, new-tab prompt; added Stringer, Cooperative, False credit)
+- `PRODUCT.md` (product specification and positioning)
+- `tests/investigation-l2.test.ts` (L2 unit/fidelity test suite)
+- `tests/e2e/level-2-journey.spec.ts` (L2 E2E Playwright journey specs)
 
 ## Last Scanned
-2026-11-24T10:16:30Z
+2026-11-24T17:35:00Z

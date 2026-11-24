@@ -96,6 +96,11 @@ export function App() {
     focusSurface();
   }, [session, focusSurface]);
 
+  const handleExamineArtifact = useCallback(() => {
+    session.storyAction("examine-artifact");
+    focusSurface();
+  }, [session, focusSurface]);
+
   const handleRequestHint = useCallback(() => {
     session.requestHint();
     focusSurface();
@@ -265,11 +270,13 @@ export function App() {
             focusedApp={focusedApp}
             assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
             memoRead={snapshot.story.events.includes("SE-L1-assignment")}
+            artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
             onPreviewKey={handlePreviewKey}
             onReleaseRequest={engage}
             onSetAccessible={(on) => session.setAccessibleMode(on)}
             onReadMemo={handleReadMemo}
             onAcknowledgeAssignment={handleAcknowledge}
+            onExamineArtifact={handleExamineArtifact}
             onSelectWorkspace={handleSelectWorkspace}
             onSelectTab={handleSelectTab}
             onNewTab={handleNewTab}

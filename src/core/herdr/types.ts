@@ -135,6 +135,7 @@ export interface WorkspaceState {
   readonly activeTabId: string;
   /** Fixture declaration: the fictional app a new tab opens here. */
   readonly newTabApp: PaneApp;
+  readonly newTabOutput?: readonly string[];
 }
 
 export interface CopySearchPrompt {

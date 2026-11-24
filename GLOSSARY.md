@@ -36,6 +36,14 @@ _Avoid_: Legal fact, binding conclusion, verified intake
 The player's signed, retractable report. Any credentialed verifier may file one; only a two-source-corroborated filing forces review.
 _Avoid_: Investigation report, audit memo, analyst note
 
+**Stringer**:
+An independent credentialed verifier affiliated with the cooperative network who files signed verifier notes.
+_Avoid_: Reporter, freelance agent, private investigator, auditor
+
+**Cooperative (Capital Press & Analyst Cooperative)**:
+The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
+_Avoid_: Agency, newsroom, syndicate, union
+
 **Counter-provenance filing (CPF)**:
 The affirmative instrument proving common source and retracting the filer's own contribution. Subtraction alone (withdrawing a report) is never sufficient; the filing must establish the shared origin.
 _Avoid_: Retraction notice, correction ticket, appeal
@@ -106,6 +114,10 @@ _Avoid_: Event types, input origins, action sources
 Separate outcomes. A player may finish the story with external/accessible controls and earn no keyboard-transfer credit; the record states which.
 _Avoid_: Win state, game clear, level passed
 
+**False credit**:
+The accidental award of learning mastery from simulated process events, test fixtures, or external accessible controls rather than deliberate player keyboard actions.
+_Avoid_: Free pass, unearned achievement, phantom completion
+
 **Input policy**:
 The session mode governing whether simulated chrome accepts pointer interaction. Standard enforces the in-world cooperative security restriction requiring keyboard-only operations on the remote console; Accessible permits alternative pointer navigation of simulated chrome without granting keyboard-transfer mastery credit.
 _Avoid_: Mouse mode, easy mode, cheat mode, bypass
@@ -113,6 +125,10 @@ _Avoid_: Mouse mode, easy mode, cheat mode, bypass
 **Chrome event**:
 An external host activation of simulated multiplexer navigation (workspace, tab, new-tab, or pane focus) recorded with non-player provenance (`playerAction: false`). Distinguishes host-level navigation from authentic player keyboard operations.
 _Avoid_: Synthetic keystroke, simulated click, fake key
+
+**New-tab prompt**:
+The modal overlay opened by `prefix+c` when `prompt_new_tab_name` is true (the upstream Herdr default). Titled `new tab`, it pre-fills the next numerical index and commits tab creation only on `Enter`; `Escape` cancels without creating a tab. Differs from the tab rename field (`prefix+shift+t`), which modifies an already-existing tab and retains the current name on cancel or empty commit.
+_Avoid_: Tab creation dialog, tab popup, new tab modal
 
 **Capture release control**:
 An accessible external host control that releases keyboard focus from the simulated terminal surface back to the browser page. Releases browser capture without consuming or redefining Herdr's own internal `Escape` key.
@@ -123,15 +139,15 @@ A level that assesses only previously taught skills with faded scaffolding. A ch
 _Avoid_: Quiz level, test stage, boss fight
 
 **Mouse chrome / hit targets (`hits`)**:
-Clickable terminal grid regions (`hits.new_tab` in tab bar, `hits.new_workspace` and `hits.sidebar_toggle` in sidebar) active only when `mouse_capture` is enabled. In the simulated TUI, hit targets route mouse clicks (`Down(Left)`) directly to keybind actions (`NewTab`, `NewWorkspace`), exercising the exact same dispatch as keyboard chords without mutating client state independently.
+Clickable terminal grid regions active only when mouse capture is enabled. In the simulated TUI, hit targets translate pointer clicks directly to the corresponding Herdr key actions, exercising the exact same dispatch as keyboard chords without mutating state independently.
 _Avoid_: UI buttons, overlay clicks, pointer shortcuts
 
 **Mode bar**:
-The modal status strip painted at the bottom of the active pane surface during non-terminal modes (`PREFIX`, `COPY`, `RESIZE`, `NAVIGATE`). In standard `Terminal` mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
+The modal status strip painted at the bottom of the active pane surface during non-terminal modes (prefix, copy, resize, navigate). In standard terminal mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
 _Avoid_: Status bar, bottom dock, info footer
 
 **Named session vs default server session**:
-Herdr process isolation boundary: a unique named session (`herdr --session <name>`) isolates unix domain sockets and runtime state in private XDG directories. The default session shares fixed `/run/user/<uid>` state paths; running `server stop` targets the global registry and terminates the host server, whereas `session stop <name>` safely terminates only the named instance.
+The process isolation boundary separating independent Herdr instances. A named session isolates Unix domain sockets and runtime state in dedicated user directories, allowing safe termination without affecting the shared default server session.
 _Avoid_: Sandboxed session, isolated process, private server
 
 **Capture context**:
