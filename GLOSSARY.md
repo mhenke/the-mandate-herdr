@@ -179,7 +179,7 @@ A matrix cell that teaches part of a skill's content only (for example, the clos
 _Avoid_: Incomplete lesson, teaser, preview
 
 **Upstream visual baseline**:
-The 28 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `tests/e2e/__screenshots__/upstream/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
+The 28 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `references/herdr-baselines/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
 _Avoid_: Illustrative concept art, mock screenshot, reference render
 
 **Cold open cinematic**:

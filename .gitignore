@@ -1,18 +1,58 @@
-coverage/
-dist/
+# Dependencies
 node_modules/
-**/node_modules
-**/node_modules/
-.playwright-mcp/
-playwright-report/
-.stryker-tmp/
-test-results/
-the-mandate-concept-art.zip
-*.tsbuildinfo
+
+# Production build
+dist/
+
+# Testing & Quality Tooling
+coverage/
 .vitest/
+test-results/
+playwright-report/
+.playwright-mcp/
+.stryker-tmp/
+.fallow/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Agent Worktrees & Exploration Graphs
 .worktrees/
-.claude/
+graphify-out/
+
+# AI Tooling & Local Settings
 .impeccable/
+.gemini/
+.claude/*
+!.claude/pipeline/
+!.claude/state.json
+
+# Cinematics & Media Caches
 **/.hyperframes/
 **/.thumbnails/
 **/renders/
+*.zip
+the-mandate-concept-art.zip
+**/the-mandate-concept-art.zip
+
+# Environment & Local Overrides
+*.local
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS & Editor Artifacts
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+.idea/
+*.swp
+*.swo
+*~

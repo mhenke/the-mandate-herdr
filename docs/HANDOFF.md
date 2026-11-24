@@ -49,7 +49,7 @@ None. L1 slice is committed and PR #9 is submitted. Awaiting PR CI completion an
 - `src/App.tsx`, `src/ui/MandatePreview.tsx`, `src/styles/mandate-preview.css` — presentation + host wiring (fixer lane).
 - `tests/{herdr-chrome,investigation-l1,adapter-browser,herdr-fidelity,herdr-copy-reconcile}.test.ts` — runtime/policy/recovery/fidelity.
 - `tests/e2e/` — Playwright suites incl. new keyboard-policy spec; screenshots `/tmp/opencode/mandate-final/`.
-- Upstream pins: `/tmp/opencode/the-mandate-research/herdr/`; captures `/home/mhenke/Projects/the-mandate/tests/e2e/__screenshots__/upstream/` (28 pinned, read-only authority).
+- Upstream pins: `/tmp/opencode/the-mandate-research/herdr/`; captures `/home/mhenke/Projects/the-mandate/references/herdr-baselines/` (pinned, read-only authority).
 
 ## Next steps
 

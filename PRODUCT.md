@@ -44,7 +44,7 @@ The mechanism a competitor could not truthfully copy: the game's central mystery
 ## Evidence on Hand
 
 - Story canon and design docs in `docs/` (story bible, arc, narrative design, level contracts, learning design, fidelity/research with pinned source citations).
-- Six concept images in `images/` (webp) plus earlier `assets/images/` set; conspiracy-board and hearing-room images are reserved for later episodes (spoiler risk).
+- Six concept images in `images/` (webp) plus earlier `references/concept-art/` set; conspiracy-board and hearing-room images are reserved for later episodes (spoiler risk).
 - A pinned, locally built upstream Herdr binary at `/tmp/opencode/the-mandate-research/herdr/target/release/herdr` for research and future baseline captures; real upstream screenshot baselines with full provenance are still pending.
 - Playable L1 sequence (title → cold open → briefing → workspace → earned response) implemented with 30+ passing runtime tests, including provenance and false-credit regressions; browser E2E coverage still thin (single smoke spec).
 
