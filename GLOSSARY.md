@@ -162,6 +162,18 @@ _Avoid_: Sandboxed session, isolated process, private server
 The host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; release from capture is keyboard-reachable via the external release control, never via the Escape key, which is Herdr-owned inside the simulated TUI.
 _Avoid_: Focus trap, modal lock, input grab
 
+**Game HUD (Cooperative Mission HUD)**:
+The external mission guidance, objective tracking, and capture status surface that sits outside and directly above the simulated Herdr console. It is entirely owned by the game host and Journalist Cooperative narrative layer, distinct from the Herdr TUI multiplexer chrome.
+_Avoid_: Terminal header, TUI top bar, multiplexer banner, console HUD
+
+**Herdr TUI (Simulated Console)**:
+The pure multiplexer workspace consisting strictly of: the full-height spaces & agents sidebar, the top tab bar, the split panes, and the row 40 mode bar. It has zero awareness of game objectives, scores, or external web controls.
+_Avoid_: Game screen, application UI, investigation window
+
+**Manual Cinematic Transition (Non-Automatic Gate)**:
+The transition policy where cinematic video playback pauses at its final frame upon completion (`onEnded`), requiring explicit player initiation (via S, Enter, or clicking the primary CTA) to enter the terminal workspace, preventing jarring auto-jumps.
+_Avoid_: Auto-skip, auto-advance, video timeout, cutscene auto-redirect
+
 **Logical clock**:
 Deterministic simulation time advancing only through recorded events. Browser suspension freezes it; resume never applies wall-clock catch-up.
 _Avoid_: Delta time, frame clock, render loop

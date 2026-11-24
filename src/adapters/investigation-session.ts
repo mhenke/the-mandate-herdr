@@ -86,6 +86,7 @@ export interface InvestigationSession {
   advancePresentation(): void;
   skipPresentation(): void;
   returnToTitle(): void;
+  goToPhase(targetPhase: Phase): boolean;
   /** Null outside the workspace: scene input never mutates the simulation. */
   dispatch(event: InputEvent): JournalEntry | null;
   /**
@@ -147,7 +148,7 @@ interface RecoveryPayload {
   } | null;
 }
 
-const RECOVERY_PHASES: readonly Phase[] = [
+const RECOVERY_PHASE_SET = new Set<Phase>([
   "title",
   "cold-open",
   "episode",
@@ -155,33 +156,32 @@ const RECOVERY_PHASES: readonly Phase[] = [
   "workspace",
   "response",
   "complete",
-];
+]);
+const RECOVERY_POLICY_SET = new Set<string>(["standard", "accessible"]);
 
 function parseRecovery(json: string): RecoveryPayload | null {
-  let raw: unknown;
   try {
-    raw = JSON.parse(json);
+    const raw: unknown = JSON.parse(json);
+    if (!raw || typeof raw !== "object") return null;
+    const payload = raw as Partial<RecoveryPayload>;
+    if (payload.version !== RECOVERY_VERSION) return null;
+    if (!payload.phase || !RECOVERY_PHASE_SET.has(payload.phase)) return null;
+    if (!payload.suspendedPhase || !RECOVERY_PHASE_SET.has(payload.suspendedPhase)) return null;
+    if (!payload.policy || !RECOVERY_POLICY_SET.has(payload.policy)) return null;
+    if (payload.attempt === null) return { ...payload } as RecoveryPayload;
+    const saved = payload.attempt;
+    if (!saved || !Array.isArray(saved.events)) return null;
+    return payload as RecoveryPayload;
   } catch {
     return null;
   }
-  if (!raw || typeof raw !== "object") return null;
-  const payload = raw as Partial<RecoveryPayload>;
-  if (payload.version !== RECOVERY_VERSION) return null;
-  if (!payload.phase || !RECOVERY_PHASES.includes(payload.phase)) return null;
-  if (!payload.suspendedPhase || !RECOVERY_PHASES.includes(payload.suspendedPhase)) return null;
-  if (payload.policy !== "standard" && payload.policy !== "accessible") return null;
-  if (payload.attempt === null) return { ...payload } as RecoveryPayload;
-  const saved = payload.attempt;
-  if (!saved || !Array.isArray(saved.events)) return null;
-  return payload as RecoveryPayload;
 }
 
 function deepFreeze<T>(value: T): T {
-  if (value && typeof value === "object" && !Object.isFrozen(value)) {
-    Object.freeze(value);
-    for (const key of Object.keys(value)) {
-      deepFreeze((value as Record<string, unknown>)[key]);
-    }
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const child of Object.values(value)) {
+    deepFreeze(child);
   }
   return value;
 }
@@ -233,9 +233,9 @@ function newAttempt(level: Level): Attempt {
 }
 
 function activeTabOf(store: HerdrStore) {
-  const state = store.getState();
-  const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId);
-  return ws?.tabs.find((t) => t.id === ws.activeTabId);
+  const { workspaces, activeWorkspaceId } = store.getState();
+  const currentWs = workspaces.find((w) => w.id === activeWorkspaceId);
+  return currentWs ? currentWs.tabs.find((t) => t.id === currentWs.activeTabId) : undefined;
 }
 
 /** The app of the pane the player is actually looking at, or null. */
@@ -276,6 +276,10 @@ function groundedStoryAction(action: StoryActionId, store: HerdrStore): boolean 
   }
 }
 
+const ADVANCEABLE_PHASES = new Set<Phase>(["cold-open", "episode", "briefing", "response"]);
+const ATTEMPT_START_PHASES = new Set<Phase>(["cold-open", "episode", "briefing", "workspace"]);
+const ATTEMPT_REQUISITE_PHASES = new Set<Phase>(["response", "complete"]);
+
 export function createInvestigationSession(): InvestigationSession {
   let attempt: Attempt | null = null;
   let phase: Phase = "title";
@@ -306,11 +310,7 @@ export function createInvestigationSession(): InvestigationSession {
       presentation: presentation(level, hintsUsed),
       declaredDestination: current?.declaredDestination ?? null,
       canContinue: attempt !== null && phase === "title",
-      canAdvance:
-        phase === "cold-open" ||
-        phase === "episode" ||
-        phase === "briefing" ||
-        phase === "response",
+      canAdvance: ADVANCEABLE_PHASES.has(phase),
       objectivesMet: met,
       storyConditionMet: storyMet,
       inputPolicy: policy,
@@ -390,6 +390,28 @@ export function createInvestigationSession(): InvestigationSession {
       phase = "title";
       commit();
     },
+    goToPhase(targetPhase) {
+      if (targetPhase === phase) return true;
+      if (targetPhase === "title") {
+        if (attempt) suspendedPhase = phase;
+        phase = "title";
+        commit();
+        return true;
+      }
+      if (ATTEMPT_START_PHASES.has(targetPhase)) {
+        attempt ??= newAttempt(1);
+        phase = targetPhase;
+        commit();
+        return true;
+      }
+      if (ATTEMPT_REQUISITE_PHASES.has(targetPhase)) {
+        if (!attempt) return false;
+        phase = targetPhase;
+        commit();
+        return true;
+      }
+      return false;
+    },
     dispatch(event) {
       // Scene and title input never reaches the simulation: no hidden state that
       // could later be credited.
@@ -425,6 +447,24 @@ export function createInvestigationSession(): InvestigationSession {
       if (action === "acknowledge-assignment") {
         const pane = activeTabOf(attempt.store)?.panes.find((p) => p.app === "assignment");
         if (pane) {
+          attempt.store.dispatch({
+            kind: "process",
+            origin: "process",
+            process: {
+              kind: "output",
+              paneId: pane.id,
+              line: "$ herdr accept-assignment",
+            },
+          });
+          attempt.store.dispatch({
+            kind: "process",
+            origin: "process",
+            process: {
+              kind: "output",
+              paneId: pane.id,
+              line: "YOUR DESK IS LIVE. CREDENTIAL VERIFIED.",
+            },
+          });
           attempt.store.dispatch({
             kind: "process",
             origin: "process",

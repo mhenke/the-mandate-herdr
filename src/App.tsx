@@ -6,8 +6,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInvestigationSession, RECOVERY_STORAGE_KEY } from "./adapters/investigation-session";
+import { pathToPhase, phaseToPath, PHASE_TITLES } from "./adapters/navigation";
 import { toInputEvent } from "./adapters/herdr-browser";
 import { MandatePreview } from "./ui/MandatePreview";
+import { GameHud } from "./ui/GameHud";
 import { useInvestigationSnapshot } from "./ui/useHerdrSnapshot";
 import {
   BriefingScene,
@@ -32,6 +34,61 @@ const COLD_OPEN_TRANSCRIPT =
   "Confirm what is known before contact. " +
   "SOURCE-HANDLING MEMORANDUM: verify origin · preserve attribution · no assumed confirmation. " +
   "Your desk is live.";
+
+function usePhaseNavigation(
+  session: ReturnType<typeof createInvestigationSession>,
+  phase: string,
+): void {
+  const isPopStateRef = useRef(false);
+
+  const initialPhase = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return pathToPhase(window.location.pathname, window.location.hash, import.meta.env.BASE_URL);
+  }, []);
+
+  useEffect(() => {
+    if (initialPhase && initialPhase !== "title") {
+      session.goToPhase(initialPhase);
+    }
+  }, [session, initialPhase]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPopState = (event: PopStateEvent) => {
+      const targetPhase =
+        event.state?.phase ??
+        pathToPhase(window.location.pathname, window.location.hash, import.meta.env.BASE_URL);
+      if (targetPhase) {
+        isPopStateRef.current = true;
+        session.goToPhase(targetPhase);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [session]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const targetPath = phaseToPath(
+      phase as Parameters<typeof phaseToPath>[0],
+      import.meta.env.BASE_URL,
+    );
+    document.title =
+      PHASE_TITLES[phase as keyof typeof PHASE_TITLES] ?? "The Mandate: Herdr";
+
+    if (isPopStateRef.current) {
+      isPopStateRef.current = false;
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    if (currentPath !== targetPath) {
+      window.history.pushState({ phase }, "", targetPath);
+    } else if (!window.history.state || window.history.state.phase !== phase) {
+      window.history.replaceState({ phase }, "", targetPath);
+    }
+  }, [phase]);
+}
 
 export function App() {
   const session = useMemo(() => {
@@ -65,6 +122,8 @@ export function App() {
   const releaseButtonRef = useRef<HTMLButtonElement>(null);
   const sceneTopRef = useRef<HTMLDivElement>(null);
   const surfaceHostRef = useRef<HTMLDivElement>(null);
+
+  usePhaseNavigation(session, snapshot.phase);
 
   // Standard mode refuses pointer chrome; nudge keyboard users once, briefly.
   const showReminder = useCallback(() => {
@@ -261,81 +320,42 @@ export function App() {
       </div>
 
       {showChrome ? (
-        <div className="terminal" ref={surfaceHostRef}>
-          <MandatePreview
-            snapshot={herdr}
+        <div className="workspace-screen">
+          <GameHud
+            releaseButtonRef={releaseButtonRef}
+            level={snapshot.level}
+            objectives={snapshot.assessment.objectives}
+            hints={snapshot.presentation.hints}
+            hintsUsed={snapshot.assessment.hintsUsed}
+            focusedApp={focusedApp}
+            memoRead={snapshot.story.events.includes("SE-L1-assignment")}
+            assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
+            artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
             captured={captured && inWorkspace}
             accessible={snapshot.inputPolicy === "accessible"}
-            reminder={reminder}
-            focusedApp={focusedApp}
-            assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
-            memoRead={snapshot.story.events.includes("SE-L1-assignment")}
-            artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
-            onPreviewKey={handlePreviewKey}
-            onReleaseRequest={engage}
+            onRequestHint={handleRequestHint}
+            onToggleCapture={captured ? release : engage}
             onSetAccessible={(on) => session.setAccessibleMode(on)}
-            onReadMemo={handleReadMemo}
-            onAcknowledgeAssignment={handleAcknowledge}
-            onExamineArtifact={handleExamineArtifact}
-            onSelectWorkspace={handleSelectWorkspace}
-            onSelectTab={handleSelectTab}
-            onNewTab={handleNewTab}
-            onFocusPane={handleFocusPane}
           />
-          <div className="terminal-under">
-            <p className="objectives-quiet" aria-live="polite">
-              {snapshot.assessment.objectives.some((o) => o.met)
-                ? `Objectives met: ${snapshot.assessment.objectives
-                    .filter((o) => o.met)
-                    .map((o) => o.id)
-                    .join(", ")}`
-                : "No objectives met yet."}
-            </p>
-            {inWorkspace ? (
-              <details className="hints-quiet">
-                <summary>
-                  Hints (optional
-                  {snapshot.assessment.hintsUsed > 0 ? ", recorded" : ""})
-                </summary>
-                {snapshot.presentation.hints.length > 0 ? (
-                  <ol>
-                    {snapshot.presentation.hints.map((hint, index) => (
-                      <li key={index}>{hint}</li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p>Requesting a hint records assistance — never punishment.</p>
-                )}
-                <button type="button" onClick={handleRequestHint}>
-                  Request a hint
-                </button>
-              </details>
-            ) : null}
-            <details className="provenance-quiet">
-              <summary>About this preview</summary>
-              <p>
-                Preview mock: visual approximation of a Herdr-style workspace, not an authentic
-                baseline. Live simulation state only. Preview slice L1–L3 ·{" "}
-                {`session ${herdr.sessionId} · ${herdr.attached ? "attached" : "detached"}`}
-              </p>
-            </details>
-          </div>
-          <div className="mandate-release">
-            <button
-              ref={releaseButtonRef}
-              type="button"
-              onClick={captured ? release : engage}
-              aria-pressed={captured}
-              aria-describedby="capture-desc"
-              className="release-link"
-            >
-              {captured ? "Release capture" : "Engage capture"}
-            </button>
-            <span id="capture-desc" className="release-hint">
-              {captured
-                ? "Keys go to the simulated surface. Tab leaves it."
-                : "Released: keys stay in the page."}
-            </span>
+          <div className="terminal" ref={surfaceHostRef}>
+            <MandatePreview
+              snapshot={herdr}
+              captured={captured && inWorkspace}
+              reminder={reminder}
+              focusedApp={focusedApp}
+              assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
+              memoRead={snapshot.story.events.includes("SE-L1-assignment")}
+              artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
+              onPreviewKey={handlePreviewKey}
+              onReleaseRequest={engage}
+              onReadMemo={handleReadMemo}
+              onAcknowledgeAssignment={handleAcknowledge}
+              onExamineArtifact={handleExamineArtifact}
+              onSelectWorkspace={handleSelectWorkspace}
+              onSelectTab={handleSelectTab}
+              onNewTab={handleNewTab}
+              onFocusPane={handleFocusPane}
+            />
           </div>
         </div>
       ) : null}

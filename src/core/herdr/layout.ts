@@ -122,11 +122,7 @@ export function replacePaneNode(
   };
 }
 
-function isCandidateInDirection(
-  focused: Rect,
-  candidate: Rect,
-  direction: NavDirection,
-): boolean {
+function isCandidateInDirection(focused: Rect, candidate: Rect, direction: NavDirection): boolean {
   switch (direction) {
     case "left":
       return (

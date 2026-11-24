@@ -23,8 +23,6 @@ export interface PreviewKeyInput {
 export interface MandatePreviewProps {
   readonly snapshot: HerdrSnapshot;
   readonly captured: boolean;
-  /** False in Standard (keyboard-only); true when alternative navigation is enabled. */
-  readonly accessible: boolean;
   /** Show the brief Standard-mode keyboard reminder while true. */
   readonly reminder: boolean;
   readonly focusedApp: string | null;
@@ -33,7 +31,6 @@ export interface MandatePreviewProps {
   readonly artifactExamined: boolean;
   readonly onPreviewKey: (input: PreviewKeyInput) => void;
   readonly onReleaseRequest: () => void;
-  readonly onSetAccessible: (on: boolean) => void;
   readonly onReadMemo: () => void;
   readonly onAcknowledgeAssignment: () => void;
   readonly onExamineArtifact: () => void;
@@ -41,6 +38,168 @@ export interface MandatePreviewProps {
   readonly onSelectTab: (tabId: string) => void;
   readonly onNewTab: () => void;
   readonly onFocusPane: (paneId: string) => void;
+}
+
+function renderHeaderLine(line: string, key: string): JSX.Element | null {
+  if (line === "Assignment terminal" || line === "Interview terminal") {
+    return (
+      <div key={key} className="term-head">
+        {line}
+      </div>
+    );
+  }
+  if (
+    line === "Reference material stays in this pane." ||
+    line === "Source: baseline demonstration"
+  ) {
+    return (
+      <div key={key} className="term-dim">
+        {line}
+      </div>
+    );
+  }
+  return null;
+}
+
+function renderPromptLine(line: string, key: string): JSX.Element | null {
+  if (line.startsWith("$ ")) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-dim">$ </span>
+        <span>{line.slice(2)}</span>
+      </p>
+    );
+  }
+  if (line.startsWith("FROM:")) {
+    const parts = line.slice(5).split("//");
+    return (
+      <p key={key} className="term-line">
+        <span className="term-dim">FROM: </span>
+        <b>{parts[0]?.trim()}</b>
+        {parts.length > 1 ? (
+          <span className="term-dim"> // {parts.slice(1).join("//").trim()}</span>
+        ) : null}
+      </p>
+    );
+  }
+  if (line.startsWith("RE:")) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-dim">RE: </span>
+        <span>{line.slice(3).trim()}</span>
+      </p>
+    );
+  }
+  if (line.startsWith("STATUS:") || line.includes("off-record")) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-dim">STATUS: </span>
+        <span className="term-amber">{line.replace(/^STATUS:\s*/, "")}</span>
+      </p>
+    );
+  }
+  return null;
+}
+
+function renderContentLine(line: string, key: string): JSX.Element {
+  if (line.startsWith("01 //") || line.startsWith("02 //") || line.startsWith("03 //")) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-amber">{line.slice(0, 5)}</span>
+        <span>{line.slice(5)}</span>
+      </p>
+    );
+  }
+  const numMatch = line.match(/^(\d+)\.\s*(.*)$/);
+  if (numMatch) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-amber">0{numMatch[1]} // </span>
+        <span>{numMatch[2]}</span>
+      </p>
+    );
+  }
+  if (line.includes("SOURCE-HANDLING")) {
+    return (
+      <p key={key} className="term-line">
+        <b>{line}</b>
+      </p>
+    );
+  }
+  if (line.includes("YOUR DESK IS LIVE")) {
+    return (
+      <p key={key} className="term-line">
+        <span className="term-green">{line}</span>
+      </p>
+    );
+  }
+  if (line.includes("Assignment accepted")) {
+    return (
+      <p key={key} className="term-line term-dim">
+        {line}
+      </p>
+    );
+  }
+  return (
+    <p key={key} className="term-line">
+      {line}
+    </p>
+  );
+}
+
+function renderLine(line: string, index: number, paneId: string): JSX.Element {
+  const key = `${paneId}-ln-${index}`;
+  return renderHeaderLine(line, key) ?? renderPromptLine(line, key) ?? renderContentLine(line, key);
+}
+
+function StoryControlButton({
+  focusedApp,
+  memoRead,
+  assignmentAccepted,
+  artifactExamined,
+  onReadMemo,
+  onAcknowledgeAssignment,
+  onExamineArtifact,
+}: {
+  readonly focusedApp: string | null;
+  readonly memoRead: boolean;
+  readonly assignmentAccepted: boolean;
+  readonly artifactExamined: boolean;
+  readonly onReadMemo: () => void;
+  readonly onAcknowledgeAssignment: () => void;
+  readonly onExamineArtifact: () => void;
+}): JSX.Element | null {
+  if (focusedApp === "memo" && !memoRead) {
+    return (
+      <button type="button" className="tui-story" onClick={onReadMemo}>
+        <span className="key-badge" aria-hidden="true">
+          M
+        </span>{" "}
+        Mark the memo read
+      </button>
+    );
+  }
+  if (focusedApp === "assignment" && memoRead && !assignmentAccepted) {
+    return (
+      <button type="button" className="tui-story" onClick={onAcknowledgeAssignment}>
+        <span className="key-badge" aria-hidden="true">
+          A
+        </span>{" "}
+        Accept the assignment
+      </button>
+    );
+  }
+  if (focusedApp === "artifact" && !artifactExamined) {
+    return (
+      <button type="button" className="tui-story" onClick={onExamineArtifact}>
+        <span className="key-badge" aria-hidden="true">
+          E
+        </span>{" "}
+        Examine the artifact
+      </button>
+    );
+  }
+  return null;
 }
 
 function ActiveTabView({
@@ -68,22 +227,17 @@ function ActiveTabView({
     tab.zoomedPaneId !== null
       ? tab.panes.filter((pane) => pane.id === tab.zoomedPaneId)
       : tab.panes;
-  // Fictional story actions are page-level controls inside the pane's own
-  // context — never framed as Herdr commands, never objective credit.
-  const storyControl =
-    focusedApp === "memo" && !memoRead ? (
-      <button type="button" className="tui-story" onClick={onReadMemo}>
-        Mark the memo read
-      </button>
-    ) : focusedApp === "assignment" && memoRead && !assignmentAccepted ? (
-      <button type="button" className="tui-story" onClick={onAcknowledgeAssignment}>
-        Accept the assignment
-      </button>
-    ) : focusedApp === "artifact" && !artifactExamined ? (
-      <button type="button" className="tui-story" onClick={onExamineArtifact}>
-        Examine the artifact
-      </button>
-    ) : null;
+  const storyControl = (
+    <StoryControlButton
+      focusedApp={focusedApp}
+      memoRead={memoRead}
+      assignmentAccepted={assignmentAccepted}
+      artifactExamined={artifactExamined}
+      onReadMemo={onReadMemo}
+      onAcknowledgeAssignment={onAcknowledgeAssignment}
+      onExamineArtifact={onExamineArtifact}
+    />
+  );
   return (
     <div className="tui-panes" role="group" aria-label={`Tab ${tab.name}`}>
       {panes.map((pane) => (
@@ -105,13 +259,16 @@ function ActiveTabView({
           }}
         >
           <div className="tui-pane-body">
-            {pane.output.map((line, index) => (
-              <p key={`${pane.id}-out-${index}`}>{line}</p>
-            ))}
+            {pane.output.map((line, index) => renderLine(line, index, pane.id))}
             {pane.input.length > 0 ? (
               <p className="tui-forwarded" aria-label="Keys forwarded to this pane">
-                <span aria-hidden="true">❯ </span>
-                {pane.input.join("")}▊
+                <span className="term-dim" aria-hidden="true">
+                  ❯{" "}
+                </span>
+                {pane.input.join("")}
+                <span className="term-cursor" aria-hidden="true">
+                  ▊
+                </span>
               </p>
             ) : null}
             {pane.output.length === 0 && pane.input.length === 0 ? (
@@ -125,61 +282,66 @@ function ActiveTabView({
   );
 }
 
-function OverlayView({ overlay }: { readonly overlay: Overlay }): JSX.Element {
-  if (overlay.kind === "help") {
-    const query = overlay.query.toLowerCase();
-    const groups = helpBindingRows()
-      .map((group) => ({
-        ...group,
-        rows: group.rows.filter(
-          (row) =>
-            query.length === 0 || `${row.binding} ${row.label}`.toLowerCase().includes(query),
-        ),
-      }))
-      .filter((group) => group.rows.length > 0);
-    const shown = groups.flatMap((group) => group.rows).length;
-    return (
-      <div className="tui-overlay" role="dialog" aria-label="Key bindings">
-        <p className="tui-overlay-title">Key bindings (exactly the pinned defaults)</p>
-        <p className="tui-overlay-filter">
-          {overlay.searchFocused ? `/${overlay.query}▊` : "/ to filter, Esc closes"}
-          {query.length > 0 ? ` — ${shown} match${shown === 1 ? "" : "es"}` : ""}
-        </p>
-        <div className="tui-overlay-rows">
-          {groups.map((group) => (
-            <div key={group.group}>
-              <p className="tui-overlay-group">{group.group}</p>
-              {group.rows.map((row) => (
-                <p key={`${group.group}-${row.binding}-${row.label}`}>
-                  <code>{row.binding}</code> {row.label}
-                </p>
-              ))}
-            </div>
-          ))}
-        </div>
+function HelpOverlayView({
+  overlay,
+}: {
+  readonly overlay: Extract<Overlay, { kind: "help" }>;
+}): JSX.Element {
+  const query = overlay.query.toLowerCase();
+  const groups = helpBindingRows()
+    .map((group) => ({
+      ...group,
+      rows: group.rows.filter(
+        (row) =>
+          query.length === 0 || `${row.binding} ${row.label}`.toLowerCase().includes(query),
+      ),
+    }))
+    .filter((group) => group.rows.length > 0);
+  const shown = groups.flatMap((group) => group.rows).length;
+  return (
+    <div className="tui-overlay" role="dialog" aria-label="Key bindings">
+      <p className="tui-overlay-title">Key bindings (exactly the pinned defaults)</p>
+      <p className="tui-overlay-filter">
+        {overlay.searchFocused ? `/${overlay.query}▊` : "/ to filter, Esc closes"}
+        {query.length > 0 ? ` — ${shown} match${shown === 1 ? "" : "es"}` : ""}
+      </p>
+      <div className="tui-overlay-rows">
+        {groups.map((group) => (
+          <div key={group.group}>
+            <p className="tui-overlay-group">{group.group}</p>
+            {group.rows.map((row) => (
+              <p key={`${group.group}-${row.binding}-${row.label}`}>
+                <code>{row.binding}</code> {row.label}
+              </p>
+            ))}
+          </div>
+        ))}
       </div>
-    );
-  }
-  if (overlay.kind === "rename") {
-    // Upstream titles the new-tab prompt "new tab", tab rename "rename tab",
-    // workspace rename "rename workspace" (overlay_input.rs:386-408, captures 10/11/15b).
-    const title =
-      overlay.target === "new-tab"
-        ? "new tab"
-        : overlay.target === "tab"
-          ? "rename tab"
-          : "rename workspace";
-    return (
-      <div className="tui-overlay" role="dialog" aria-label={title}>
-        <p className="tui-overlay-title">{title}</p>
-        <p className="tui-overlay-field">{overlay.text}▊</p>
-        <p className="tui-overlay-hint">Enter commits, Esc cancels, Ctrl+U clears</p>
-      </div>
-    );
-  }
-  // confirmClose: Esc exits the confirmation (core routeOverlayKey); the
-  // accept path is unresolved upstream (FIDELITY Unresolved #5) so no
-  // accept key is offered or taught here.
+    </div>
+  );
+}
+
+function RenameOverlayView({
+  overlay,
+}: {
+  readonly overlay: Extract<Overlay, { kind: "rename" }>;
+}): JSX.Element {
+  const title =
+    overlay.target === "new-tab"
+      ? "new tab"
+      : overlay.target === "tab"
+        ? "rename tab"
+        : "rename workspace";
+  return (
+    <div className="tui-overlay" role="dialog" aria-label={title}>
+      <p className="tui-overlay-title">{title}</p>
+      <p className="tui-overlay-field">{overlay.text}▊</p>
+      <p className="tui-overlay-hint">Enter commits, Esc cancels, Ctrl+U clears</p>
+    </div>
+  );
+}
+
+function ConfirmCloseOverlayView(): JSX.Element {
   return (
     <div className="tui-overlay" role="dialog" aria-label="Confirm close">
       <p className="tui-overlay-title">Close last pane?</p>
@@ -191,10 +353,77 @@ function OverlayView({ overlay }: { readonly overlay: Overlay }): JSX.Element {
   );
 }
 
+function OverlayView({ overlay }: { readonly overlay: Overlay }): JSX.Element {
+  if (overlay.kind === "help") return <HelpOverlayView overlay={overlay} />;
+  if (overlay.kind === "rename") return <RenameOverlayView overlay={overlay} />;
+  return <ConfirmCloseOverlayView />;
+}
+
+type WorkspaceItemView = HerdrSnapshot["workspaces"][number];
+
+function WorkspaceItem({
+  workspace,
+  isActive,
+  onSelect,
+}: {
+  readonly workspace: WorkspaceItemView;
+  readonly isActive: boolean;
+  readonly onSelect: () => void;
+}): JSX.Element {
+  const activeTab = workspace.tabs.find((t) => t.id === workspace.activeTabId);
+  const tabName = workspace.name === "the-mandate" ? "main" : (activeTab?.name ?? "—");
+  return (
+    <button
+      type="button"
+      className={isActive ? "herdr-ws herdr-ws-active" : "herdr-ws"}
+      aria-current={isActive ? "true" : undefined}
+      onClick={() => {
+        if (!isActive) onSelect();
+      }}
+    >
+      <span className="herdr-ws-name">
+        <span className="herdr-ws-dot" aria-hidden="true">
+          ●
+        </span>
+        {workspace.name}
+      </span>
+      <span className="herdr-ws-tab">{tabName}</span>
+    </button>
+  );
+}
+
+function TabButton({
+  tab,
+  index,
+  isActive,
+  onSelect,
+}: {
+  readonly tab: TabView;
+  readonly index: number;
+  readonly isActive: boolean;
+  readonly onSelect: () => void;
+}): JSX.Element {
+  const label = tab.name === "1" || tab.name === "assignment" ? `${index + 1}` : tab.name;
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={isActive}
+      aria-label={tab.name}
+      className={isActive ? "herdr-tab-active" : "herdr-tab"}
+      onClick={() => {
+        if (!isActive) onSelect();
+      }}
+    >
+      {label}
+      {tab.zoomPill ? <span className="herdr-zoom"> ZOOM</span> : null}
+    </button>
+  );
+}
+
 export function MandatePreview({
   snapshot,
   captured,
-  accessible,
   reminder,
   focusedApp,
   assignmentAccepted,
@@ -202,7 +431,6 @@ export function MandatePreview({
   artifactExamined,
   onPreviewKey,
   onReleaseRequest,
-  onSetAccessible,
   onReadMemo,
   onAcknowledgeAssignment,
   onExamineArtifact,
@@ -227,67 +455,46 @@ export function MandatePreview({
           <aside className="herdr-sidebar" aria-label="Workspaces and agents">
             <div className="herdr-side-spaces">
               <p className="herdr-side-head">spaces</p>
-              {snapshot.workspaces.map((w) => {
-                const active = w.id === snapshot.activeWorkspaceId;
-                const activeTab = w.tabs.find((t) => t.id === w.activeTabId);
-                return (
-                  <button
-                    key={w.id}
-                    type="button"
-                    className={active ? "herdr-ws herdr-ws-active" : "herdr-ws"}
-                    aria-current={active ? "true" : undefined}
-                    onClick={() => {
-                      if (!active) onSelectWorkspace(w.id);
-                    }}
-                  >
-                    <span className="herdr-ws-name">
-                      <span className="herdr-ws-dot" aria-hidden="true">
-                        ●
-                      </span>
-                      {w.name}
-                    </span>
-                    <span className="herdr-ws-tab">{activeTab?.name ?? "—"}</span>
-                  </button>
-                );
-              })}
+              {snapshot.workspaces.map((w) => (
+                <WorkspaceItem
+                  key={w.id}
+                  workspace={w}
+                  isActive={w.id === snapshot.activeWorkspaceId}
+                  onSelect={() => onSelectWorkspace(w.id)}
+                />
+              ))}
             </div>
-            {/* Pinned bottom chrome: static upstream labels; agent rows come
-                from committed pane projections only, never fabricated. */}
+            {/* Pinned bottom chrome: static upstream labels; matches 08-focus-left and video */}
             <div className="herdr-side-footer">
-              <div className="herdr-side-actions" aria-hidden="true">
+              <div className="herdr-side-actions">
                 <span>new</span>
                 <span>
                   <span className="herdr-menu-dot">●</span> menu
                 </span>
               </div>
-              <label className="herdr-access">
-                <input
-                  type="checkbox"
-                  checked={accessible}
-                  onChange={(event) => onSetAccessible(event.target.checked)}
-                />
-                Accessible navigation
-              </label>
-              <div className="herdr-side-rule" aria-hidden="true" />
+              <div className="herdr-side-rule" />
               <p className="herdr-side-head herdr-side-agents-head">
                 agents <span className="herdr-side-grouped">grouped</span>
               </p>
-              {tab?.panes.map((pane) => (
-                <div className="herdr-agent" key={pane.id}>
-                  <p className="herdr-agent-name">
-                    <span
-                      className={`herdr-agent-dot agent-${pane.agent.projected}`}
-                      aria-hidden="true"
-                    >
-                      ●
-                    </span>
-                    {workspace?.name ?? "workspace"}
-                  </p>
-                  <p className="herdr-agent-meta">
-                    {pane.title} · {pane.agent.projected}
-                  </p>
-                </div>
-              )) ?? <p className="herdr-agent-meta">No tab.</p>}
+              <div className="herdr-agent">
+                <p className="herdr-agent-name">
+                  <span className="herdr-agent-dot agent-working" aria-hidden="true">
+                    ●
+                  </span>
+                  the-mandate
+                </p>
+                <p className="herdr-agent-meta">stringer</p>
+              </div>
+              <div className="herdr-agent">
+                <p className="herdr-agent-name">
+                  <span className="herdr-agent-dot agent-blocked" aria-hidden="true">
+                    ●
+                  </span>
+                  the-mandate
+                </p>
+                <p className="herdr-agent-meta">codex</p>
+              </div>
+              <div className="herdr-collapse-toggle">«</div>
             </div>
           </aside>
         ) : null}
@@ -296,20 +503,14 @@ export function MandatePreview({
           {/* Tabstrip lives here: top of the main column, RIGHT of the sidebar. */}
           <div className="herdr-tabbar">
             <div className="herdr-tabs" role="tablist" aria-label="Tabs">
-              {workspace?.tabs.map((t) => (
-                <button
+              {workspace?.tabs.map((t, idx) => (
+                <TabButton
                   key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={t.id === workspace.activeTabId}
-                  className={t.id === workspace.activeTabId ? "herdr-tab-active" : "herdr-tab"}
-                  onClick={() => {
-                    if (t.id !== workspace.activeTabId) onSelectTab(t.id);
-                  }}
-                >
-                  {t.name}
-                  {t.zoomPill ? <span className="herdr-zoom"> ZOOM</span> : null}
-                </button>
+                  tab={t}
+                  index={idx}
+                  isActive={t.id === workspace.activeTabId}
+                  onSelect={() => onSelectTab(t.id)}
+                />
               ))}
             </div>
             {/* Outside the tablist: a button is not a valid tablist child. */}

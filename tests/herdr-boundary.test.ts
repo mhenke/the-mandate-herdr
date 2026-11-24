@@ -27,7 +27,7 @@ describe("boundary: initial state is copied, not retained", () => {
     (initial as { mode: string }).mode = "copy";
     (ws as { name: string }).name = "hijacked";
     expect(s.getState().mode).toBe("terminal");
-    expect(s.getState().workspaces[0]?.name).toBe("cooperative");
+    expect(s.getState().workspaces[0]?.name).toBe("the-mandate");
     expect(s.snapshot()).toBe(before);
   });
 
@@ -70,7 +70,7 @@ describe("boundary: getState() cannot mutate internal state", () => {
       (state.workspaces[0]?.tabs[0]?.panes[0]?.agent as { raw: string }).raw = "idle";
     }).toThrow(TypeError);
     expect(s.getState().mode).toBe("terminal");
-    expect(s.getState().workspaces[0]?.name).toBe("cooperative");
+    expect(s.getState().workspaces[0]?.name).toBe("the-mandate");
     expect(s.snapshot()).toBe(before);
   });
 });

@@ -98,18 +98,22 @@ export interface PresentationText {
  * No misfire, script ID, or later-episode facts appear here.
  */
 export const L1_ASSIGNMENT_LINES: readonly string[] = [
-  "FROM: June Adebayo, The Cooperative — Desk Assignment",
-  "RE: Vendor security incident — supplied goods",
-  "Establish what is known before anyone contacts the source.",
-  "Review the source-handling rules beside this assignment before you decide.",
-  "Nothing here is independent confirmation.",
+  "Assignment terminal",
+  "Reference material stays in this pane.",
+  "$ cat assignment.txt",
+  "FROM: June Adebayo // editor of record",
+  "RE: Vendor security incident — verify before contact",
+  "STATUS: off-record · hold attribution",
 ];
 
 export const L1_MEMO_LINES: readonly string[] = [
-  "SOURCE-HANDLING RULES — COOPERATIVE DESK",
-  "1. Verify origin. Confirm where the material came from before relying on it.",
-  "2. Preserve attribution. Keep the source's exact words and the chain of custody.",
-  "3. Do not assume independent confirmation. One origin is one claim, not corroboration.",
+  "Interview terminal",
+  "Source: baseline demonstration",
+  "$ cat protocols/cpa-01a.txt",
+  "SOURCE-HANDLING MEMORANDUM // CPA-01A",
+  "01 // Verify origin. Confirm where the material came from before relying on it.",
+  "02 // Preserve attribution. Keep the source's exact words and the chain of custody.",
+  "03 // Do not assume independent confirmation. One origin is one claim, not corroboration.",
   "Protected source: do not burn identity.",
 ];
 

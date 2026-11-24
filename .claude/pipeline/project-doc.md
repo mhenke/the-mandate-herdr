@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T17:35:00Z | Mode: DELTA
+> Generated: 2026-11-24T10:16:30Z | Mode: FULL
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -46,8 +46,11 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - **Adapters (`src/adapters/*`)**: Mediate between the pure simulation cores and the host browser runtime.
   - `investigation-session.ts`: Glues story, assessment, and herdr cores into a unified session. Enforces `InputPolicy` ("standard" | "accessible"), coordinates transitions, and provides dev reload recovery v2.
   - `herdr-browser.ts`: Translates physical browser KeyboardEvents into canonical Herdr `InputEvent`s without losing modifier states.
+  - `navigation.ts`: Pure URL path and hash parser with pushState route synchronization and popstate browser traversal without simulation state teardown.
 - **UI / Presentation (`src/ui/*`, `src/App.tsx`)**:
   - React components render read-only projections of committed session snapshots.
+  - `GameHud.tsx`: Cleanly separated Journalist Cooperative Mission HUD displaying current level objectives, keyboard shortcut guidance, and capture controls above the terminal.
+  - `MandatePreview.tsx`: Authentic OneDark terminal projection matching pinned Herdr baseline 08-focus-left and cinematic workspace composition.
   - UI components emit user actions via typed callbacks; zero direct mutation of core simulation or narrative state.
 
 ## Folder Structure
@@ -59,16 +62,10 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `src/styles/`: Application styles, typography tokens, layout CSS.
 - `docs/`: Story bible, design contracts, architectural decision records (ADRs), research baselines.
 - `docs/adr/`: Architecture Decision Records (0001 through 0006).
-- `cinematics/`: Offline HyperFrames composition projects (cold open, L3 mission outro) generating static MP4/VTT assets.
-- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties, cinematics).
+- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties).
 - `tests/e2e/`: Playwright end-to-end suites (visual parity, smoke journeys, axe accessibility, keyboard policy).
 - `public/`: Static assets (cinematic MP4, VTT captions, posters, transcripts).
-- `references/`: Consolidated non-application reference collateral, Herdr behavioral baselines, research probes, concept art, and capture tooling.
-  - `references/herdr-baselines/`: Pinned Herdr 0.9.5 TUI baselines (32 PNG captures, 32 transcripts, SHA-256 manifest, transcript viewer).
-  - `references/illustrative/`: Third-party and fork comparison images (TermSplit, fork blog).
-  - `references/feasibility/`: Milestone 1 keyboard feasibility probe (`keyboard-probe.html`).
-  - `references/concept-art/`: Concept art series for setting and atmosphere.
-  - `references/scripts/`: Upstream baseline capture harness (`capture-upstream-baselines.sh`) and Herdr isolation verification scripts (`herdr-isolation-probe.sh`).
+- `scripts/`: Upstream baseline capture scripts and validation utilities.
 
 ## Code Style Conventions
 - **Naming**: camelCase for functions, variables, and instances; PascalCase for types, interfaces, and React components; UPPER_SNAKE_CASE for constants.
@@ -99,13 +96,15 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 12 Vitest test files (**170 unit, property, fidelity, and cinematic integration tests passing**).
-  - 6 Playwright test files (**18 E2E, accessibility, and visual tests passing**).
+  - 11 Vitest test files (**176 unit, property, and fidelity tests passing**).
+  - 6 Playwright test files (**20 E2E, accessibility, navigation, and visual tests passing**).
 - Test patterns:
   - Core purity tests (bare Node process invocation).
   - Fast-check generative property tests for state transitions and determinism.
   - Axe accessibility floor verification.
   - End-to-end journey tests with synthetic CDP keystrokes and pointer refusal assertions.
+  - Browser history and popstate navigation tests across scenes.
+  - Visual parity assertions against upstream Herdr baselines.
 
 ## Entry Points
 - `index.html`: Web application HTML shell.
@@ -115,19 +114,15 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- `references/herdr-baselines/` (consolidated 32 Herdr TUI captures, 32 transcripts, manifest, and viewer)
-- `references/illustrative/` (migrated TermSplit and fork blog captures)
-- `references/feasibility/` (migrated M1 keyboard probe)
-- `references/concept-art/` (migrated tone and atmosphere concept artwork)
-- `references/scripts/` (migrated capture and isolation verification harnesses)
-- `references/README.md` (new master reference index)
-- `docs/README.md` (new 17-document architectural and narrative sitemap)
-- `.gitignore` (hardened: `.gemini/`, `.fallow/`, `graphify-out/`, `.env.local`, logs)
-- `.prettierignore` (protected `references/herdr-baselines`, `references/concept-art`, `references/feasibility`)
-- `eslint.config.js` (updated `references/feasibility/**` ignore)
-- `GLOSSARY.md` (sharpened Herdr visual baseline; added Illustrative reference definition)
-- `README.md` & `PRODUCT.md` (updated concept art paths)
-- `docs/HANDOFF.md` (updated reference path)
+- `GLOSSARY.md` (Domain modeling: added canonical entries for "Game HUD", "Herdr TUI", and "Manual Cinematic Transition")
+- `src/adapters/navigation.ts` (Pure URL parsing, path-to-phase routing, browser history integration)
+- `src/ui/GameHud.tsx` (Distinct Mission HUD separated from Herdr TUI)
+- `src/ui/MandatePreview.tsx` (1:1 visual parity with baseline 08-focus-left and video composition, removed fake GUI header bars, aligned tab and sidebar)
+- `src/ui/scenes.tsx` (Universal keyboard shortcuts across all scenes, CC off by default, permanent clean transcript, manual video completion transition)
+- `src/core/herdr/store.ts` (Aligned scenario naming with upstream `the-mandate`)
+- `src/core/narrative/index.ts` (Canonical L1 terminal text aligned with upstream baseline prompts)
+- `cinematics/episode-one/compositions/workspace.html` (Aligned text lines with canonical L1 narrative)
+- `tests/navigation.test.ts` & `tests/e2e/navigation.spec.ts` (URL routing and back/forward browser history test coverage)
 
 ## Last Scanned
-2026-11-24T19:20:00Z
+2026-11-24T19:37:00Z

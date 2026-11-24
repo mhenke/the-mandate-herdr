@@ -16,12 +16,7 @@ import {
   type SplitDirection,
   type SplitNode,
 } from "./layout";
-import {
-  helpRowCount,
-  isPrefixKey,
-  resolvePrefixBinding,
-  type PrefixAction,
-} from "./keymap";
+import { helpRowCount, isPrefixKey, resolvePrefixBinding, type PrefixAction } from "./keymap";
 import type {
   AgentState,
   ChromeEvent,
@@ -165,15 +160,15 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
   if (level === 1) {
     return buildState([
       {
-        name: "cooperative",
+        name: "the-mandate",
         newTabApp: "shell",
         tabs: [
           {
-            name: "assignment",
+            name: "1",
             splitApp: "memo",
             panes: [
-              { app: "assignment", title: "Assignment", output: ["SOC tip: supplied goods"] },
-              { app: "memo", title: "Memo", output: ["source-handling rules"] },
+              { app: "assignment", title: "Assignment", output: [] },
+              { app: "memo", title: "Memo", output: [] },
             ],
           },
         ],
@@ -662,7 +657,11 @@ interface Routed {
   readonly action: string | null;
 }
 
-function routeChromeSelectWorkspace(state: HerdrState, workspaceId: string, action: string): Routed {
+function routeChromeSelectWorkspace(
+  state: HerdrState,
+  workspaceId: string,
+  action: string,
+): Routed {
   if (!state.workspaces.some((workspace) => workspace.id === workspaceId)) {
     return { state, effect: "none", action };
   }

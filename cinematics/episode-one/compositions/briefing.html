@@ -22,79 +22,121 @@
     }
     #head {
       position: absolute;
-      left: 110px;
-      top: 96px;
+      left: 180px;
+      top: 70px;
       z-index: 10;
+      display: inline-block;
       font-family: var(--font-mono);
       font-size: 28px;
-      letter-spacing: 0.22em;
-      color: #b0c4d4;
+      font-weight: 600;
+      letter-spacing: 0.20em;
+      color: #f0f4f8;
       text-transform: uppercase;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+      background: rgba(3, 6, 10, 0.92);
+      border: 1px solid rgba(135, 155, 175, 0.35);
+      border-top: 2px solid var(--amber);
+      padding: 10px 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+    }
+    #head .slash {
+      color: var(--amber);
+      font-weight: 700;
+      padding: 0 4px;
     }
     .envelope-card {
       position: absolute;
-      left: 340px;
-      top: 220px;
-      width: 1240px;
+      left: 180px;
+      top: 210px;
+      width: 1560px;
       z-index: 10;
-      background: rgba(4, 7, 12, 0.96);
+      background: rgba(2, 4, 7, 0.88);
       border: 1px solid rgba(135, 155, 175, 0.25);
-      border-top: 2px solid #7d94a8;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
-      padding: 44px 56px 38px;
+      border-left: 3px solid var(--amber);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.90);
+      padding: 38px 48px 34px;
       color: var(--ink);
       font-family: var(--font-mono);
     }
+    .env-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 32px;
+    }
     .env-from {
       font-size: 28px;
-      letter-spacing: 0.04em;
-      color: #9cb0c0;
-      line-height: 1.85;
+      letter-spacing: 0.08em;
+      color: #eef2f6;
+      line-height: 1.6;
+      white-space: nowrap;
+    }
+    .env-from .label {
+      color: #6a8092;
+      font-weight: 500;
     }
     .env-from b {
-      color: #eef2f6;
+      color: #f0f4f8;
       font-weight: 600;
     }
     .env-from .dim {
-      color: #6a8092;
+      color: #a4b7c6;
+      font-weight: 400;
+    }
+    .env-from .slash {
+      color: var(--amber);
+      font-weight: 700;
+      padding: 0 4px;
+    }
+    #seal {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border: 1px solid rgba(207, 155, 82, 0.85);
+      background: rgba(207, 155, 82, 0.08);
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: var(--amber);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    #seal .slash {
+      color: var(--amber);
+      font-weight: 700;
+      padding: 0 4px;
     }
     .env-subject {
-      margin-top: 24px;
-      padding-top: 22px;
-      border-top: 1px solid rgba(135, 155, 175, 0.2);
-      font-size: 38px;
-      font-weight: 700;
-      font-family: var(--font-display);
-      letter-spacing: 0.03em;
-      line-height: 1.35;
-      color: #eef2f6;
+      margin-top: 32px;
+      padding-top: 26px;
+      border-top: 1px solid rgba(135, 155, 175, 0.22);
+      font-size: 36px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+      line-height: 1.45;
+      color: #f0f4f8;
     }
     .env-meta {
-      margin-top: 24px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(135, 155, 175, 0.16);
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 28px;
-      color: #b0c4d4;
-      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      color: #a4b7c6;
+      letter-spacing: 0.10em;
     }
     .env-meta .tag {
       color: var(--amber);
       font-weight: 600;
+      margin-right: 10px;
     }
-    #seal {
-      position: absolute;
-      right: 56px;
-      top: 42px;
-      padding: 6px 14px;
-      border: 1px solid rgba(207, 155, 82, 0.85);
-      background: transparent;
-      font-family: var(--font-mono);
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
+    .env-meta .slash {
       color: var(--amber);
-      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0 4px;
     }
   </style>
   <div id="root" data-composition-id="scene-briefing" data-width="1920" data-height="1080">
@@ -109,18 +151,29 @@
       <canvas id="window-rain" width="1920" height="1080" data-layout-ignore></canvas>
     </div>
     <div id="head" class="clip" data-start="0.15" data-duration="6.35">
-      THE&nbsp;COOPERATIVE&nbsp;—&nbsp;DESK&nbsp;FEED&nbsp;&nbsp;·&nbsp;&nbsp;SECURE&nbsp;DISPATCH
+      THE&nbsp;COOPERATIVE&nbsp;<span class="slash">//</span>&nbsp;DESK&nbsp;FEED&nbsp;<span class="slash">//</span>&nbsp;SECURE&nbsp;DISPATCH
     </div>
-    <div id="envelope" class="envelope-card clip" data-start="0.3" data-duration="6.2" data-layout-allow-overlap data-hold>
-      <div id="seal" data-layout-ignore>[&nbsp;OFF-RECORD&nbsp;//&nbsp;RESTRICTED&nbsp;]</div>
-      <div class="env-from" id="env-from">
-        FROM&nbsp;&nbsp;<b>JUNE ADEBAYO</b>&nbsp;<span class="dim">// EDITOR OF RECORD</span><br />
-        TO&nbsp;&nbsp;&nbsp;&nbsp;<b>STRINGER ON DESK</b>&nbsp;<span class="dim">// VERIFIER CREDENTIAL ACTIVE</span>
+    <div
+      id="envelope"
+      class="envelope-card clip"
+      data-start="0.3"
+      data-duration="6.2"
+      data-layout-allow-overlap
+      data-hold
+    >
+      <div class="env-header">
+        <div class="env-from" id="env-from">
+          <div><span class="label">FROM</span>&nbsp;&nbsp;<b>JUNE ADEBAYO</b>&nbsp;<span class="slash">//</span>&nbsp;<span class="dim">EDITOR OF RECORD</span></div>
+          <div style="margin-top: 6px;"><span class="label">TO</span>&nbsp;&nbsp;&nbsp;&nbsp;<b>STRINGER ON DESK</b>&nbsp;<span class="slash">//</span>&nbsp;<span class="dim">VERIFIER CREDENTIAL ACTIVE</span></div>
+        </div>
+        <div id="seal" data-layout-ignore>[&nbsp;OFF-RECORD&nbsp;<span class="slash">//</span>&nbsp;RESTRICTED&nbsp;]</div>
       </div>
-      <div class="env-subject" id="env-subject">A source has come forward on a vendor security incident. Confirm what is known before contact.</div>
+      <div class="env-subject" id="env-subject">
+        A source has come forward on a vendor security incident.<br />Confirm what is known before contact.
+      </div>
       <div class="env-meta" id="env-meta">
-        <span><span class="tag">REF</span>&nbsp;NOV 12 · 23:00 EST</span>
-        <span><span class="tag">DIRECTIVE</span>&nbsp;DO NOT CONTACT SOURCE</span>
+        <span><span class="tag">REF</span>NOV 12&nbsp;<span class="slash">//</span>&nbsp;23:00 EST</span>
+        <span><span class="tag">DIRECTIVE</span>DO NOT CONTACT SOURCE</span>
       </div>
     </div>
   </div>
@@ -137,74 +190,77 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       }
 
-      // Exterior rain streaks outside in the night sky over Capitol dome (90 drops)
-      // Placed strictly in the window area (x: 1000 to 1920)
+      // Exterior rain streaks strictly on the window glass (60 drops)
+      // Horizontal bounds: x = 920 to 1710 (clear of desk lamp on left, clear of wall/mullion on right)
       const DROPS_EXT = [];
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 60; i++) {
         DROPS_EXT.push({
-          x: 1000 + rand() * 920,
-          y: rand() * 660,
-          len: 28 + rand() * 42,
-          speed: 850 + rand() * 450,
-          alpha: 0.14 + rand() * 0.20,
-          drift: 35 + rand() * 30,
+          x: 920 + rand() * (1710 - 920),
+          y: rand() * 200,
+          len: 22 + rand() * 28,
+          speed: 650 + rand() * 350,
+          alpha: 0.18 + rand() * 0.22,
+          drift: 20 + rand() * 20,
         });
       }
 
-      // Condensation trickles running down the window glass pane (22 trails)
-      // Placed strictly on the window pane overlooking the Capitol dome (x: 1250 to 1900)
+      // Condensation trickles on the window pane overlooking the Capitol dome (14 trails)
       const TRICKLES = [];
-      for (let i = 0; i < 22; i++) {
+      for (let i = 0; i < 14; i++) {
         TRICKLES.push({
-          x: 1250 + rand() * 650,
-          y: rand() * 600,
-          len: 25 + rand() * 50,
-          speed: 65 + rand() * 85,
-          radius: 1.4 + rand() * 1.4,
-          alpha: 0.28 + rand() * 0.38,
-          drift: (rand() - 0.5) * 6,
+          x: 1050 + rand() * (1700 - 1050),
+          y: rand() * 190,
+          len: 18 + rand() * 28,
+          speed: 40 + rand() * 60,
+          radius: 1.2 + rand() * 1.2,
+          alpha: 0.25 + rand() * 0.35,
         });
       }
 
       function drawWindowRain(t) {
         ctx.clearRect(0, 0, 1920, 1080);
+        ctx.save();
+
+        // Strict geometric clip to physical window glass:
+        // Sky over Capitol dome strictly above dispatch card (y <= 190, x: 1100..1710)
+        // Never inside room, never over dispatch card or header, never over laptop or desk
+        ctx.beginPath();
+        ctx.rect(1100, 0, 610, 190);
+        ctx.clip();
+
         ctx.lineCap = "round";
 
         // Draw exterior falling rain streaks
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1.3;
         for (const d of DROPS_EXT) {
-          const y = (d.y + t * d.speed) % 680 - 40;
-          const x = (d.x + t * d.drift) % (1920 - 1000 + 80) + 1000 - 40;
-          // Rain is strictly OUTSIDE the window; NEVER inside the room or over the dispatch card
-          if (x < 1000 || x > 1920 || y < 0 || y > 620) continue;
-          if (x < 1580 && y >= 200) continue; // Skip card / desk area completely
+          const y = ((d.y + t * d.speed) % 240) - 30;
+          const x = ((d.x + t * d.drift - 920) % (1710 - 920)) + 920;
+
           let a = d.alpha;
-          if (x < 1080) a *= (x - 1000) / 80;
-          if (y > 520) a *= (620 - y) / 100;
-          ctx.strokeStyle = "rgba(180, 210, 235, " + a + ")";
+          if (x < 960) a *= (x - 920) / 40;
+          if (x > 1670) a *= (1710 - x) / 40;
+
+          ctx.strokeStyle = "rgba(180, 215, 240, " + a + ")";
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x + d.drift * 0.03, y + d.len);
           ctx.stroke();
         }
 
-        // Draw window glass trickles (droplet head + wet trail)
+        // Draw window glass condensation trickles (droplet head + wet trail)
         for (const tr of TRICKLES) {
-          const y = (tr.y + t * tr.speed) % 580;
-          const x = tr.x + Math.sin(y * 0.04) * 2;
-          // Glass trickles strictly on the window pane
-          if (x < 1250 || x > 1900 || y < 20 || y > 560) continue;
-          if (x < 1580 && y >= 200) continue; // Skip card area completely
+          const y = (tr.y + t * tr.speed) % 220;
+          const x = tr.x + Math.sin(y * 0.05) * 2;
+
           let a = tr.alpha;
-          if (x < 1320) a *= (x - 1250) / 70;
-          if (y > 480) a *= (560 - y) / 80;
+          if (y < 30) a *= y / 30;
 
           // Trail streak
           const grad = ctx.createLinearGradient(x, y - tr.len, x, y);
           grad.addColorStop(0, "rgba(190, 220, 245, 0)");
-          grad.addColorStop(1, "rgba(190, 220, 245, " + (a * 0.8) + ")");
+          grad.addColorStop(1, "rgba(190, 220, 245, " + a * 0.75 + ")");
           ctx.strokeStyle = grad;
-          ctx.lineWidth = 1.6;
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(x, y - tr.len);
           ctx.lineTo(x, y);
@@ -216,6 +272,8 @@
           ctx.arc(x, y, tr.radius, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        ctx.restore();
       }
 
       const tl = gsap.timeline({
@@ -226,12 +284,7 @@
       });
       // Desk plate: rock-solid locked camera (zero pan, zero zoom wobble)
       // Header fades in calmly in place
-      tl.fromTo(
-        "#head",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: "power2.out" },
-        0.15,
-      );
+      tl.fromTo("#head", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 0.15);
       // Envelope: calm fade in place (zero sliding, zero hopping)
       tl.fromTo(
         "#envelope",
