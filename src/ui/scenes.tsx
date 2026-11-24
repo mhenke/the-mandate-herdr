@@ -105,9 +105,7 @@ function CinematicPlayer({
   );
 }
 
-function useSceneShortcuts(
-  handler: (key: string, e: KeyboardEvent) => boolean | void,
-): void {
+function useSceneShortcuts(handler: (key: string, e: KeyboardEvent) => boolean | void): void {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;

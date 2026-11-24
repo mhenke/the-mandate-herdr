@@ -292,8 +292,7 @@ function HelpOverlayView({
     .map((group) => ({
       ...group,
       rows: group.rows.filter(
-        (row) =>
-          query.length === 0 || `${row.binding} ${row.label}`.toLowerCase().includes(query),
+        (row) => query.length === 0 || `${row.binding} ${row.label}`.toLowerCase().includes(query),
       ),
     }))
     .filter((group) => group.rows.length > 0);

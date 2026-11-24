@@ -73,8 +73,7 @@ function usePhaseNavigation(
       phase as Parameters<typeof phaseToPath>[0],
       import.meta.env.BASE_URL,
     );
-    document.title =
-      PHASE_TITLES[phase as keyof typeof PHASE_TITLES] ?? "The Mandate: Herdr";
+    document.title = PHASE_TITLES[phase as keyof typeof PHASE_TITLES] ?? "The Mandate: Herdr";
 
     if (isPopStateRef.current) {
       isPopStateRef.current = false;

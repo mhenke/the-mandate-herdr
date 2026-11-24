@@ -156,7 +156,8 @@ function LevelTwoMission({
         instruction={
           <>
             Herdr shortcut: <kbd>Ctrl+B</kbd> <kbd>C</kbd> to create tab, <kbd>Ctrl+B</kbd>{" "}
-            <kbd>Shift+T</kbd> to rename, <kbd>Ctrl+B</kbd> <kbd>P</kbd>/<kbd>N</kbd> to switch tabs.
+            <kbd>Shift+T</kbd> to rename, <kbd>Ctrl+B</kbd> <kbd>P</kbd>/<kbd>N</kbd> to switch
+            tabs.
           </>
         }
       />

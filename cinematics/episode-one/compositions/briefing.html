@@ -23,7 +23,7 @@
     #head {
       position: absolute;
       left: 180px;
-      top: 70px;
+      top: 54px;
       z-index: 10;
       display: inline-block;
       font-family: var(--font-mono);
@@ -46,7 +46,7 @@
     .envelope-card {
       position: absolute;
       left: 180px;
-      top: 210px;
+      top: 232px;
       width: 1560px;
       z-index: 10;
       background: rgba(2, 4, 7, 0.88);
@@ -64,7 +64,7 @@
       gap: 32px;
     }
     .env-from {
-      font-size: 28px;
+      font-size: 30px;
       letter-spacing: 0.08em;
       color: #eef2f6;
       line-height: 1.6;
@@ -93,7 +93,7 @@
       border: 1px solid rgba(207, 155, 82, 0.85);
       background: rgba(207, 155, 82, 0.08);
       font-family: var(--font-mono);
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 600;
       letter-spacing: 0.16em;
       color: var(--amber);
@@ -106,24 +106,24 @@
       padding: 0 4px;
     }
     .env-subject {
-      margin-top: 32px;
-      padding-top: 26px;
+      margin-top: 30px;
+      padding-top: 24px;
       border-top: 1px solid rgba(135, 155, 175, 0.22);
-      font-size: 36px;
+      font-size: 39px;
       font-weight: 600;
       font-family: var(--font-mono);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
       line-height: 1.45;
       color: #f0f4f8;
     }
     .env-meta {
-      margin-top: 30px;
-      padding-top: 24px;
+      margin-top: 28px;
+      padding-top: 22px;
       border-top: 1px solid rgba(135, 155, 175, 0.16);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 28px;
+      font-size: 30px;
       font-family: var(--font-mono);
       color: #a4b7c6;
       letter-spacing: 0.10em;
@@ -222,10 +222,10 @@
         ctx.save();
 
         // Strict geometric clip to physical window glass:
-        // Sky over Capitol dome strictly above dispatch card (y <= 190, x: 1100..1710)
+        // Sky over Capitol dome strictly above dispatch card (y <= 210, x: 1100..1710)
         // Never inside room, never over dispatch card or header, never over laptop or desk
         ctx.beginPath();
-        ctx.rect(1100, 0, 610, 190);
+        ctx.rect(1100, 0, 610, 210);
         ctx.clip();
 
         ctx.lineCap = "round";

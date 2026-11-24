@@ -36,7 +36,13 @@ import {
 } from "../core/narrative";
 
 export type Phase =
-  "title" | "cold-open" | "episode" | "briefing" | "workspace" | "response" | "complete";
+  | "title"
+  | "cold-open"
+  | "episode"
+  | "briefing"
+  | "workspace"
+  | "response"
+  | "complete";
 
 export interface AssessmentProgress {
   readonly objectives: readonly ObjectiveRecord[];
