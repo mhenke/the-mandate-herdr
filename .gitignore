@@ -12,6 +12,7 @@ the-mandate-concept-art.zip
 .vitest/
 .worktrees/
 .claude/
+.impeccable/
 **/.hyperframes/
 **/.thumbnails/
 **/renders/
