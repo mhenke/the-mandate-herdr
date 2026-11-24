@@ -5,10 +5,7 @@
 // the separate accessible capture control.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  createInvestigationSession,
-  RECOVERY_STORAGE_KEY,
-} from "./adapters/investigation-session";
+import { createInvestigationSession, RECOVERY_STORAGE_KEY } from "./adapters/investigation-session";
 import { toInputEvent } from "./adapters/herdr-browser";
 import { MandatePreview } from "./ui/MandatePreview";
 import { useInvestigationSnapshot } from "./ui/useHerdrSnapshot";

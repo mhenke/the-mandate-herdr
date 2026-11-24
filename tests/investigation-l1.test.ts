@@ -519,7 +519,10 @@ describe("input policy (cooperative security notice)", () => {
     session.setAccessibleMode(true);
     expect(session.getSnapshot().inputPolicy).toBe("accessible");
     expect(session.dispatchChrome({ action: "new-tab" })).toBe(true);
-    expect(session.getSnapshot().herdr.overlay).toMatchObject({ kind: "rename", target: "new-tab" });
+    expect(session.getSnapshot().herdr.overlay).toMatchObject({
+      kind: "rename",
+      target: "new-tab",
+    });
     expect(session.getSnapshot().objectivesMet).toBe(false);
   });
 

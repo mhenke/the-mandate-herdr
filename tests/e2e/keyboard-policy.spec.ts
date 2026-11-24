@@ -20,7 +20,10 @@ test("Standard: pointer chrome is refused and shows a brief reminder", async ({ 
   // L1 seeds the memo focused; the assignment pane would be keyboard focus-left.
   await expect(page.getByLabel("Memo (focused)")).toBeVisible();
 
-  await page.locator(".tui-pane").first().click({ position: { x: 24, y: 24 } });
+  await page
+    .locator(".tui-pane")
+    .first()
+    .click({ position: { x: 24, y: 24 } });
   // Refused: no focus change, no objective, one reminder that fades.
   await expect(page.getByLabel("Assignment (focused)")).toHaveCount(0);
   await expect(page.getByLabel("Memo (focused)")).toBeVisible();
@@ -126,7 +129,10 @@ test("Accessible: alternative navigation reaches the response without mastery cr
 
   // Story read stays a page control; pointer chrome now focuses the assignment.
   await page.getByRole("button", { name: "Mark the memo read" }).click();
-  await page.locator(".tui-pane").first().click({ position: { x: 24, y: 24 } });
+  await page
+    .locator(".tui-pane")
+    .first()
+    .click({ position: { x: 24, y: 24 } });
   await expect(page.getByLabel("Assignment (focused)")).toBeVisible();
   await page.keyboard.press("x");
   await expect(page.getByLabel(/Keys forwarded to this pane/)).toContainText("x");

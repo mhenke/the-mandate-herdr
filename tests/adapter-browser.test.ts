@@ -145,7 +145,9 @@ describe("development reload recovery", () => {
       false,
     );
     expect(
-      session.restoreRecovery(JSON.stringify({ version: 2, phase: "workspace", suspendedPhase: "title" })),
+      session.restoreRecovery(
+        JSON.stringify({ version: 2, phase: "workspace", suspendedPhase: "title" }),
+      ),
     ).toBe(false);
     expect(session.getSnapshot().phase).toBe("title");
   });
