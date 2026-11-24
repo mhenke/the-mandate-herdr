@@ -1,0 +1,127 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #memo-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .memo-card {
+      width: 1240px;
+      background: rgba(4, 7, 12, 0.98);
+      border: 1px solid rgba(135, 155, 175, 0.25);
+      border-left: 4px solid var(--amber);
+      padding: 50px 60px 44px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      box-shadow: none;
+    }
+    .memo-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 28px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .memo-title {
+      margin-top: 26px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 48px;
+      letter-spacing: 0.03em;
+      line-height: 1.15;
+      color: #e6edf3;
+    }
+    .memo-rules {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .rule {
+      display: flex;
+      gap: 18px;
+      align-items: baseline;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(135, 155, 175, 0.15);
+    }
+    .rule:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .rule-num {
+      font-size: 28px;
+      color: var(--amber);
+      letter-spacing: 0.08em;
+      min-width: 70px;
+      font-weight: 600;
+    }
+    .rule-head {
+      font-size: 34px;
+      font-weight: 700;
+      color: #eef2f6;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .rule-desc {
+      font-size: 28px;
+      line-height: 1.45;
+      color: #9cb0c0;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+  </style>
+  <div id="root" data-composition-id="scene-memo" data-width="1920" data-height="1080">
+    <div id="memo-stage">
+      <div id="memo-card" class="memo-card clip" data-start="0" data-duration="5.5" data-layout-allow-overlap data-hold>
+        <div class="memo-head" id="memo-head">
+          <span>SOURCE-HANDLING&nbsp;MEMORANDUM</span>
+          <span>CPA&nbsp;·&nbsp;PROTOCOL&nbsp;01-A</span>
+        </div>
+        <div class="memo-title" id="memo-title">BEFORE YOU GO NEAR THE SOURCE</div>
+        <div class="memo-rules" id="memo-rules">
+          <div class="rule" id="rule-1">
+            <span class="rule-num">01 //</span>
+            <span class="rule-head">VERIFY ORIGIN.</span>
+            <span class="rule-desc">Establish where a claim was first observed.</span>
+          </div>
+          <div class="rule" id="rule-2">
+            <span class="rule-num">02 //</span>
+            <span class="rule-head">PRESERVE ATTRIBUTION.</span>
+            <span class="rule-desc">Protect identity; attribute only what was shared.</span>
+          </div>
+          <div class="rule" id="rule-3">
+            <span class="rule-num">03 //</span>
+            <span class="rule-head">ASSUME NOTHING CONFIRMED.</span>
+            <span class="rule-desc">A tip is a lead; not confirmation.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Memorandum card appears calmly in place (zero sliding)
+      tl.fromTo(
+        "#memo-card",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: "power2.out" },
+        0.05,
+      );
+      // Stationary Reading Hold: from 0.7s to 5.2s (4.5s hold on all 3 rules)
+      // Clean fade to black: entire stage dims uniformly (no flash)
+      tl.to("#root", { opacity: 0, duration: 0.28, ease: "power1.in" }, 5.22);
+      window.__timelines["scene-memo"] = tl;
+    })();
+  </script>
+</template>

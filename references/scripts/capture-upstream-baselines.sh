@@ -54,8 +54,8 @@ GRID_LABEL="${GRID_COLS}x${GRID_ROWS}"
 SETTLE_SECONDS="${SETTLE_SECONDS:-0.5}"
 
 HERDR_BIN="${HERDR_BIN:-/tmp/opencode/the-mandate-research/herdr/target/release/herdr}"
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PUBLISH_DIR="$REPO_ROOT/tests/e2e/__screenshots__/upstream"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PUBLISH_DIR="$REPO_ROOT/references/herdr-baselines"
 OUT_DIR=""
 MANIFEST=""
 

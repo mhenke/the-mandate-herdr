@@ -49,7 +49,7 @@ user's default server PID and workspace count were unchanged across the full san
 
 ## States and provenance
 
-Each PNG lands in `tests/e2e/__screenshots__/upstream/<state>.png`, alongside its
+Each PNG lands in `references/herdr-baselines/<state>.png`, alongside its
 tmux screen-text transcript. `manifest.json` records provenance and input sequences.
 States are **cumulative, in manifest order**; the script is the complete replay recipe,
 not a collection of independent seeds.

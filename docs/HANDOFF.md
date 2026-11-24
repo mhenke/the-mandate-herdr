@@ -1,6 +1,6 @@
 # Handoff — The Mandate: Herdr, L1 browser slice
 
-As of 2026-11-24. Working tree: `/home/mhenke/Projects/the-mandate/.worktrees/l1-browser-preview`, branch `lane/l1-browser-preview`. Most integration work is **uncommitted**. Do not touch the main checkout's separate uncommitted work.
+As of 2026-11-24. Working tree: `/home/mhenke/Projects/the-mandate/.worktrees/l1-browser-preview`, branch `lane/l1-browser-preview`. L1 slice committed as `ab03b98`, PR #9 open. Do not touch the main checkout's separate uncommitted work.
 
 ## Objective
 
@@ -49,18 +49,17 @@ None. L1 slice is committed and PR #9 is submitted. Awaiting PR CI completion an
 - `src/App.tsx`, `src/ui/MandatePreview.tsx`, `src/styles/mandate-preview.css` — presentation + host wiring (fixer lane).
 - `tests/{herdr-chrome,investigation-l1,adapter-browser,herdr-fidelity,herdr-copy-reconcile}.test.ts` — runtime/policy/recovery/fidelity.
 - `tests/e2e/` — Playwright suites incl. new keyboard-policy spec; screenshots `/tmp/opencode/mandate-final/`.
-- Upstream pins: `/tmp/opencode/the-mandate-research/herdr/`; captures `/home/mhenke/Projects/the-mandate/tests/e2e/__screenshots__/upstream/` (28 pinned, read-only authority).
+- Upstream pins: `/tmp/opencode/the-mandate-research/herdr/`; captures `/home/mhenke/Projects/the-mandate/references/herdr-baselines/` (pinned, read-only authority).
 
 ## Next steps
 
-1. Reconcile fixer lane; run full gates once: typecheck, eslint, stylelint, vitest, Playwright (including axe), build. Inspect failure excerpts before assigning repairs.
-2. Verify fresh screenshots against pinned captures; confirm mouse cannot bypass Standard objectives and Accessible mode earns no mastery credit in the browser.
-3. Commit intended files only (exclude `.vitest/`), push isolated branch, open PR. Report URL, screenshots, interactions, exact test results, remaining defects.
-4. Continue authorized L1–L3 slice; stop at M2 review gate for approval.
+1. Watch PR #9 CI; inspect failure excerpts before assigning repairs. Merge only when green.
+2. After merge, verify screenshots against pinned captures and confirm in-browser mouse refusal / Accessible no-credit behavior (Playwright policy spec already covers this in CI).
+3. Continue authorized L1–L3 slice; stop at M2 review gate for approval. L4–L15 still unauthorized.
 
 ## Environment and risks
 
-- Dev server `http://127.0.0.1:5173/` (Vite, parent-owned, PID 1951762). Do not restart by subagents; tool timeouts can kill it — use a long timeout. Never stop another process's server or run new live Herdr experiments.
+- Dev server `http://127.0.0.1:5173/` was Vite parent-owned; last observed background shell exited 143 (terminated). Restart only if browser work is needed, and never stop another process's server or run new live Herdr experiments.
 - Vite has served stale transforms after heavy edits; restart **only our own** dev server and confirm served source before diagnosing missing exports.
 - Designer subagent unavailable (provider credit error); fixer covers UI. FireFox unmeasured; prefix+`?` partial. Overlay geometry/colour still differs from upstream captures (largest visual gap). No persistence until M3.
 - Never touch the user's live Herdr session; never rerun captures. Working claims must be backed by commands actually run.

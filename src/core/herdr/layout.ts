@@ -122,6 +122,84 @@ export function replacePaneNode(
   };
 }
 
+function isCandidateInDirection(
+  focused: Rect,
+  candidate: Rect,
+  direction: NavDirection,
+): boolean {
+  switch (direction) {
+    case "left":
+      return (
+        candidate.x + candidate.width <= focused.x &&
+        rangesOverlap(candidate.y, candidate.height, focused.y, focused.height)
+      );
+    case "right":
+      return (
+        candidate.x >= focused.x + focused.width &&
+        rangesOverlap(candidate.y, candidate.height, focused.y, focused.height)
+      );
+    case "up":
+      return (
+        candidate.y + candidate.height <= focused.y &&
+        rangesOverlap(candidate.x, candidate.width, focused.x, focused.width)
+      );
+    case "down":
+      return (
+        candidate.y >= focused.y + focused.height &&
+        rangesOverlap(candidate.x, candidate.width, focused.x, focused.width)
+      );
+  }
+}
+
+interface ScoredCandidate {
+  readonly index: number;
+  readonly info: PaneInfo;
+  readonly edgeDistance: number;
+  readonly overlap: number;
+  readonly centerDistance: number;
+}
+
+function scoreCandidate(
+  fr: Rect,
+  candidate: PaneInfo,
+  index: number,
+  direction: NavDirection,
+): ScoredCandidate {
+  const r = candidate.rect;
+  let edgeDistance: number;
+  let overlap: number;
+  let centerDistance: number;
+
+  if (direction === "left") {
+    edgeDistance = Math.max(0, fr.x - (r.x + r.width));
+    overlap = rangeOverlapAmount(r.y, r.height, fr.y, fr.height);
+    centerDistance = rangeCenterDistance(r.y, r.height, fr.y, fr.height);
+  } else if (direction === "right") {
+    edgeDistance = Math.max(0, r.x - (fr.x + fr.width));
+    overlap = rangeOverlapAmount(r.y, r.height, fr.y, fr.height);
+    centerDistance = rangeCenterDistance(r.y, r.height, fr.y, fr.height);
+  } else if (direction === "up") {
+    edgeDistance = Math.max(0, fr.y - (r.y + r.height));
+    overlap = rangeOverlapAmount(r.x, r.width, fr.x, fr.width);
+    centerDistance = rangeCenterDistance(r.x, r.width, fr.x, fr.width);
+  } else {
+    edgeDistance = Math.max(0, r.y - (fr.y + fr.height));
+    overlap = rangeOverlapAmount(r.x, r.width, fr.x, fr.width);
+    centerDistance = rangeCenterDistance(r.x, r.width, fr.x, fr.width);
+  }
+
+  return { index, info: candidate, edgeDistance, overlap, centerDistance };
+}
+
+function compareScoredCandidates(a: ScoredCandidate, b: ScoredCandidate): number {
+  return (
+    a.edgeDistance - b.edgeDistance ||
+    b.overlap - a.overlap ||
+    a.centerDistance - b.centerDistance ||
+    a.index - b.index
+  );
+}
+
 /** src/layout.rs:369-424 — directional overlap, then edge distance, overlap, center, index. */
 export function findInDirection(
   focused: PaneInfo,
@@ -129,49 +207,18 @@ export function findInDirection(
   panes: readonly PaneInfo[],
 ): string | null {
   const fr = focused.rect;
-  const candidates: { index: number; info: PaneInfo }[] = [];
-  panes.forEach((p, index) => {
-    if (p.id === focused.id) return;
-    const r = p.rect;
-    const ok =
-      direction === "left"
-        ? r.x + r.width <= fr.x && rangesOverlap(r.y, r.height, fr.y, fr.height)
-        : direction === "right"
-          ? r.x >= fr.x + fr.width && rangesOverlap(r.y, r.height, fr.y, fr.height)
-          : direction === "up"
-            ? r.y + r.height <= fr.y && rangesOverlap(r.x, r.width, fr.x, fr.width)
-            : r.y >= fr.y + fr.height && rangesOverlap(r.x, r.width, fr.x, fr.width);
-    if (ok) candidates.push({ index, info: p });
-  });
+  const candidates: ScoredCandidate[] = [];
+
+  for (let index = 0; index < panes.length; index++) {
+    const p = panes[index];
+    if (p && p.id !== focused.id && isCandidateInDirection(fr, p.rect, direction)) {
+      candidates.push(scoreCandidate(fr, p, index, direction));
+    }
+  }
+
   if (candidates.length === 0) return null;
-  const keyed = candidates.map(({ index, info }) => {
-    const r = info.rect;
-    const edgeDistance =
-      direction === "left"
-        ? Math.max(0, fr.x - (r.x + r.width))
-        : direction === "right"
-          ? Math.max(0, r.x - (fr.x + fr.width))
-          : direction === "up"
-            ? Math.max(0, fr.y - (r.y + r.height))
-            : Math.max(0, r.y - (fr.y + fr.height));
-    const overlap =
-      direction === "left" || direction === "right"
-        ? rangeOverlapAmount(r.y, r.height, fr.y, fr.height)
-        : rangeOverlapAmount(r.x, r.width, fr.x, fr.width);
-    const centerDistance =
-      direction === "left" || direction === "right"
-        ? rangeCenterDistance(r.y, r.height, fr.y, fr.height)
-        : rangeCenterDistance(r.x, r.width, fr.x, fr.width);
-    return { index, info, edgeDistance, overlap, centerDistance };
-  });
-  keyed.sort(
-    (a, b) =>
-      a.edgeDistance - b.edgeDistance ||
-      b.overlap - a.overlap ||
-      a.centerDistance - b.centerDistance ||
-      a.index - b.index,
-  );
-  return keyed[0]?.info.id ?? null;
+  candidates.sort(compareScoredCandidates);
+  return candidates[0]?.info.id ?? null;
 }
 
 function rangesOverlap(aStart: number, aLen: number, bStart: number, bLen: number): boolean {

@@ -117,6 +117,7 @@ Designer-owned layout must project the pinned Herdr interface. Tutorial, transcr
 - Present status through text/shape and programmatic labels, not color alone.
 - Reduced motion and pause/skip-reveal controls must preserve facts and assessment [A4].
 - Verify 200% zoom without lost functionality [A5].
+- Cinematic sequences (cold opens, mission outros, episode finales, and game ending) follow the theatrical plan (`docs/PRESENTATION_PLAN.md`). Finished videos are produced offline via HyperFrames and integrated into React presentation with immediate skip, full text transcript, reduced-motion fallback, and optional audio. Cinematics trigger only after verified gameplay objectives and narrative state transitions; skipping an outro never awards objectives or bypasses prerequisites.
 
 A transcript does not waive accessibility of the interactive surface. Automated checks cannot replace manual screen-reader and keyboard-only evaluation.
 

@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T10:16:30Z | Mode: FULL
+> Generated: 2026-11-24T17:35:00Z | Mode: DELTA
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -59,10 +59,16 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `src/styles/`: Application styles, typography tokens, layout CSS.
 - `docs/`: Story bible, design contracts, architectural decision records (ADRs), research baselines.
 - `docs/adr/`: Architecture Decision Records (0001 through 0006).
-- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties).
+- `cinematics/`: Offline HyperFrames composition projects (cold open, L3 mission outro) generating static MP4/VTT assets.
+- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties, cinematics).
 - `tests/e2e/`: Playwright end-to-end suites (visual parity, smoke journeys, axe accessibility, keyboard policy).
 - `public/`: Static assets (cinematic MP4, VTT captions, posters, transcripts).
-- `scripts/`: Upstream baseline capture scripts and validation utilities.
+- `references/`: Consolidated non-application reference collateral, Herdr behavioral baselines, research probes, concept art, and capture tooling.
+  - `references/herdr-baselines/`: Pinned Herdr 0.9.5 TUI baselines (32 PNG captures, 32 transcripts, SHA-256 manifest, transcript viewer).
+  - `references/illustrative/`: Third-party and fork comparison images (TermSplit, fork blog).
+  - `references/feasibility/`: Milestone 1 keyboard feasibility probe (`keyboard-probe.html`).
+  - `references/concept-art/`: Concept art series for setting and atmosphere.
+  - `references/scripts/`: Upstream baseline capture harness (`capture-upstream-baselines.sh`) and Herdr isolation verification scripts (`herdr-isolation-probe.sh`).
 
 ## Code Style Conventions
 - **Naming**: camelCase for functions, variables, and instances; PascalCase for types, interfaces, and React components; UPPER_SNAKE_CASE for constants.
@@ -93,8 +99,8 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 10 Vitest test files (**161 unit, property, and fidelity tests passing**).
-  - 5 Playwright test files (**16 E2E, accessibility, and visual tests passing**).
+  - 12 Vitest test files (**170 unit, property, fidelity, and cinematic integration tests passing**).
+  - 6 Playwright test files (**18 E2E, accessibility, and visual tests passing**).
 - Test patterns:
   - Core purity tests (bare Node process invocation).
   - Fast-check generative property tests for state transitions and determinism.
@@ -109,7 +115,19 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- N/A (FULL scan)
+- `references/herdr-baselines/` (consolidated 32 Herdr TUI captures, 32 transcripts, manifest, and viewer)
+- `references/illustrative/` (migrated TermSplit and fork blog captures)
+- `references/feasibility/` (migrated M1 keyboard probe)
+- `references/concept-art/` (migrated tone and atmosphere concept artwork)
+- `references/scripts/` (migrated capture and isolation verification harnesses)
+- `references/README.md` (new master reference index)
+- `docs/README.md` (new 17-document architectural and narrative sitemap)
+- `.gitignore` (hardened: `.gemini/`, `.fallow/`, `graphify-out/`, `.env.local`, logs)
+- `.prettierignore` (protected `references/herdr-baselines`, `references/concept-art`, `references/feasibility`)
+- `eslint.config.js` (updated `references/feasibility/**` ignore)
+- `GLOSSARY.md` (sharpened Herdr visual baseline; added Illustrative reference definition)
+- `README.md` & `PRODUCT.md` (updated concept art paths)
+- `docs/HANDOFF.md` (updated reference path)
 
 ## Last Scanned
-2026-11-24T10:16:30Z
+2026-11-24T19:20:00Z
