@@ -20,7 +20,7 @@ jobs:
         with:
           version: 12.23.0 # mirrors packageManager
       # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.12
           cache: pnpm
@@ -39,7 +39,7 @@ jobs:
         with:
           version: 12.23.0 # mirrors packageManager
       # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.12
           cache: pnpm
@@ -56,7 +56,7 @@ jobs:
         with:
           version: 12.23.0 # mirrors packageManager
       # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.12
           cache: pnpm
@@ -78,7 +78,7 @@ jobs:
         with:
           version: 12.23.0 # mirrors packageManager
       # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.12
           cache: pnpm
