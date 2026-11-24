@@ -178,9 +178,13 @@ _Avoid_: Failed attempt, strike, error
 A matrix cell that teaches part of a skill's content only (for example, the close half of the detach/reattach-versus-close skill). The matrix records the split explicitly; a later level's full introduction never backdates to the partial one.
 _Avoid_: Incomplete lesson, teaser, preview
 
-**Upstream visual baseline**:
-The 28 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `references/herdr-baselines/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
-_Avoid_: Illustrative concept art, mock screenshot, reference render
+**Herdr visual baseline**:
+The 32 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `references/herdr-baselines/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
+_Avoid_: Upstream baseline, mock screenshot, reference render, illustrative concept art
+
+**Illustrative reference**:
+Third-party and community fork screen captures (TermSplit, fork blog) in `references/illustrative/` used solely for mood orientation or contrasting layout patterns. Strictly non-authoritative.
+_Avoid_: Baseline, behavioral authority, visual authority, specification
 
 **Cold open cinematic**:
 An atmospheric, 25-second silent establishing film introducing an episode before interactive gameplay begins, built with HyperFrames and locked camera framing.

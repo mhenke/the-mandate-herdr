@@ -63,7 +63,12 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, properties, cinematics).
 - `tests/e2e/`: Playwright end-to-end suites (visual parity, smoke journeys, axe accessibility, keyboard policy).
 - `public/`: Static assets (cinematic MP4, VTT captions, posters, transcripts).
-- `scripts/`: Upstream baseline capture scripts and validation utilities.
+- `references/`: Consolidated non-application reference collateral, Herdr behavioral baselines, research probes, concept art, and capture tooling.
+  - `references/herdr-baselines/`: Pinned Herdr 0.9.5 TUI baselines (32 PNG captures, 32 transcripts, SHA-256 manifest, transcript viewer).
+  - `references/illustrative/`: Third-party and fork comparison images (TermSplit, fork blog).
+  - `references/feasibility/`: Milestone 1 keyboard feasibility probe (`keyboard-probe.html`).
+  - `references/concept-art/`: Concept art series for setting and atmosphere.
+  - `references/scripts/`: Upstream baseline capture harness (`capture-upstream-baselines.sh`) and Herdr isolation verification scripts (`herdr-isolation-probe.sh`).
 
 ## Code Style Conventions
 - **Naming**: camelCase for functions, variables, and instances; PascalCase for types, interfaces, and React components; UPPER_SNAKE_CASE for constants.
@@ -110,18 +115,19 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- `src/core/herdr/index.ts` (barrel export narrowing, unused type elimination)
-- `src/core/herdr/keymap.ts` (complexity reduction and help group extraction)
-- `src/core/herdr/layout.ts` (directional scoring helper extraction)
-- `src/core/herdr/store.ts` (clone group elimination, function decomposition, L2 newTabOutput)
-- `src/core/herdr/types.ts` (WorkspaceState newTabOutput)
-- `src/core/assessment/index.ts` (L2 assessment and tab rename recognition)
-- `src/ui/MandatePreview.tsx` (L2 artifact examination button)
-- `src/App.tsx` (examine-artifact story handler)
-- `GLOSSARY.md` (sharpened hit targets, mode bar, named session, new-tab prompt; added Stringer, Cooperative, False credit)
-- `PRODUCT.md` (product specification and positioning)
-- `tests/investigation-l2.test.ts` (L2 unit/fidelity test suite)
-- `tests/e2e/level-2-journey.spec.ts` (L2 E2E Playwright journey specs)
+- `references/herdr-baselines/` (consolidated 32 Herdr TUI captures, 32 transcripts, manifest, and viewer)
+- `references/illustrative/` (migrated TermSplit and fork blog captures)
+- `references/feasibility/` (migrated M1 keyboard probe)
+- `references/concept-art/` (migrated tone and atmosphere concept artwork)
+- `references/scripts/` (migrated capture and isolation verification harnesses)
+- `references/README.md` (new master reference index)
+- `docs/README.md` (new 17-document architectural and narrative sitemap)
+- `.gitignore` (hardened: `.gemini/`, `.fallow/`, `graphify-out/`, `.env.local`, logs)
+- `.prettierignore` (protected `references/herdr-baselines`, `references/concept-art`, `references/feasibility`)
+- `eslint.config.js` (updated `references/feasibility/**` ignore)
+- `GLOSSARY.md` (sharpened Herdr visual baseline; added Illustrative reference definition)
+- `README.md` & `PRODUCT.md` (updated concept art paths)
+- `docs/HANDOFF.md` (updated reference path)
 
 ## Last Scanned
-2026-11-24T17:35:00Z
+2026-11-24T19:20:00Z
