@@ -56,6 +56,15 @@ Single project context. Two language groups share this file because both are loa
 
 **Keyboard transfer vs story completion** — separate outcomes. A player may finish the story with external/accessible controls and earn no keyboard-transfer credit; the record states which.
 
+**Input policy** — the session mode governing whether simulated chrome accepts pointer interaction. Standard enforces the in-world cooperative security restriction requiring keyboard-only operations on the remote console; Accessible permits alternative pointer navigation of simulated chrome without granting keyboard-transfer mastery credit.
+_Avoid_: Mouse mode, easy mode, cheat mode, bypass.
+
+**Chrome event** — an external host activation of simulated multiplexer navigation (workspace, tab, new-tab, or pane focus) recorded with non-player provenance (`playerAction: false`). Distinguishes host-level navigation from authentic player keyboard operations.
+_Avoid_: Synthetic keystroke, simulated click, fake key.
+
+**Capture release control** — an accessible external host control that releases keyboard focus from the simulated terminal surface back to the browser page. Releases browser capture without consuming or redefining Herdr's own internal `Escape` key.
+_Avoid_: Escape-to-release, global escape handler, modal escape.
+
 **Retention checkpoint** — a level that assesses only previously taught skills with faded scaffolding. A checkpoint that introduces a new skill is a curriculum defect.
 
 **Capture context** — the host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; release from capture is keyboard-reachable via the external release control, never via the Escape key, which is Herdr-owned inside the simulated TUI.

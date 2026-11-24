@@ -23,6 +23,20 @@ Recorded corrections (user, M2 approval):
 1. **Escape conflict resolved before input capture.** Escape is also an authentic Herdr control (canceling prefix mode, closing certain overlays), so a global Escape-to-release handler would violate fidelity. Inside the simulated TUI, Escape is **Herdr-owned** and follows pinned behavior; capture release is a **separate accessible release mechanism** (external control, see FEASIBILITY hold policy 2 as amended) that does not steal Herdr input. **Both paths are tested** at M2.
 2. **Evidence-based browser claims.** Chromium results are predominantly synthetic CDP input plus two physical keyboard observations; they are never described as measured Firefox compatibility or full physical certification. Firefox risk is accepted for M2 development but stays visible in testing and release documentation. The prefix+`?` result stays **partial**, not fully verified.
 
+### Theatrical presentation — required (user, 2026-11-23)
+
+M2 must deliver a small, connected L1–L3 political-thriller experience, not a tutorial with incidental story:
+
+- Cinematic title screen with **New Investigation**; **Continue** only when an existing attempt can genuinely be resumed.
+- Short, skippable cold open establishing Washington, November 2026; Episode I title card, **THE LEAK**; an in-world L1 briefing leading into the workspace.
+- Contextual guidance that fades with demonstrated learning, at least one earned reveal or character response after a validated player objective, and an in-world transition into L2. L3 continues the same investigation.
+- STORY_BIBLE, STORY_ARC, NARRATIVE_DESIGN, and LEVEL remain the narrative and objective authorities. No early final-twist reveal, contradictory events, or Episodes II/III implementation.
+- Cinematics are keyboard-accessible, skippable, and reduced-motion compatible. They never steal authentic Herdr input; the separate capture-release control remains available.
+- Assignments arrive as in-world messages, memos, or conversations rather than a permanent checklist. Contextual hints are optional; capture controls remain unobtrusive but reachable. Any audio is optional, silent until player-initiated playback, and never carries story information unavailable in text.
+- Existing concept artwork may support the fiction, never stand in for upstream Herdr visual baselines.
+- Show the experience running in the browser, inspect screenshots, and provide genuine Playwright coverage of the presentation flow and earned progression. Cinematic skips and presentation controls cannot grant objective credit; simulation correctness and player-action provenance remain mandatory.
+- **Cinematic production (user, 2026-11-23):** HyperFrames is an optional, offline cinematic-production tool kept out of the React application runtime. Proof of concept: one skippable 15–20 s Episode I cold open rendered locally to MP4 from approved concept artwork and November 12 canon, with captions/text equivalent, a reduced-motion still, immediate Skip, muted start (audio only on user initiation), and a direct transition into the playable L1 assignment. Editable HyperFrames source is preserved; Episodes II/III cinematics and any delay to L1 gameplay remain out of scope.
+
 Exit criteria additions from the technology decisions:
 
 1. Boundary enforcement live: ESLint import rules + bare-Node core import test prove `src/core/*` has zero React/DOM/adapter imports.

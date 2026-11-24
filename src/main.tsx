@@ -5,6 +5,7 @@ import "./styles/tokens.css";
 import "./styles/typography.css";
 import "./styles/themes.css";
 import "./styles/accessibility.css";
+import "./styles/mandate-preview.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root element");
