@@ -16,6 +16,7 @@ This directory contains design contracts, architecture decision records (ADRs), 
 * [TECH_STACK.md](./TECH_STACK.md) — Pinned technology selections (React 19, TypeScript 5.9, Vite 8, Vitest, Playwright).
 * [PRESENTATION_PLAN.md](./PRESENTATION_PLAN.md) — Theatrical progression, cutscene triggers, and accessibility floors.
 * [YAZI_QUEST_ANALYSIS.md](./YAZI_QUEST_ANALYSIS.md) — Comparative instructional design analysis against Yazi Quest.
+* [IMPECCABLE_ARTIFACT_POLICY.md](./IMPECCABLE_ARTIFACT_POLICY.md) — Shared versus machine-local Impeccable artifact tracking policy.
 * [adr/](./adr/) — Architecture Decision Records (ADR-0001 through ADR-0006).
 
 ---

@@ -21,7 +21,17 @@ playwright-report/
 graphify-out/
 
 # AI Tooling & Local Settings
-.impeccable/
+# Impeccable: share durable project context, not machine-local runtime state.
+.impeccable/*
+!.impeccable/config.json
+!.impeccable/design.json
+!.impeccable/live/
+.impeccable/live/*
+!.impeccable/live/config.json
+!.impeccable/surfaces/
+!.impeccable/critique/
+.impeccable/critique/*
+!.impeccable/critique/ignore.md
 .gemini/
 .claude/*
 !.claude/pipeline/

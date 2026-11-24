@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-24T00:00:00.000Z",
+  "title": "Design System: The Mandate: Herdr",
+  "extensions": {
+    "colorMeta": {
+      "narrative-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#07090c",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#202224",
+          "#383b3f",
+          "#52565a",
+          "#6f7276",
+          "#8c8f94",
+          "#b4b8bc",
+          "#edeef0"
+        ]
+      },
+      "action-gold": {
+        "role": "primary",
+        "displayName": "Muted Action Gold",
+        "canonical": "#e8b53a",
+        "tonalRamp": [
+          "#110a00",
+          "#2c1f01",
+          "#4b3703",
+          "#6b510f",
+          "#8e6c15",
+          "#b3880c",
+          "#e2af32",
+          "#faedd4"
+        ]
+      },
+      "action-text": {
+        "role": "neutral",
+        "displayName": "Action Ink",
+        "canonical": "#171204",
+        "tonalRamp": [
+          "#0d0b06",
+          "#252117",
+          "#403a2a",
+          "#5b5544",
+          "#77715f",
+          "#958f7c",
+          "#beb7a3",
+          "#f0eee9"
+        ]
+      },
+      "warm-muted": {
+        "role": "secondary",
+        "displayName": "Warm Muted Gold",
+        "canonical": "#f0d48a",
+        "tonalRamp": [
+          "#100a00",
+          "#2b2000",
+          "#493800",
+          "#695209",
+          "#886e22",
+          "#a78c43",
+          "#d0b56b",
+          "#f5eedc"
+        ]
+      },
+      "scene-text": {
+        "role": "neutral",
+        "displayName": "Scene Ivory",
+        "canonical": "#f4f1e8",
+        "tonalRamp": [
+          "#0c0b09",
+          "#23221d",
+          "#3d3a33",
+          "#58554e",
+          "#74716a",
+          "#928f87",
+          "#bab7af",
+          "#efeeec"
+        ]
+      },
+      "terminal-surface": {
+        "role": "neutral",
+        "displayName": "Terminal Charcoal",
+        "canonical": "#282c34",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#1f2227",
+          "#363b43",
+          "#51555e",
+          "#6d727b",
+          "#8a8f99",
+          "#b2b7c2",
+          "#edeef1"
+        ]
+      },
+      "terminal-chrome": {
+        "role": "neutral",
+        "displayName": "Terminal Chrome",
+        "canonical": "#21252b",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#1f2226",
+          "#373b41",
+          "#51565c",
+          "#6d7279",
+          "#8a9097",
+          "#b2b8c0",
+          "#edeef1"
+        ]
+      },
+      "terminal-text": {
+        "role": "neutral",
+        "displayName": "Terminal Text",
+        "canonical": "#abb2bf",
+        "tonalRamp": [
+          "#090b0f",
+          "#1e2229",
+          "#353b45",
+          "#4f5561",
+          "#6b727e",
+          "#898f9c",
+          "#b1b8c5",
+          "#edeef2"
+        ]
+      },
+      "focus-blue": {
+        "role": "tertiary",
+        "displayName": "Restrained Steel Blue",
+        "canonical": "#89b4fa",
+        "tonalRamp": [
+          "#020a1f",
+          "#082047",
+          "#133773",
+          "#2e5492",
+          "#4a71b2",
+          "#668fd3",
+          "#8db8ff",
+          "#e6effe"
+        ]
+      },
+      "status-green": {
+        "role": "tertiary",
+        "displayName": "Status Green",
+        "canonical": "#3fb950",
+        "tonalRamp": [
+          "#001001",
+          "#012b07",
+          "#024811",
+          "#0e6720",
+          "#13892d",
+          "#2caa42",
+          "#5ed56b",
+          "#dcf7dd"
+        ]
+      },
+      "status-red": {
+        "role": "tertiary",
+        "displayName": "Status Red",
+        "canonical": "#e06c75",
+        "tonalRamp": [
+          "#1d0104",
+          "#440411",
+          "#6f0b21",
+          "#952737",
+          "#b64752",
+          "#d9666f",
+          "#f9989c",
+          "#fee9e9"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Scene Display",
+        "purpose": "Title and narrative scene headings."
+      },
+      "body": {
+        "displayName": "Narrative Body",
+        "purpose": "Readable narrative and explanatory copy."
+      },
+      "interface": {
+        "displayName": "Operational Mono",
+        "purpose": "Labels, keyboard hints, game HUD, and simulated terminal chrome."
+      },
+      "navigation": {
+        "displayName": "Terminal Navigation",
+        "purpose": "Tab labels and compact Herdr navigation controls."
+      }
+    },
+    "shadows": [
+      {
+        "name": "cinema-stage",
+        "value": "0 20px 50px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+        "purpose": "Separates the cold-open media stage from its quiet surround."
+      },
+      {
+        "name": "game-hud",
+        "value": "0 4px 16px rgba(0, 0, 0, 0.4)",
+        "purpose": "Separates cooperative mission guidance from the workspace below."
+      },
+      {
+        "name": "focused-pane",
+        "value": "0 0 16px rgba(137, 180, 250, 0.18)",
+        "purpose": "Subtle blue focus cue on the active simulated pane."
+      }
+    ],
+    "motion": [
+      {
+        "name": "narrative-action",
+        "value": "0.15s ease",
+        "purpose": "Background and border-color feedback on narrative controls."
+      },
+      {
+        "name": "hud-control",
+        "value": "0.12s ease",
+        "purpose": "Background and border-color feedback on game HUD controls."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Narrative Primary Action",
+      "kind": "button",
+      "refersTo": "narrative-primary",
+      "description": "Gold monospace action used by narrative scenes.",
+      "html": "<button class=\"ds-narrative-primary\">New investigation</button>",
+      "css": ".ds-narrative-primary { background: #e8b53a; color: #171204; border: 1px solid #e8b53a; border-radius: 4px; padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; } .ds-narrative-primary:hover { background: #f2c659; border-color: #f2c659; } .ds-narrative-primary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Narrative Secondary Action",
+      "kind": "button",
+      "description": "Transparent supporting action with warm muted emphasis.",
+      "html": "<button class=\"ds-narrative-secondary\">Skip to the workspace</button>",
+      "css": ".ds-narrative-secondary { background: transparent; color: #f0d48a; border: 1px solid rgba(232, 181, 58, 0.65); border-radius: 4px; padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-narrative-secondary:hover { background: #f2c659; } .ds-narrative-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Game HUD Capture Control",
+      "kind": "button",
+      "description": "Compact, restrained control for releasing keyboard capture outside simulated Herdr.",
+      "html": "<button class=\"ds-capture-control\">Release capture</button>",
+      "css": ".ds-capture-control { background: #141b24; color: #c9d1d9; border: 1px solid #283548; border-radius: 3px; padding: 2.4px 7.2px; font: 400 11px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; transition: background-color 0.12s ease, border-color 0.12s ease; } .ds-capture-control:hover { background: #202b3a; border-color: #3b4d66; color: #fff; }"
+    },
+    {
+      "name": "Herdr Active Tab",
+      "kind": "nav",
+      "refersTo": "terminal-active-tab",
+      "description": "Square active tab using the simulated terminal's blue selection color.",
+      "html": "<button class=\"ds-herdr-tab ds-herdr-tab-active\" aria-current=\"page\">1</button>",
+      "css": ".ds-herdr-tab { border: 0; border-right: 1px solid #3e4452; border-radius: 0; background: #21252b; color: #7d8894; padding: 5.6px 14.4px; font: 400 13px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-herdr-tab-active { background: #89b4fa; color: #181825; font-weight: 700; } .ds-herdr-tab:focus-visible { outline: 1px solid #89b4fa; outline-offset: -1px; }"
+    },
+    {
+      "name": "Herdr Focused Pane",
+      "kind": "custom",
+      "description": "Flat terminal pane with a blue boundary and restrained focus glow.",
+      "html": "<section class=\"ds-herdr-pane ds-herdr-pane-focused\"><header>Workspace</header><p>Terminal content</p></section>",
+      "css": ".ds-herdr-pane { overflow: hidden; border: 1px solid #4b5263; border-radius: 3px; background: #282c34; color: #abb2bf; font: 400 14px/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; } .ds-herdr-pane header { padding: 5.6px 12px; background: #21252b; border-bottom: 1px solid #3e4452; color: #dcdfe4; font-size: 12px; font-weight: 700; } .ds-herdr-pane p { margin: 0; padding: 13.6px 18.4px; } .ds-herdr-pane-focused { border: 2px solid #89b4fa; box-shadow: 0 0 16px rgba(137, 180, 250, 0.18); }"
+    },
+    {
+      "name": "Objective Badge",
+      "kind": "chip",
+      "description": "Compact uppercase gold badge for the active game objective.",
+      "html": "<span class=\"ds-objective-badge\">OBJECTIVE 1 OF 2</span>",
+      "css": ".ds-objective-badge { display: inline-block; background: rgba(232, 181, 58, 0.12); color: #e8b53a; border: 1px solid rgba(232, 181, 58, 0.35); border-radius: 3.2px; padding: 1.28px 6.4px; font: 700 10px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Desk",
+    "overview": "The visual system follows a stringer through a late investigative shift: rain-dark Capitol scenes establish the thriller, then the surrounding spectacle falls away as the player enters a working terminal. Its voice is tense, cinematic, and investigative; the experience remains a tool, not a decorative control room.\n\nTwo registers carry that idea. Narrative scenes use documentary-style Washington imagery, restrained warm action color, and clear system typography. The simulated Herdr workspace uses compact monospace chrome, flat dark surfaces, and blue selection and focus cues. Cooperative mission guidance sits above the terminal as a separate game layer.",
+    "keyCharacteristics": [
+      "Atmospheric, image-led narrative scenes; quiet and legible controls.",
+      "Dense, edge-to-edge Herdr workspace with sharp geometry and blue focus.",
+      "A distinct mission HUD that does not impersonate terminal chrome."
+    ],
+    "rules": [
+      {
+        "name": "The Two Registers Rule",
+        "body": "Keep the cinematic story treatment and the Herdr workspace visually distinct; the game HUD is its own layer.",
+        "section": "overview"
+      },
+      {
+        "name": "The Gold Is Story Rule",
+        "body": "Use warm gold for narrative actions and game-mission emphasis, not as a dashboard-like treatment inside the simulated Herdr chrome.",
+        "section": "colors"
+      },
+      {
+        "name": "The Blue Is Focus Rule",
+        "body": "Reserve steel blue for active selection and focus in the simulated interface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Keep narrative prose in system sans and operational labels and interface text in monospace; do not introduce a third type family.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Terminal Rule",
+        "body": "Keep resting terminal surfaces flat; use depth only to clarify a focused or floating state.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the visual handoff from cinematic narrative scenes to the operational terminal.",
+      "Do keep the game mission layer visually identifiable as separate from simulated Herdr.",
+      "Do keep keyboard focus visible and use color together with text for state.",
+      "Do use the supplied Capitol and workspace images only as illustrative scene-setting."
+    ],
+    "donts": [
+      "Don't put rounded dashboard cards or gold panels into the Herdr terminal.",
+      "Don't let cinematic effects obscure terminal content or keyboard focus.",
+      "Don't present concept artwork as an authentic upstream Herdr visual baseline.",
+      "Don't add visual conventions that imply unsupported Herdr behavior."
+    ]
+  }
+}
