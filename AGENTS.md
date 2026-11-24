@@ -8,10 +8,10 @@
 
 ## Agent workflow & governance
 
-- **Workflow contract**: Follow `docs/AGENT_WORKFLOW.md` strictly (Understand → Scope → Implement → Verify → Inspect → Review → Report). Direct commits to `main` are blocked by branch protection; all work runs in isolated worktrees (`.worktrees/<lane>`) on dedicated lane branches submitted via pull requests.
-- **Prohibitions**: Never tamper with fidelity contracts, silently update snapshots, weaken assertions, commit generated artifacts (`graphify-out/`), or leak simulation authority into React components.
-- **Specification index**: Consult `docs/README.md` for the complete catalog and hierarchy of design, architecture, fidelity, narrative, and milestone documents.
-- **Engineering skills**: Use [pstack](https://github.com/cursor/plugins/tree/main/pstack) via fallback mode (read `SKILL.md` as instructions in OpenCode, OMP, and Antigravity); `poteto-mode` selects playbooks; `architect`, `tdd`, `interrogate`, and `blast-radius` are prioritized; visual-parity playbook is mandatory for UI changes. obra/superpowers is excluded.
+- **Solo developer workflow**: Single-developer project ("one person"). Direct commits and pushes to `main`; pull requests and branch protection ceremonies are omitted. Follow the core workflow in `docs/AGENT_WORKFLOW.md` (Understand → Scope → Implement → Verify → Inspect → Report).
+- **Guardrails**: Preserve fidelity contracts, keep test assertions strict, keep generated artifacts (`graphify-out/`) uncommitted, and maintain pure simulation free of React/DOM dependencies.
+- **Specification index**: `docs/README.md` indexes all architecture, fidelity, narrative, and milestone specifications.
+- **Engineering skills**: Use [pstack](https://github.com/cursor/plugins/tree/main/pstack) in fallback mode (execute `SKILL.md` instructions manually in OpenCode, OMP, and Antigravity); `poteto-mode` selects playbooks; prioritize `architect`, `tdd`, `interrogate`, `blast-radius`, and visual-parity for UI. Exclude `obra/superpowers`.
 
 ## Architectural boundaries (ESLint-enforced)
 
@@ -27,7 +27,7 @@
 - **Herdr visual baselines**: Authoritative visual and transcript contracts live in `references/herdr-baselines/` (32 measured interface states and transcripts).
 - **Illustrative captures**: Third-party captures in `references/illustrative/` are non-authoritative mood references.
 - **Feasibility probe**: M1 keyboard diagnostics live in `references/feasibility/keyboard-probe.html`.
-- **Harness scripts**: Upstream baseline capture and isolation scripts live in `references/scripts/`.
+- **Harness scripts**: Herdr baseline capture and isolation scripts live in `references/scripts/`.
 
 ## Design & narrative canon
 

@@ -4,6 +4,14 @@ Single project context. Two language groups share this file because both are loa
 
 ## Investigation domain (fiction)
 
+**The Cooperative (Capital Press & Analyst Cooperative)**:
+The independent journalist and analyst network the player belongs to as a credentialed verifier. Operates the Desk Feed, assigns verifiers to stories, and maintains the newsroom log (NL-1). Holds no regulatory, subpoena, or law enforcement power; its records serve as the required independent corroborating source.
+_Avoid_: News syndicate, press company, intelligence agency
+
+**Desk Feed / Secure Dispatch**:
+The restricted intake channel between the Cooperative's Editor of Record and stringers in the field. Delivers verified leads, editorial directives, and off-record assignments without exposing confidential source identities.
+_Avoid_: Mission inbox, ticket feed, alert notification
+
 **Origin event**:
 The one real upstream incident a report derives from. Exactly one exists in the story; reports may share it without any of them being false.
 _Avoid_: Incident, breach, root cause

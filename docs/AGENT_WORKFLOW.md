@@ -70,9 +70,11 @@ pstack's model-role configuration (`/setup-pstack`) may be used to map its roles
 - Never move assessment or narrative authority into React components, browser APIs, or adapters (enforced by boundary lint; violations are also review failures).
 - Never mark simulated behavior as authentic without its contract citation; never present a page affordance as a Herdr action.
 
-## Parallel agents
+## Solo developer workflow & optional worktrees
 
-Parallel agents must follow **one task, one branch, one worktree**: worktrees created under **`.worktrees/`** (git-ignored) as `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`, one branch per lane. All changes are submitted through pull requests; **direct commits to protected `main` are prohibited** (branch protection enforces this technically). Worktree cleanup happens only after the lane's PR merges or on explicitly abandoned work. Two agents must never edit the same file concurrently; when lanes would touch a shared file (contracts, glossary, story canon), the integrator serializes the edits and reconciles dependents. Agents do not approve their own work; the integrator (or the user at milestone gates) owns acceptance. The integrator verifies, before merging any pre-convention lane, that it did not modify files outside its declared scope or overlap another lane's files.
+The Mandate is developed by a solo human developer and agent ("one person"). Pull requests and branch protection ceremonies are omitted; work commits and pushes directly to `main`.
+
+When isolated exploration or parallel subagents are helpful, optional worktrees may be created under `.worktrees/` (e.g. `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`). Once verified, changes merge directly into `main` without PR ceremony, and temporary worktrees and branches are cleaned up immediately.
 
 ## Exploration tools
 
