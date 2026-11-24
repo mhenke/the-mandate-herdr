@@ -299,29 +299,35 @@ export function observe(
         after.mode === "terminal" &&
         inputUnchanged(before, after)),
     l2SecondTab:
-      p.l2SecondTab || (player && action === "new-tab" && tabCount(after) > tabCount(before)),
+      p.l2SecondTab ||
+      (player &&
+        (action === "new-tab" || action === "rename-commit") &&
+        tabCount(after) > tabCount(before)),
     l2RenamedTabId: p.l2RenamedTabId ?? renamedTab(before, after, entry),
     l2SwitchedAway:
       p.l2SwitchedAway ||
       (player &&
         isTabSwitch(action) &&
-        p.l2RenamedTabId !== null &&
-        activeTab(after)?.id !== p.l2RenamedTabId),
+        (p.l2RenamedTabId !== null
+          ? activeTab(after)?.id !== p.l2RenamedTabId
+          : activeTab(after)?.id !== activeTab(before)?.id)),
     l2SwitchedBack:
       p.l2SwitchedBack ||
       (p.l2SwitchedAway &&
         player &&
         isTabSwitch(action) &&
-        p.l2RenamedTabId !== null &&
-        activeTab(after)?.id === p.l2RenamedTabId),
+        (p.l2RenamedTabId !== null
+          ? activeTab(after)?.id === p.l2RenamedTabId
+          : activeTab(after)?.id !== before.workspaces[0]?.tabs[0]?.id)),
     l2InvalidConsumed:
       p.l2InvalidConsumed ||
       (player &&
         action === "invalid-consumed" &&
         before.mode === "prefix" &&
         after.mode === "terminal" &&
-        p.l2RenamedTabId !== null &&
-        activeTab(after)?.id === p.l2RenamedTabId &&
+        (p.l2RenamedTabId !== null
+          ? activeTab(after)?.id === p.l2RenamedTabId
+          : activeTab(after)?.id !== before.workspaces[0]?.tabs[0]?.id) &&
         inputUnchanged(before, after)),
     l3Split:
       p.l3Split ||
@@ -356,12 +362,21 @@ export function observe(
 function renamedTab(before: HerdrState, after: HerdrState, entry: JournalEntry): string | null {
   if (!entry.playerAction || entry.action !== "rename-commit") return null;
   const overlay = before.overlay;
-  if (!overlay || overlay.kind !== "rename" || overlay.target !== "tab") return null;
+  if (!overlay || overlay.kind !== "rename") return null;
   const trimmed = overlay.text.trim();
   if (trimmed.length === 0) return null;
-  const tab = activeTab(after);
-  if (!tab || tab.name !== trimmed) return null;
-  return tab.id;
+  if (overlay.target === "tab") {
+    const tab = activeTab(after);
+    if (!tab || tab.name !== trimmed) return null;
+    return tab.id;
+  }
+  if (overlay.target === "new-tab") {
+    if (trimmed === overlay.defaultName) return null;
+    const tab = activeTab(after);
+    if (!tab || tab.name !== trimmed) return null;
+    return tab.id;
+  }
+  return null;
 }
 
 function metIds(level: Level, p: Progress): Set<ObjectiveId> {

@@ -59,6 +59,7 @@ interface WorkspaceSeed {
   readonly name: string;
   readonly tabs: readonly TabSeed[];
   readonly newTabApp: PaneApp;
+  readonly newTabOutput?: readonly string[];
 }
 
 function seedPane(id: string, seed: PaneSeed): PaneState {
@@ -123,6 +124,7 @@ function buildState(seeds: readonly WorkspaceSeed[]): HerdrState {
       tabs,
       activeTabId: firstTab.id,
       newTabApp: seed.newTabApp,
+      newTabOutput: seed.newTabOutput,
     });
     nextWorkspaceId += 1;
   }
@@ -175,11 +177,31 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
       {
         name: "cooperative",
         newTabApp: "artifact",
+        newTabOutput: [
+          "ATTACHMENT: UM-1109-88 / BANNER CAPTURE",
+          "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
+          "TARGET: Vendor Demonstration Portal (VP-1109)",
+          "WINDOW: 2026-11-09 21:47 - 21:52 EST",
+          "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+          "ATTRIBUTION: Remote banner verification of supplied artifact only.",
+        ],
         tabs: [
           {
             name: "reading",
             splitApp: "artifact",
-            panes: [{ app: "reading", title: "Reading", output: ["UM-1109-88 (shared PDF)"] }],
+            panes: [
+              {
+                app: "reading",
+                title: "Reading",
+                output: [
+                  "COOPERATIVE INTAKE — READING QUEUE",
+                  "ITEM: SOC Memo UM-1109-88 (Shared Copy)",
+                  "SOURCE: Campus SOC via Quill transfer",
+                  "NOTE ON FACE: Headers stripped per external sharing policy.",
+                  "Open a dedicated artifact tab to inspect the supplied banner screenshot.",
+                ],
+              },
+            ],
           },
         ],
       },
@@ -354,7 +376,13 @@ function createNewTabState(state: HerdrState, label: string | null): HerdrState 
     prevFocusId: null,
     zoomedPaneId: null,
     splitApp: ws.newTabApp,
-    panes: [seedPane(paneId, { app: ws.newTabApp, title: name })],
+    panes: [
+      seedPane(paneId, {
+        app: ws.newTabApp,
+        title: name,
+        output: ws.newTabOutput ? [...ws.newTabOutput] : undefined,
+      }),
+    ],
   };
   return {
     ...withWorkspace(state, { ...ws, tabs: [...ws.tabs, tab], activeTabId: id }),
