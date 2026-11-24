@@ -84,7 +84,6 @@ function CinematicPlayer({
   readonly onEnded?: () => void;
 }): JSX.Element {
   const [failed, setFailed] = useState(false);
-  const [stalled, setStalled] = useState(false);
   const resolvedSrc = resolveAsset(src) ?? src;
   const resolvedPoster = resolveAsset(poster) ?? poster;
   const resolvedCaptions = resolveAsset(captions);
@@ -92,7 +91,7 @@ function CinematicPlayer({
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (failed || stalled || prefersReduced) {
+  if (failed || prefersReduced) {
     return <img className="scene-poster" src={resolvedPoster} alt="" data-fallback="still" />;
   }
   return (
@@ -100,14 +99,13 @@ function CinematicPlayer({
       className="scene-video"
       src={resolvedSrc}
       poster={resolvedPoster}
+      autoPlay
       muted
       playsInline
       preload="metadata"
       controls
       aria-label={label}
       onError={() => setFailed(true)}
-      onStalled={() => setStalled(true)}
-      onAbort={() => setFailed(true)}
       onEnded={onEnded}
       data-fallback="video"
     >
