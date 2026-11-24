@@ -159,89 +159,91 @@ export interface HelpGroup {
 
 const row = (binding: string, label: string): HelpRow => ({ binding, label });
 
+const HELP_BINDING_GROUPS: readonly HelpGroup[] = [
+  {
+    group: "global",
+    rows: [
+      row("ctrl+b", "prefix mode"),
+      row("prefix+?", "keybinds"),
+      row("prefix+s", "settings"),
+      row("prefix+q", "detach"),
+      row("prefix+shift+r", "reload config"),
+      row("prefix+o", "open notification target"),
+    ],
+  },
+  {
+    group: "navigation",
+    rows: [
+      row("esc", "back"),
+      row("up / down", "workspace list"),
+      row("h / j / k / l / left / right", "move focus"),
+      row("tab / shift+tab", "cycle pane"),
+      row("enter", "open workspace"),
+      row("1..9", "switch workspace"),
+    ],
+  },
+  {
+    group: "workspaces / tabs",
+    rows: [
+      row("prefix+w", "workspace navigation"),
+      row("prefix+g", "session navigator"),
+      row("prefix+shift+n", "new workspace"),
+      row("prefix+shift+g", "new worktree"),
+      row("unset", "open worktree"),
+      row("unset", "delete worktree checkout"),
+      row("prefix+shift+w", "rename workspace"),
+      row("prefix+shift+d", "close workspace"),
+      row("unset", "previous workspace"),
+      row("unset", "next workspace"),
+      row("unset", "switch workspace 1-9"),
+      row("unset", "previous agent"),
+      row("unset", "next agent"),
+      row("unset", "focus agent 1-9"),
+      row("prefix+c", "new tab"),
+      row("prefix+shift+t", "rename tab"),
+      row("prefix+p", "previous tab"),
+      row("prefix+n", "next tab"),
+      row("unset", "move tab left"),
+      row("unset", "move tab right"),
+      row("prefix+1..9", "switch tab 1-9"),
+      row("prefix+shift+x", "close tab"),
+    ],
+  },
+  {
+    group: "panes",
+    rows: [
+      row("prefix+v", "split vertical"),
+      row("prefix+minus", "split horizontal"),
+      row("prefix+x", "close pane"),
+      row("prefix+shift+p", "rename pane"),
+      row("prefix+e", "edit scrollback"),
+      row("unset", "clear pane"),
+      row("prefix+[", "copy mode"),
+      row("prefix+z", "zoom pane"),
+      row("prefix+r", "resize mode"),
+      row("unset", "resize pane left"),
+      row("unset", "resize pane down"),
+      row("unset", "resize pane up"),
+      row("unset", "resize pane right"),
+      row("prefix+b", "toggle sidebar"),
+      row("prefix+h", "focus pane left"),
+      row("prefix+j", "focus pane down"),
+      row("prefix+k", "focus pane up"),
+      row("prefix+l", "focus pane right"),
+      row("prefix+tab", "cycle pane next"),
+      row("prefix+shift+tab", "cycle pane previous"),
+      row("unset", "last pane"),
+    ],
+  },
+];
+
 /**
  * Help lists exactly the pinned active bindings, grouped and labelled as
  * upstream renders them (src/input/keybind_help.rs:84-232). Indexed bindings
  * collapse to one `prefix+1..9` row (indexed_label, :52-70).
  */
 export function helpBindingRows(): readonly HelpGroup[] {
-  return [
-    {
-      group: "global",
-      rows: [
-        row("ctrl+b", "prefix mode"),
-        row("prefix+?", "keybinds"),
-        row("prefix+s", "settings"),
-        row("prefix+q", "detach"),
-        row("prefix+shift+r", "reload config"),
-        row("prefix+o", "open notification target"),
-      ],
-    },
-    {
-      group: "navigation",
-      rows: [
-        row("esc", "back"),
-        row("up / down", "workspace list"),
-        row("h / j / k / l / left / right", "move focus"),
-        row("tab / shift+tab", "cycle pane"),
-        row("enter", "open workspace"),
-        row("1..9", "switch workspace"),
-      ],
-    },
-    {
-      group: "workspaces / tabs",
-      rows: [
-        row("prefix+w", "workspace navigation"),
-        row("prefix+g", "session navigator"),
-        row("prefix+shift+n", "new workspace"),
-        row("prefix+shift+g", "new worktree"),
-        row("unset", "open worktree"),
-        row("unset", "delete worktree checkout"),
-        row("prefix+shift+w", "rename workspace"),
-        row("prefix+shift+d", "close workspace"),
-        row("unset", "previous workspace"),
-        row("unset", "next workspace"),
-        row("unset", "switch workspace 1-9"),
-        row("unset", "previous agent"),
-        row("unset", "next agent"),
-        row("unset", "focus agent 1-9"),
-        row("prefix+c", "new tab"),
-        row("prefix+shift+t", "rename tab"),
-        row("prefix+p", "previous tab"),
-        row("prefix+n", "next tab"),
-        row("unset", "move tab left"),
-        row("unset", "move tab right"),
-        row("prefix+1..9", "switch tab 1-9"),
-        row("prefix+shift+x", "close tab"),
-      ],
-    },
-    {
-      group: "panes",
-      rows: [
-        row("prefix+v", "split vertical"),
-        row("prefix+minus", "split horizontal"),
-        row("prefix+x", "close pane"),
-        row("prefix+shift+p", "rename pane"),
-        row("prefix+e", "edit scrollback"),
-        row("unset", "clear pane"),
-        row("prefix+[", "copy mode"),
-        row("prefix+z", "zoom pane"),
-        row("prefix+r", "resize mode"),
-        row("unset", "resize pane left"),
-        row("unset", "resize pane down"),
-        row("unset", "resize pane up"),
-        row("unset", "resize pane right"),
-        row("prefix+b", "toggle sidebar"),
-        row("prefix+h", "focus pane left"),
-        row("prefix+j", "focus pane down"),
-        row("prefix+k", "focus pane up"),
-        row("prefix+l", "focus pane right"),
-        row("prefix+tab", "cycle pane next"),
-        row("prefix+shift+tab", "cycle pane previous"),
-        row("unset", "last pane"),
-      ],
-    },
-  ];
+  return HELP_BINDING_GROUPS;
 }
 
 export function helpRowCount(): number {
@@ -311,6 +313,22 @@ const SHIFTED_PUNCTUATION = new Set([
   "~",
 ]);
 
+function normalizeSingleChar(ch: string, mods: Set<Modifier>): NormalizedKey {
+  if (/[a-z]/i.test(ch)) {
+    const lower = ch.toLowerCase();
+    // Legacy uppercase report without SHIFT still means the shifted letter.
+    if (ch !== lower && !mods.has("shift")) mods.add("shift");
+    return { key: lower, modifiers: [...mods] };
+  }
+  if (ch === "-") return { key: "-", modifiers: [...mods] };
+  if (SHIFTED_PUNCTUATION.has(ch) && mods.has("shift")) {
+    // The character already carries the shift; the binding does not.
+    mods.delete("shift");
+    return { key: ch, modifiers: [...mods] };
+  }
+  return { key: ch, modifiers: [...mods] };
+}
+
 /**
  * Normalize a host key report into the core's key vocabulary.
  *
@@ -344,22 +362,8 @@ export function normalizeDomKey(
   }
 
   const raw = key.length === 1 ? key : (CODE_KEYS[code] ?? key);
-
   if (raw.length === 1) {
-    const ch = raw;
-    if (/[a-z]/i.test(ch)) {
-      const lower = ch.toLowerCase();
-      // Legacy uppercase report without SHIFT still means the shifted letter.
-      if (ch !== lower && !mods.has("shift")) mods.add("shift");
-      return { key: lower, modifiers: [...mods] };
-    }
-    if (ch === "-") return { key: "-", modifiers: [...mods] };
-    if (SHIFTED_PUNCTUATION.has(ch) && mods.has("shift")) {
-      // The character already carries the shift; the binding does not.
-      mods.delete("shift");
-      return { key: ch, modifiers: [...mods] };
-    }
-    return { key: ch, modifiers: [...mods] };
+    return normalizeSingleChar(raw, mods);
   }
 
   return { key: raw, modifiers: [...mods] };
