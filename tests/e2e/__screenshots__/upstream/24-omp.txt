@@ -1,0 +1,40 @@
+ spaces                  │   1       Agents    +
+                         │
+ ● the-mandate           │                                         ████████████
+   main                  │                                            ██  ██
+ · Reference             │                                            ██  ██
+   main                  │                                            ▒▒  ██
+ · Confirmation          │                                                ██
+                         │                                             omp
+                         │                                      Setup step 1 of 6
+                         │
+                         │    Sign in to your providers
+                         │    Sign in to one or more providers. Press ⎋ when you're done.
+                         │
+                         │    Pick a provider to sign in — you can connect more than one.
+                         │
+                         │    ╭─ Select provider to login ─────────────────────────────────────────────────────────╮
+                         │    │ ❯ ChatGPT Plus/Pro (Codex Subscription)                                          █ │
+                         │    │   Anthropic (Claude Pro/Max)                                                     │ │
+                         │    │   Z.AI (GLM Coding Plan)                                                         │ │
+ new               ● menu│    │   Z.AI (GLM Coding Plan · Sign in)                                               │ │
+─────────────────────────│    │   Kimi Code                                                                      │ │
+ agents           grouped│    │   OpenRouter                                                                     │ │
+                         │    │   GitHub Copilot                                                                 │ │
+ ○ the-mandate · 1       │    │   Cursor (Claude, GPT, etc.)                                                     │ │
+   claude                │    │   Devin                                                                          │ │
+ ● the-mandate · 1       │    │   Devin (adopt CLI credentials)                                                  │ │
+   codex                 │    │ Type to search                                                                     │
+ · Confirmation · Agents │    ╰────────────────────────────────────────────────────────────────────────────────────╯
+   omp                   │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                        «│ NAVIGATE  esc back  ↑/↓ workspace  tab pane  ? keybinds
