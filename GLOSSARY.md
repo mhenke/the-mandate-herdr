@@ -62,6 +62,9 @@ _Avoid_: Mouse mode, easy mode, cheat mode, bypass.
 **Chrome event** — an external host activation of simulated multiplexer navigation (workspace, tab, new-tab, or pane focus) recorded with non-player provenance (`playerAction: false`). Distinguishes host-level navigation from authentic player keyboard operations.
 _Avoid_: Synthetic keystroke, simulated click, fake key.
 
+**New-tab prompt** — the modal overlay opened by `prefix+c` when `prompt_new_tab_name` is true (the upstream Herdr default). Titled `new tab`, it pre-fills the next numerical index and commits tab creation only on `Enter`; `Escape` cancels without creating a tab. Differs from the tab rename field (`prefix+shift+t`), which modifies an already-existing tab and retains the current name on cancel or empty commit.
+_Avoid_: Tab creation dialog, tab popup, new tab modal.
+
 **Capture release control** — an accessible external host control that releases keyboard focus from the simulated terminal surface back to the browser page. Releases browser capture without consuming or redefining Herdr's own internal `Escape` key.
 _Avoid_: Escape-to-release, global escape handler, modal escape.
 

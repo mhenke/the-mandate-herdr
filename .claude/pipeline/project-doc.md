@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T10:16:30Z | Mode: FULL
+> Generated: 2026-11-24T10:52:00Z | Mode: DELTA
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -93,8 +93,8 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 10 Vitest test files (**161 unit, property, and fidelity tests passing**).
-  - 5 Playwright test files (**16 E2E, accessibility, and visual tests passing**).
+  - 11 Vitest test files (**167 unit, property, and fidelity tests passing**).
+  - 6 Playwright test files (**18 E2E, accessibility, and visual tests passing**).
 - Test patterns:
   - Core purity tests (bare Node process invocation).
   - Fast-check generative property tests for state transitions and determinism.
@@ -109,7 +109,13 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- N/A (FULL scan)
+- `src/App.tsx`
+- `src/core/assessment/index.ts`
+- `src/core/herdr/store.ts`
+- `src/core/herdr/types.ts`
+- `src/ui/MandatePreview.tsx`
+- `tests/e2e/level-2-journey.spec.ts`
+- `tests/investigation-l2.test.ts`
 
 ## Last Scanned
-2026-11-24T10:16:30Z
+2026-11-24T10:52:00Z
