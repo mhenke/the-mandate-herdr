@@ -35,7 +35,7 @@ graphify-out/
 .gemini/
 .claude/*
 !.claude/pipeline/
-!.claude/state.json
+.claude/state.json
 
 # Cinematics & Media Caches
 **/.hyperframes/
