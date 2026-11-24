@@ -67,6 +67,12 @@ _Avoid_: Escape-to-release, global escape handler, modal escape.
 
 **Retention checkpoint** — a level that assesses only previously taught skills with faded scaffolding. A checkpoint that introduces a new skill is a curriculum defect.
 
+**Mouse chrome / hit targets (`hits`)** — clickable terminal grid regions (`hits.new_tab` in tab bar, `hits.new_workspace` and `hits.sidebar_toggle` in sidebar) active only when `mouse_capture` is enabled. In the simulated TUI, hit targets route mouse clicks (`Down(Left)`) directly to keybind actions (`NewTab`, `NewWorkspace`), exercising the exact same dispatch as keyboard chords without mutating client state independently.
+
+**Mode bar** — the modal status strip painted at the bottom of the active pane surface during non-terminal modes (`PREFIX`, `COPY`, `RESIZE`, `NAVIGATE`). In standard `Terminal` mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
+
+**Named session vs default server session** — Herdr process isolation boundary: a unique named session (`herdr --session <name>`) isolates unix domain sockets and runtime state in private XDG directories. The default session shares fixed `/run/user/<uid>` state paths; running `server stop` targets the global registry and terminates the host server, whereas `session stop <name>` safely terminates only the named instance.
+
 **Capture context** — the host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; release from capture is keyboard-reachable via the external release control, never via the Escape key, which is Herdr-owned inside the simulated TUI.
 
 **Logical clock** — deterministic simulation time advancing only through recorded events. Browser suspension freezes it; resume never applies wall-clock catch-up.

@@ -1,0 +1,40 @@
+ spaces                  │   1       Agents    +
+                         │┌─────────────────────────────────────────────┐┌─────────────────────────────────────────────┐
+ ● the-mandate           ││                                             ││                                             │
+   main                  ││                ████████████                 ││                                             │
+ · Reference             ││                   ██  ██                    ││                                             │
+   main                  ││                   ██  ██                    ││                                             │
+ ○ Confirmation          ││                   ▒▒  ██                    ││                                             │
+                         ││                       ██                    ││                                             │
+                         ││                     omp                     ││                                             │
+                         ││              Setup step 1 of 6              ││                                             │
+                         ││                                             ││                                             │
+                         ││    Sign in to your providers                ││                                             │
+                         ││    Sign in to one or more providers. Press …││                                             │
+                         ││                                             ││                                             │
+                         ││    Pick a provider to sign in — you can     ││                                             │
+                         ││    connect more than one.                   ││                                    ▄        │
+                         ││                                             ││   █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█   │
+                         ││    ╭─ Select provider to login ────────╮    ││   █  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀   │
+                         ││    │ ❯ ChatGPT Plus/Pro (Codex Subsc…█ │    ││   ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀   │
+ new               ● menu││    │   Anthropic (Claude Pro/Max)    │ │    ││                                             │
+─────────────────────────││    │   Z.AI (GLM Coding Plan)        │ │    ││                                             │
+ agents           grouped││    │   Z.AI (GLM Coding Plan · Sign …│ │    ││  ┃                                          │
+                         ││    │   Kimi Code                     │ │    ││  ┃  Ask anything… "What is the tech stac    │
+ ○ the-mandate · 1       ││    │   OpenRouter                    │ │    ││  ┃                                          │
+   claude                ││    │   GitHub Copilot                │ │    ││  ┃                                          │
+ ● the-mandate · 1       ││    │   Cursor (Claude, GPT, etc.)    │ │    ││  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  │
+   codex                 ││    │   Devin                         │ │    ││  /…/ag…  shift+tab agents  ctrl+p commands  │
+ ○ Confirmation · Agents ││    │   Devin (adopt CLI credentials) │ │    ││                                             │
+   omp                   ││    │ Type to search                    │    ││                                             │
+ · Confirmation · Agents ││    ╰───────────────────────────────────╯    ││                                             │
+   opencode              ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││                                             ││                                             │
+                         ││↑/↓ select · ⏎ confirm · ⎋ skip · Ctrl+C exi…││                                             │
+                        «│ NAVIGATE  esc back  ↑/↓ workspace  tab pane  ? keybinds

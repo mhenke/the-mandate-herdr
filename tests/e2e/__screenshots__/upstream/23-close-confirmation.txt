@@ -1,0 +1,40 @@
+ spaces                  │   1      +
+                         │$
+ ● the-mandate           │
+   main                  │
+ · Reference             │
+   main                  │
+ · Confirmation          │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │  ┌──────────────────────────────────────────────────────────────┐
+                         │  │ Close workspace?                                             │
+ new               ● menu│  │ Confirmation — 1 pane                                        │
+─────────────────────────│  │                                                              │
+ agents           grouped│  │                   ↵ confirm     esc cancel                   │
+                         │  └──────────────────────────────────────────────────────────────┘
+ ○ the-mandate · 1       │
+   claude                │
+ ● the-mandate · 1       │
+   codex                 │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                        «│
