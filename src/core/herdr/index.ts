@@ -10,7 +10,6 @@ export {
   helpBindingRows,
   helpRowCount,
   isPrefixKey,
-  normalizeDomKey,
   resolvePrefixBinding,
 } from "./keymap";
 export type {

@@ -5,11 +5,11 @@ import {
   PREFIX_BINDINGS,
   bindingLabel,
   isPrefixKey,
-  normalizeDomKey,
   resolvePrefixBinding,
   sameCombo,
   type KeyCombo,
 } from "../src/core/herdr/keymap";
+import { normalizeDomKey } from "../src/adapters/herdr-browser";
 import type { Modifier } from "../src/core/herdr/types";
 
 const ALL_MODIFIERS: Modifier[] = ["ctrl", "alt", "shift", "meta"];

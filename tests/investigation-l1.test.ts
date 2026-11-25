@@ -1,554 +1,198 @@
-import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { createInvestigationSession } from "../src/adapters/investigation-session";
 import type { InputEvent, Modifier } from "../src/core/herdr";
-import type { ObjectiveId } from "../src/core/assessment";
+
+type Origin = "player" | "script" | "fixture";
 
 const key = (
-  k: string,
+  value: string,
   modifiers: readonly Modifier[] = [],
-  origin: "player" | "script" | "fixture" = "player",
-): InputEvent => ({ kind: "key", origin, key: k, modifiers, phase: "press" });
+  origin: Origin = "player",
+): InputEvent => ({
+  kind: "key",
+  origin,
+  key: value,
+  modifiers,
+  phase: "press",
+});
 
-const prefix = key("b", ["ctrl"]);
+const prefix = (origin: Origin = "player") => key("b", ["ctrl"], origin);
+type Session = ReturnType<typeof createInvestigationSession>;
 
-function toWorkspace(session: ReturnType<typeof createInvestigationSession>): void {
-  session.newInvestigation();
-  session.skipPresentation();
+function type(session: Session, value: string, origin: Origin = "player"): void {
+  for (const character of value) session.dispatch(key(character, [], origin));
 }
 
-function paneIds(session: ReturnType<typeof createInvestigationSession>): {
-  assignment: string;
-  memo: string;
-} {
-  const tab = session.getSnapshot().herdr.workspaces[0]?.tabs[0];
-  const assignment = tab?.panes.find((p) => p.app === "assignment")?.id ?? "";
-  const memo = tab?.panes.find((p) => p.app === "memo")?.id ?? "";
-  return { assignment, memo };
-}
-
-/** O1: prefix focus memo->assignment, then a forwarded character. */
-function doFocusAndType(session: ReturnType<typeof createInvestigationSession>): void {
-  session.dispatch(prefix);
-  session.dispatch(key("h"));
-  session.dispatch(key("x"));
-}
-
-/** O2: help opened, filter typed, cleared with ctrl+u, closed. */
-function doHelp(session: ReturnType<typeof createInvestigationSession>): void {
-  session.dispatch(prefix);
-  session.dispatch(key("?"));
-  session.dispatch(key("/"));
-  session.dispatch(key("a"));
-  session.dispatch(key("u", ["ctrl"]));
+function submit(session: Session, value: string, paneId?: string): void {
+  type(session, value);
+  if (paneId) {
+    const { herdr } = session.getSnapshot();
+    const workspace = herdr.workspaces.find((item) => item.id === herdr.activeWorkspaceId);
+    const tab = workspace?.tabs.find((item) => item.id === workspace.activeTabId);
+    if (tab?.focusedPaneId !== paneId)
+      throw new Error("Expected the requested pane to be focused.");
+  }
   session.dispatch(key("enter"));
 }
 
-/** O3: invalid follow-up consumed, terminal restored, pane input unchanged. */
-function doInvalid(session: ReturnType<typeof createInvestigationSession>): void {
-  session.dispatch(prefix);
-  session.dispatch(key("y"));
+function launchHerdr(session: Session): void {
+  submit(session, "herdr");
 }
 
-function objectiveMet(session: ReturnType<typeof createInvestigationSession>, id: string): boolean {
-  return session.getSnapshot().assessment.objectives.some((o) => o.id === id && o.met);
+function createWorkspace(session: Session, name: string, origin: Origin = "player"): void {
+  session.dispatch(prefix(origin));
+  session.dispatch(key("n", ["shift"], origin));
+  type(session, name, origin);
+  session.dispatch(key("enter", [], origin));
 }
 
-describe("L1 investigation runtime", () => {
-  it("credits a genuine cleared filter when Escape leaves the field then closes help", () => {
+function createTab(session: Session, name: string): void {
+  session.dispatch(prefix());
+  session.dispatch(key("c"));
+  type(session, name);
+  session.dispatch(key("enter"));
+}
+
+function focusedPane(session: Session) {
+  const { herdr } = session.getSnapshot();
+  const workspace = herdr.workspaces.find((item) => item.id === herdr.activeWorkspaceId);
+  const tab = workspace?.tabs.find((item) => item.id === workspace.activeTabId);
+  return tab?.panes.find((item) => item.id === tab.focusedPaneId);
+}
+
+function objectiveMet(session: Session, id: string): boolean {
+  return session
+    .getSnapshot()
+    .assessment.objectives.some((objective) => objective.id === id && objective.met);
+}
+
+function reachL1Response(): ReturnType<Session["getSnapshot"]> {
+  const session = createInvestigationSession();
+  launchHerdr(session);
+  createWorkspace(session, "investigation");
+  createTab(session, "research");
+  const paneId = focusedPane(session)?.id;
+  if (!paneId) throw new Error("The research tab must have a focused pane.");
+  submit(session, "claude", paneId);
+  submit(session, "Find the cooperative source-handling memo and show me the original.", paneId);
+  submit(session, "Accept the assignment", paneId);
+  return session.getSnapshot();
+}
+
+describe("L1 player-driven investigation", () => {
+  it("starts at an open terminal and launches Herdr only after the player submits herdr", () => {
     const session = createInvestigationSession();
-    toWorkspace(session);
-    for (const event of [
-      prefix,
-      key("?"),
-      key("/"),
-      key("a"),
-      key("u", ["ctrl"]),
-      key("escape"),
-      key("escape"),
-    ])
-      session.dispatch(event);
-    expect(session.getSnapshot().herdr.overlay).toBeNull();
-    expect(objectiveMet(session, "L1-O2")).toBe(true);
+    const initial = session.getSnapshot();
+    expect(initial.phase).toBe("workspace");
+    expect(initial.application.terminal.output).toContain("$ ");
+    expect(initial.application.herdrLaunched).toBe(false);
+    expect(initial.herdr.workspaces).toHaveLength(1);
+    expect(initial.herdr.workspaces[0]?.name).toBe("the-mandate");
+
+    type(session, "herdr");
+    expect(session.getSnapshot().application.herdrLaunched).toBe(false);
+    session.dispatch(key("enter"));
+    expect(session.getSnapshot().application.herdrLaunched).toBe(true);
+    expect(session.getSnapshot().application.terminal.output).toContain("$ herdr");
   });
 
-  it("starts at the title with no attempt and no Continue", () => {
+  it("credits a player launch command but not a scripted Herdr launch", () => {
     const session = createInvestigationSession();
-    expect(session.getSnapshot().phase).toBe("title");
-    expect(session.getSnapshot().canContinue).toBe(false);
-    expect(session.continueInvestigation()).toBe(false);
-  });
-
-  it("title -> cold open -> workspace, and Continue resumes the same attempt", () => {
-    const session = createInvestigationSession();
-    session.newInvestigation();
-    expect(session.getSnapshot().phase).toBe("cold-open");
-    session.advancePresentation();
-    expect(session.getSnapshot().phase).toBe("episode");
-    session.advancePresentation();
-    expect(session.getSnapshot().phase).toBe("briefing");
-    session.advancePresentation();
-    expect(session.getSnapshot().phase).toBe("workspace");
-
-    doFocusAndType(session);
-    const before = session.getSnapshot();
-    session.returnToTitle();
-    expect(session.getSnapshot().phase).toBe("title");
-    expect(session.getSnapshot().canContinue).toBe(true);
-    expect(session.continueInvestigation()).toBe(true);
-    expect(session.getSnapshot().phase).toBe("workspace");
-    expect(session.getSnapshot().assessment.objectives).toEqual(before.assessment.objectives);
-  });
-
-  it("repeated title/Continue/new is idempotent and never resumes a stale phase", () => {
-    const session = createInvestigationSession();
-    session.newInvestigation();
-    session.skipPresentation();
-    session.returnToTitle();
-    session.returnToTitle();
-    expect(session.getSnapshot().phase).toBe("title");
-    expect(session.continueInvestigation()).toBe(true);
-    expect(session.getSnapshot().phase).toBe("workspace");
-    // Continue outside title is refused and cannot reset the phase.
-    expect(session.continueInvestigation()).toBe(false);
-    expect(session.getSnapshot().phase).toBe("workspace");
-    session.newInvestigation();
-    expect(session.getSnapshot().phase).toBe("cold-open");
-    expect(session.getSnapshot().assessment.objectives.some((o) => o.met)).toBe(false);
-  });
-
-  it("scene and title input never mutate the simulation", () => {
-    const session = createInvestigationSession();
-    expect(session.dispatch(key("x"))).toBeNull();
-    session.newInvestigation();
-    const before = session.getSnapshot().herdr;
-    expect(session.dispatch(prefix)).toBeNull();
-    expect(session.getSnapshot().herdr).toBe(before);
-    session.skipPresentation();
-    expect(session.dispatch(prefix)).not.toBeNull();
-  });
-
-  it("skipping scenes yields no objectives", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    expect(session.getSnapshot().assessment.objectives.every((o) => !o.met)).toBe(true);
-    expect(session.getSnapshot().objectivesMet).toBe(false);
-  });
-
-  it("script, fixture and process input never earn credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(key("b", ["ctrl"], "script"));
-    session.dispatch(key("h", [], "script"));
-    session.dispatch(key("x", [], "fixture"));
-    session.dispatch({
-      kind: "process",
-      origin: "process",
-      process: { kind: "output", paneId: "p1", line: "x" },
-    });
-    expect(session.getSnapshot().assessment.objectives.some((o) => o.met)).toBe(false);
-  });
-
-  it("an invalid intent without state change is not credited", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    // A valid binding that changes nothing (focus left from the leftmost pane).
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
+    for (const character of "herdr") session.dispatch(key(character, [], "script"));
+    session.dispatch(key("enter", [], "script"));
+    expect(session.getSnapshot().application.herdrLaunched).toBe(false);
     expect(objectiveMet(session, "L1-O1")).toBe(false);
-    expect(objectiveMet(session, "L1-O3")).toBe(false);
-  });
 
-  it("L1 O1: focus memo->assignment then a forwarded character", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    const { assignment } = paneIds(session);
-    doFocusAndType(session);
+    submit(session, "herdr");
+    expect(session.getSnapshot().application.herdrLaunched).toBe(true);
     expect(objectiveMet(session, "L1-O1")).toBe(true);
-    const pane = session
-      .getSnapshot()
-      .herdr.workspaces[0]?.tabs[0]?.panes.find((p) => p.id === assignment);
-    expect(pane?.input).toEqual(["x"]);
   });
 
-  it("L1 O2: help opened, filtered, cleared, closed", () => {
+  it("credits a player-created investigation workspace and tab, not scripted Herdr actions", () => {
     const session = createInvestigationSession();
-    toWorkspace(session);
-    doHelp(session);
+    launchHerdr(session);
+    createWorkspace(session, "fixture-workspace", "script");
+    expect(objectiveMet(session, "L1-O2")).toBe(false);
+    createWorkspace(session, "investigation");
     expect(objectiveMet(session, "L1-O2")).toBe(true);
-    expect(session.getSnapshot().assessment.helpConsulted).toBe(true);
-  });
-
-  it("L1 O3: invalid follow-up consumed with pane input unchanged", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    const { memo } = paneIds(session);
-    doInvalid(session);
+    createTab(session, "research");
     expect(objectiveMet(session, "L1-O3")).toBe(true);
-    const pane = session
-      .getSnapshot()
-      .herdr.workspaces[0]?.tabs[0]?.panes.find((p) => p.id === memo);
-    expect(pane?.input).toEqual([]);
-  });
-
-  it("story actions are grounded in the focused pane", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    // Memo is focused at level start: acknowledging the assignment is refused.
-    session.storyAction("acknowledge-assignment");
-    expect(session.getSnapshot().story.flags).toEqual([]);
-    session.storyAction("read-memo");
-    expect(session.getSnapshot().story.events).toEqual(["SE-L1-assignment"]);
-    // Reading the memo twice is idempotent.
-    session.storyAction("read-memo");
-    expect(session.getSnapshot().story.events).toEqual(["SE-L1-assignment"]);
-    // Focusing the assignment pane alone is not enough: the process must have
-    // accepted input before the assignment can be acknowledged.
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.storyAction("acknowledge-assignment");
-    expect(session.getSnapshot().story.flags).toEqual([]);
-    session.dispatch(key("x"));
-    session.storyAction("acknowledge-assignment");
-    expect(session.getSnapshot().story.flags).toEqual(["assignment-accepted"]);
-    // The acceptance is visible in the environment, not only in story state.
-    const assignment = session
-      .getSnapshot()
-      .herdr.workspaces[0]?.tabs[0]?.panes.find((p) => p.app === "assignment");
-    expect(assignment?.output).toContain("Assignment accepted — verify origin.");
-  });
-
-  it("story actions outside the workspace are refused", () => {
-    const session = createInvestigationSession();
-    session.newInvestigation();
-    session.storyAction("read-memo");
+    const state = session.getSnapshot().herdr;
+    const workspace = state.workspaces.find((item) => item.id === state.activeWorkspaceId);
+    expect(workspace?.name).toBe("investigation");
+    expect(workspace?.tabs.find((item) => item.id === workspace.activeTabId)?.name).toBe(
+      "research",
+    );
+    expect(session.getSnapshot().application.readReceipts).toEqual([]);
     expect(session.getSnapshot().story.events).toEqual([]);
   });
 
-  it("no advance to response without both story condition and skill predicates", () => {
+  it("retrieves and displays the original memo, then advances after June's acknowledgment", () => {
     const session = createInvestigationSession();
-    toWorkspace(session);
-    session.storyAction("read-memo");
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.dispatch(key("x"));
-    session.storyAction("acknowledge-assignment");
-    expect(session.getSnapshot().storyConditionMet).toBe(true);
-    expect(session.getSnapshot().phase).toBe("workspace");
-    doFocusAndType(session);
-    doHelp(session);
-    doInvalid(session);
-    expect(session.getSnapshot().objectivesMet).toBe(true);
-    expect(session.getSnapshot().phase).toBe("response");
-  });
+    launchHerdr(session);
+    createWorkspace(session, "investigation");
+    createTab(session, "research");
+    const paneId = focusedPane(session)?.id;
+    if (!paneId) throw new Error("The research tab must have a focused pane.");
 
-  it("skill evidence alone never reaches the response", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    doFocusAndType(session);
-    doHelp(session);
-    doInvalid(session);
-    expect(session.getSnapshot().objectivesMet).toBe(true);
-    expect(session.getSnapshot().storyConditionMet).toBe(false);
-    expect(session.getSnapshot().phase).toBe("workspace");
-  });
+    submit(session, "claude", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("Claude Code v1.0.12 (simulated)");
 
-  it("hint assistance is recorded on objectives", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.requestHint();
-    expect(session.getSnapshot().assessment.hintsUsed).toBe(1);
-    expect(session.getSnapshot().presentation.hints).toHaveLength(1);
-    doFocusAndType(session);
-    const o1 = session.getSnapshot().assessment.objectives.find((o) => o.id === "L1-O1");
-    expect(o1?.assistance).toBe("assisted");
-  });
-
-  it("replay is deterministic and idempotent", () => {
-    const run = (): unknown => {
-      const session = createInvestigationSession();
-      toWorkspace(session);
-      session.storyAction("read-memo");
-      doFocusAndType(session);
-      doHelp(session);
-      doInvalid(session);
-      return session.getSnapshot();
-    };
-    expect(run()).toEqual(run());
-  });
-
-  it("property: arbitrary player input never credits without the required evidence", () => {
-    const keys = ["h", "j", "k", "l", "x", "y", "?", "/", "a", "u", "enter", "escape"];
-    fc.assert(
-      fc.property(fc.array(fc.constantFrom(...keys), { maxLength: 12 }), (sequence) => {
-        const session = createInvestigationSession();
-        toWorkspace(session);
-        for (const k of sequence) session.dispatch(key(k));
-        const snapshot = session.getSnapshot();
-        // No story action was taken, so the response is unreachable.
-        expect(snapshot.phase).toBe("workspace");
-        expect(snapshot.storyConditionMet).toBe(false);
-      }),
+    submit(
+      session,
+      "Please locate CPA-01A, the cooperative source-handling memo, and show its text.",
+      paneId,
     );
-  });
-
-  it("property: objectives only ever move from unmet to met", () => {
-    fc.assert(
-      fc.property(
-        fc.array(fc.constantFrom("h", "x", "y", "?", "/", "a", "u", "enter"), { maxLength: 10 }),
-        (sequence) => {
-          const session = createInvestigationSession();
-          toWorkspace(session);
-          let previous = new Set<ObjectiveId>();
-          for (const k of sequence) {
-            session.dispatch(key(k));
-            const met = new Set(
-              session
-                .getSnapshot()
-                .assessment.objectives.filter((o) => o.met)
-                .map((o) => o.id),
-            );
-            for (const id of previous) expect(met.has(id)).toBe(true);
-            previous = met;
-          }
-        },
-      ),
-    );
-  });
-});
-
-describe("L1 false-credit regressions", () => {
-  it("O1: control keys after the focus never count as typed input", () => {
-    for (const control of ["escape", "enter", "arrowleft", "backspace"]) {
-      const session = createInvestigationSession();
-      toWorkspace(session);
-      session.dispatch(prefix);
-      session.dispatch(key("h"));
-      session.dispatch(key(control));
-      expect(objectiveMet(session, "L1-O1")).toBe(false);
-    }
-  });
-
-  it("O1: a scripted focus then player typing does not retro-credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    // Scripted prefix + focus moves memo -> assignment without player action.
-    session.dispatch(key("b", ["ctrl"], "script"));
-    session.dispatch(key("h", [], "script"));
-    session.dispatch(key("x"));
-    // A later player focus cannot move (assignment is leftmost, no wrap).
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    expect(objectiveMet(session, "L1-O1")).toBe(false);
-  });
-
-  it("O1: typing before the qualifying focus does not count", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    // Memo is focused: this character goes to the memo process.
-    session.dispatch(key("x"));
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    expect(objectiveMet(session, "L1-O1")).toBe(false);
-    // Only input accepted after the focus qualifies.
-    session.dispatch(key("y"));
-    expect(objectiveMet(session, "L1-O1")).toBe(true);
-  });
-
-  it("O1: vertical focus keys never credit the horizontal lesson", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("k"));
-    session.dispatch(prefix);
-    session.dispatch(key("j"));
-    session.dispatch(key("x"));
-    expect(objectiveMet(session, "L1-O1")).toBe(false);
-  });
-
-  it("O2: scripted query text plus player control keys is not player filtering", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("a", [], "script"));
-    session.dispatch(key("b", [], "script"));
-    session.dispatch(key("backspace"));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-  });
-
-  it("O2: a scripted clear followed by a no-op player clear is not a clear", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("a"));
-    session.dispatch(key("u", ["ctrl"], "script"));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-  });
-
-  it("O2: player-typed filter, player clear, player close still credits", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    doHelp(session);
-    expect(objectiveMet(session, "L1-O2")).toBe(true);
-  });
-});
-
-describe("L1 review regressions (attempt lifecycle and provenance)", () => {
-  it("O2: a dirty filter close after clear is not a clean exit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("a"));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("b"));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-  });
-
-  it("O2: an interrupted visit does not poison a valid retry", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    // First visit: type but close without clearing.
-    session.dispatch(prefix);
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("a"));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-    // Second visit starts clean and completes.
-    session.dispatch(prefix);
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("b"));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(true);
-  });
-
-  it("O1: a Shift-only printable character counts as typed input", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.dispatch(key("x", ["shift"]));
-    expect(objectiveMet(session, "L1-O1")).toBe(true);
-  });
-
-  it("O1: a scripted prefix arm followed by player focus and typing does not credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(key("b", ["ctrl"], "script"));
-    session.dispatch(key("h"));
-    session.dispatch(key("x"));
-    expect(objectiveMet(session, "L1-O1")).toBe(false);
-  });
-
-  it("O3: a scripted prefix arm followed by a player invalid key does not credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(key("b", ["ctrl"], "script"));
-    session.dispatch(key("y"));
-    expect(objectiveMet(session, "L1-O3")).toBe(false);
-  });
-
-  it("O2: help opened by a scripted prefix arm does not credit a later player filter", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.dispatch(key("b", ["ctrl"], "script"));
-    session.dispatch(key("?"));
-    session.dispatch(key("/"));
-    session.dispatch(key("a"));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("enter"));
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-  });
-
-  it("seeds readable canonical L1 documents without credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    const snapshot = session.getSnapshot();
-    const assignment = snapshot.herdr.workspaces[0]?.tabs[0]?.panes.find(
-      (p) => p.app === "assignment",
-    );
-    const memo = snapshot.herdr.workspaces[0]?.tabs[0]?.panes.find((p) => p.app === "memo");
-    expect(assignment?.output.join("\n")).toContain("June Adebayo");
-    expect(assignment?.output.join("\n")).toContain("Vendor security incident");
-    expect(memo?.output.join("\n")).toContain("Verify origin.");
-    expect(memo?.output.join("\n")).toContain("Preserve attribution.");
-    expect(memo?.output.join("\n")).toContain("Do not assume independent confirmation.");
-    expect(memo?.output.join("\n")).toContain("Protected source: do not burn identity.");
-    expect(snapshot.story.events).toEqual([]);
-    expect(snapshot.story.flags).toEqual([]);
-    expect(snapshot.assessment.objectives.some((o) => o.met)).toBe(false);
-  });
-});
-
-describe("input policy (cooperative security notice)", () => {
-  it("defaults to Standard keyboard-only mode", () => {
-    const session = createInvestigationSession();
-    expect(session.getSnapshot().inputPolicy).toBe("standard");
-  });
-
-  it("Standard mode refuses chrome clicks: no dispatch, no state change, no credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    const before = JSON.stringify(session.getSnapshot().herdr);
-    expect(session.dispatchChrome({ action: "new-tab" })).toBe(false);
-    expect(session.dispatchChrome({ action: "select-tab", tabId: "t99" })).toBe(false);
-    expect(session.dispatchChrome({ action: "focus-pane", paneId: "p99" })).toBe(false);
-    expect(JSON.stringify(session.getSnapshot().herdr)).toBe(before);
-    expect(session.getSnapshot().inputPolicy).toBe("standard");
-    expect(session.getSnapshot().objectivesMet).toBe(false);
-  });
-
-  it("Accessible mode dispatches chrome as alternative modality without keyboard credit", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.setAccessibleMode(true);
-    expect(session.getSnapshot().inputPolicy).toBe("accessible");
-    expect(session.dispatchChrome({ action: "new-tab" })).toBe(true);
-    expect(session.getSnapshot().herdr.overlay).toMatchObject({
-      kind: "rename",
-      target: "new-tab",
+    const output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("MCP CALL documents.search");
+    expect(output).toContain("MCP CALL documents.read");
+    expect(output).toContain("01 // VERIFY ORIGIN.");
+    expect(output).toContain("02 // PRESERVE ATTRIBUTION.");
+    expect(output).toContain("03 // ASSUME NOTHING CONFIRMED.");
+    expect(session.getSnapshot().application.readReceipts).toContainEqual({
+      documentId: "CPA-01A",
+      paneId,
     });
-    expect(session.getSnapshot().objectivesMet).toBe(false);
-  });
+    expect(session.getSnapshot().phase).toBe("workspace");
 
-  it("Accessible mode settles on the story condition alone; mastery stays uncredited", () => {
-    const session = createInvestigationSession();
-    toWorkspace(session);
-    session.setAccessibleMode(true);
-    session.storyAction("read-memo");
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.dispatch(key("x"));
-    session.storyAction("acknowledge-assignment");
+    submit(session, "I accept the assignment.", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("JUNE ADEBAYO");
+    expect(session.getSnapshot().application.assignmentAcknowledged).toBe(true);
     expect(session.getSnapshot().storyConditionMet).toBe(true);
-    expect(session.getSnapshot().objectivesMet).toBe(false);
+    expect(session.getSnapshot().objectivesMet).toBe(true);
     expect(session.getSnapshot().phase).toBe("response");
   });
 
-  it("Standard mode still requires both story and skill for the response", () => {
+  it("reveals one additional hint per request", () => {
     const session = createInvestigationSession();
-    toWorkspace(session);
-    session.storyAction("read-memo");
-    session.dispatch(prefix);
-    session.dispatch(key("h"));
-    session.dispatch(key("x"));
-    session.storyAction("acknowledge-assignment");
-    expect(session.getSnapshot().storyConditionMet).toBe(true);
-    expect(session.getSnapshot().phase).toBe("workspace");
+    expect(session.getSnapshot().presentation.hints).toEqual([]);
+    session.requestHint();
+    expect(session.getSnapshot().presentation.hints).toEqual([
+      "The terminal is ready. Type herdr and press Enter.",
+    ]);
+  });
+
+  it("replays the same L1 actions to the same committed result", () => {
+    expect(reachL1Response()).toEqual(reachL1Response());
+  });
+});
+
+describe("input policy and mastery provenance", () => {
+  it("refuses chrome clicks in Standard mode without changing Herdr state", () => {
+    const session = createInvestigationSession();
+    const before = session.getSnapshot().herdr;
+    expect(session.getSnapshot().inputPolicy).toBe("standard");
+    expect(session.dispatchChrome({ action: "new-tab" })).toBe(false);
+    expect(session.getSnapshot().herdr).toBe(before);
+    expect(session.getSnapshot().objectivesMet).toBe(false);
+  });
+
+  it("allows accessible chrome navigation without keyboard mastery credit", () => {
+    const session = createInvestigationSession();
+    session.setAccessibleMode(true);
+    expect(session.dispatchChrome({ action: "new-tab" })).toBe(true);
+    expect(session.getSnapshot().assessment.objectives.every((objective) => !objective.met)).toBe(
+      true,
+    );
   });
 });

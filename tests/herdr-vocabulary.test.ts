@@ -3,9 +3,9 @@ import {
   createScenario,
   createStore,
   isPrefixKey,
-  normalizeDomKey,
   resolvePrefixBinding,
 } from "../src/core/herdr";
+import { normalizeDomKey } from "../src/adapters/herdr-browser";
 
 // Host-key normalization contract for the adapter. Mirrors
 // src/config/keybinds.rs:1421-1560 (key_parts_match_combo,

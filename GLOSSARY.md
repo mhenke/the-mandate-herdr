@@ -48,6 +48,18 @@ _Avoid_: Investigation report, audit memo, analyst note
 An independent credentialed verifier affiliated with the cooperative network who files signed verifier notes.
 _Avoid_: Reporter, freelance agent, private investigator, auditor
 
+**Simulated Claude Code session (deterministic agent CLI)**:
+A deterministic, in-terminal simulation of an automated LLM coding agent (Claude Code v1.0.12) running as a child process inside a dedicated Herdr pane. Emits bounded, reproducible log outputs, hashes, and audit extractions without connecting to external networks or requiring API credentials.
+_Avoid_: Real Claude API, backend LLM integration, chatbot widget
+
+**Bounded task assignment**:
+Directing a simulated agent with narrow, falsifiable verification questions (e.g. audit metadata, extract timestamp, calculate hash) rather than unbounded open-ended prompts, producing structured evidence suitable for cross-examination.
+_Avoid_: Prompt engineering, agent chat, freeform prompting
+
+**Source-handling protocol (Protocol CPA-01A)**:
+The governing investigative rules enforced across the Cooperative network: (01) Verify origin before relying on material, (02) Preserve attribution and the chain of custody, and (03) Assume nothing confirmed—one origin is one claim, not independent corroboration.
+_Avoid_: Editorial guidelines, newsroom rules, style guide
+
 **Cooperative (Capital Press & Analyst Cooperative)**:
 The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
 _Avoid_: Agency, newsroom, syndicate, union
@@ -165,6 +177,26 @@ _Avoid_: Focus trap, modal lock, input grab
 **Game HUD (Cooperative Mission HUD)**:
 The external mission guidance, objective tracking, and capture status surface that sits outside and directly above the simulated Herdr console. It is entirely owned by the game host and Journalist Cooperative narrative layer, distinct from the Herdr TUI multiplexer chrome.
 _Avoid_: Terminal header, TUI top bar, multiplexer banner, console HUD
+
+**Fresh Herdr session**:
+A clean multiplexer session starting with a single active tab and one un-split terminal pane in the default workspace. Does not pre-populate split panes or pre-open unearned reference documents.
+_Avoid_: Pre-split template, default layout fixture, starter panes
+
+**Two-curricula model (Curriculum A & B)**:
+The pedagogical separation between authentic Herdr multiplexer operations (Curriculum A: S01–S12) and simulated Claude Code agent orchestration (Curriculum B: A01–A07). Herdr provides the session persistence, spatial layout, and process isolation needed to supervise and cross-examine automated agents.
+_Avoid_: Merged shortcuts, compound skills, general tool usage
+
+**Spiral learning progression (`[I]`, `[G]`, `[Ind]`, `[M]`)**:
+The four-stage progression advancing each skill through: Introduce (explicit binding prompt and safe initial trial), Guided Practice (contextual reminders and optional hints), Independent Retrieval (outcome-based goal with keybindings omitted from prompt), and Cumulative Mastery (checkpoint or final boss assessment under operational pressure).
+_Avoid_: Difficulty curve, progression ladder, skill tree
+
+**Scaffolding fading rule**:
+The strict transition rule where a skill's explicit keybinding prompt is retired after one introduction (`[I]`) and two successful uses in changed contexts (`[G]`), converting subsequent prompts to outcome-based objectives while keeping voluntary help (`prefix+?`, HUD hints) available.
+_Avoid_: Auto-hinting, difficulty scaling, dynamic difficulty
+
+**Dual clock system (Story deadline vs Boss challenge clock)**:
+The temporal structure separating the fictional statutory deadline (08:00 EST November 24, advancing exclusively on discrete story events) from the optional real-time countdown (15:00 Boss challenge clock in Episode III, pausing for help overlays, accessible mode, or capture release, and never altering evidentiary truth).
+_Avoid_: Game timer, mission countdown, speedrun timer
 
 **Herdr TUI (Simulated Console)**:
 The pure multiplexer workspace consisting strictly of: the full-height spaces & agents sidebar, the top tab bar, the split panes, and the row 40 mode bar. It has zero awareness of game objectives, scores, or external web controls.

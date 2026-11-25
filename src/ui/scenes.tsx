@@ -117,6 +117,7 @@ function CinematicPlayer({
 function useSceneShortcuts(handler: (key: string, e: KeyboardEvent) => boolean | void): void {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (handler(e.key.toLowerCase(), e)) {
         e.preventDefault();

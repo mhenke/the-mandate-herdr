@@ -65,12 +65,22 @@ interface WorkspaceSeed {
   readonly newTabOutput?: readonly string[];
 }
 
+const DEFAULT_APP_OUTPUT: Partial<Record<PaneApp, readonly string[]>> = {
+  transcript: [
+    "WITNESS TRANSCRIPT // THEO PARK (VENDOR NOC TECHNICIAN)",
+    "STATUS: Consent pending · off-record",
+    "PARK: 'Load-test script LT-47B misfired against demo portal VP-1109.'",
+    "PARK: 'Execution window was 21:47 to 21:52 EST. Five minutes total.'",
+    "CORROBORATION: Window and portal match Claude Code audit reference.",
+  ],
+};
+
 function seedPane(id: string, seed: PaneSeed): PaneState {
   return {
     id,
     app: seed.app,
     title: seed.title,
-    output: seed.output ?? [],
+    output: seed.output ?? DEFAULT_APP_OUTPUT[seed.app] ?? [],
     input: [],
     agent: { raw: "unknown", seq: 0, acknowledgedSeq: 0, completedSeq: 0 },
   };
@@ -152,9 +162,8 @@ function buildState(seeds: readonly WorkspaceSeed[]): HerdrState {
 }
 
 /**
- * L1-L3 starting states (docs/LEVEL.md). Fictional content is minimal and
- * sourced from the level contracts: L1 assignment + memo panes, L2 reading tab,
- * L3 one pane split into assignment beside a transcript draft.
+ * L1 starts in Herdr's default shell workspace. Players create the story
+ * workspace and research tab through Herdr's keyboard bindings.
  */
 export function createScenario(level: 1 | 2 | 3): HerdrState {
   if (level === 1) {
@@ -165,11 +174,8 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
         tabs: [
           {
             name: "1",
-            splitApp: "memo",
-            panes: [
-              { app: "assignment", title: "Assignment", output: [] },
-              { app: "memo", title: "Memo", output: [] },
-            ],
+            splitApp: "shell",
+            panes: [{ app: "shell", title: "shell" }],
           },
         ],
       },
@@ -181,11 +187,14 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
         name: "cooperative",
         newTabApp: "artifact",
         newTabOutput: [
+          "Claude Code v1.0.12 (simulated session)",
+          "$ claude review artifacts/um-1109-88.pdf --extract-metadata",
           "ATTACHMENT: UM-1109-88 / BANNER CAPTURE",
           "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
           "TARGET: Vendor Demonstration Portal (VP-1109)",
           "WINDOW: 2026-11-09 21:47 - 21:52 EST",
           "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+          "BOUNDED AUDIT: Banner and window verified; root origin unverified.",
           "ATTRIBUTION: Remote banner verification of supplied artifact only.",
         ],
         tabs: [
@@ -201,7 +210,7 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
                   "ITEM: SOC Memo UM-1109-88 (Shared Copy)",
                   "SOURCE: Campus SOC via Quill transfer",
                   "NOTE ON FACE: Headers stripped per external sharing policy.",
-                  "Open a dedicated artifact tab to inspect the supplied banner screenshot.",
+                  "Open a dedicated artifact tab to launch simulated Claude Code audit.",
                 ],
               },
             ],
@@ -216,9 +225,22 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
       newTabApp: "shell",
       tabs: [
         {
-          name: "interview",
+          name: "1",
           splitApp: "transcript",
-          panes: [{ app: "assignment", title: "Assignment", output: ["Park consent interview"] }],
+          panes: [
+            {
+              app: "assignment",
+              title: "Audit Reference",
+              output: [
+                "AUDIT REFERENCE // UM-1109-88 REVIEW (Claude Code)",
+                "TARGET: Vendor Demonstration Portal (VP-1109)",
+                "WINDOW: 2026-11-09 21:47 - 21:52 EST",
+                "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+                "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
+                "NOTE: Split pane (Ctrl+B - or Ctrl+B V) to compare witness testimony.",
+              ],
+            },
+          ],
         },
       ],
     },
@@ -449,6 +471,45 @@ function promptNewTab(state: HerdrState): HerdrState {
   };
 }
 
+function createNewWorkspaceState(state: HerdrState, name: string): HerdrState {
+  const id = `w${state.nextWorkspaceId}`;
+  const tabId = `t${state.nextTabId}`;
+  const paneId = `p${state.nextPaneId}`;
+  const tab: TabState = {
+    id: tabId,
+    name: "1",
+    root: paneNode(paneId),
+    focusedPaneId: paneId,
+    prevFocusId: null,
+    zoomedPaneId: null,
+    splitApp: "shell",
+    panes: [seedPane(paneId, { app: "shell", title: "shell" })],
+  };
+  const workspace: WorkspaceState = {
+    id,
+    name,
+    tabs: [tab],
+    activeTabId: tabId,
+    newTabApp: "shell",
+  };
+  return {
+    ...state,
+    workspaces: [...state.workspaces, workspace],
+    activeWorkspaceId: id,
+    nextWorkspaceId: state.nextWorkspaceId + 1,
+    nextTabId: state.nextTabId + 1,
+    nextPaneId: state.nextPaneId + 1,
+  };
+}
+
+function promptNewWorkspace(state: HerdrState): HerdrState {
+  const defaultName = `workspace ${state.nextWorkspaceId}`;
+  return {
+    ...state,
+    overlay: { kind: "rename", target: "new-workspace", text: defaultName, defaultName },
+  };
+}
+
 function cycleTab(state: HerdrState, delta: number): HerdrState {
   const ws = activeWorkspace(state);
   const current = ws.tabs.findIndex((t) => t.id === ws.activeTabId);
@@ -582,6 +643,8 @@ function applyModeAction(state: HerdrState, action: PrefixAction): HerdrState {
         ...state,
         overlay: { kind: "help", query: "", searchFocused: false, scroll: 0 },
       };
+    case "newWorkspace":
+      return promptNewWorkspace(state);
     case "workspacePicker": {
       const index = state.workspaces.findIndex((w) => w.id === state.activeWorkspaceId);
       return { ...setMode(state, "navigate"), navigateSelection: Math.max(0, index) };
@@ -640,6 +703,7 @@ const MODE_ACTIONS = new Set<PrefixAction>([
   "workspacePicker",
   "detach",
   "copyMode",
+  "newWorkspace",
 ]);
 
 function applyAction(state: HerdrState, action: PrefixAction, index?: number): HerdrState {
@@ -739,10 +803,28 @@ function routeModeKey(state: HerdrState, key: string, mods: readonly Modifier[])
 }
 
 function routeKey(state: HerdrState, event: KeyEvent): Routed {
-  if (!state.attached || event.key.length === 0 || event.phase !== "press") {
+  if (!state.attached || event.key.length === 0 || event.phase === "release") {
     return { state, effect: "none", action: null };
   }
   const { key, modifiers: mods } = event;
+  if (event.phase === "repeat") {
+    const previous = state.journal.at(-1);
+    // Repeat an edit only if the preceding Backspace reached the pane.
+    if (
+      !state.overlay &&
+      state.mode === "terminal" &&
+      key === "backspace" &&
+      mods.length === 0 &&
+      previous?.effect === "forwarded" &&
+      previous.event.kind === "key" &&
+      previous.event.key === key &&
+      previous.event.origin === event.origin &&
+      previous.event.modifiers.length === 0
+    ) {
+      return routeModeKey(state, key, mods);
+    }
+    return { state, effect: "none", action: null };
+  }
   if (state.overlay) return routeOverlayKey(state, key, mods);
   return routeModeKey(state, key, mods);
 }
@@ -1077,6 +1159,20 @@ function commitNewTabOverlay(
   };
 }
 
+function commitNewWorkspaceOverlay(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "rename"; target: "new-workspace" }>,
+): Routed {
+  const name = overlay.text.trim();
+  if (name.length === 0) {
+    return { state: { ...state, overlay: null }, effect: "none", action: "rename-empty" };
+  }
+  return {
+    state: createNewWorkspaceState({ ...state, overlay: null }, name),
+    effect: "action",
+    action: "workspace-create",
+  };
+}
 function commitRenameOverlay(
   state: HerdrState,
   overlay: Extract<Overlay, { kind: "rename"; target: "tab" | "workspace" }>,
@@ -1115,9 +1211,9 @@ function routeRenameOverlayKey(
     };
   }
   if (key === "enter") {
-    return overlay.target === "new-tab"
-      ? commitNewTabOverlay(state, overlay)
-      : commitRenameOverlay(state, overlay);
+    if (overlay.target === "new-tab") return commitNewTabOverlay(state, overlay);
+    if (overlay.target === "new-workspace") return commitNewWorkspaceOverlay(state, overlay);
+    return commitRenameOverlay(state, overlay);
   }
   if (key === "backspace") {
     return {
@@ -1134,8 +1230,14 @@ function routeRenameOverlayKey(
     };
   }
   if (PRINTABLE.test(key) && mods.length === 0) {
+    const replaceDefault =
+      (overlay.target === "new-tab" || overlay.target === "new-workspace") &&
+      overlay.text === overlay.defaultName;
     return {
-      state: { ...state, overlay: { ...overlay, text: overlay.text + key } },
+      state: {
+        ...state,
+        overlay: { ...overlay, text: replaceDefault ? key : overlay.text + key },
+      },
       effect: "action",
       action: "rename-edit",
     };
@@ -1190,6 +1292,16 @@ function routeProcess(state: HerdrState, event: Extract<InputEvent, { kind: "pro
   const tab = activeTab(state);
   const pane = tab.panes.find((p) => p.id === payload.paneId);
   if (!pane) return { state, effect: "none", action: null };
+  if (payload.kind === "consumeInput") {
+    return {
+      state: withTab(
+        state,
+        updatePane(tab, pane.id, (p) => ({ ...p, input: [] })),
+      ),
+      effect: "action",
+      action: "process-input-consumed",
+    };
+  }
   if (payload.kind === "output") {
     return {
       state: withTab(

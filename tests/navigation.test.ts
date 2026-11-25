@@ -57,9 +57,16 @@ describe("navigation adapter", () => {
     expect(pathToPhase("/the-mandate/", "", "/the-mandate/")).toBe("title");
   });
 
+  it("does not open an unearned response or ending by route", () => {
+    const session = createInvestigationSession();
+    expect(session.goToPhase("response")).toBe(false);
+    expect(session.goToPhase("complete")).toBe(false);
+    expect(session.getSnapshot().phase).toBe("workspace");
+  });
+
   it("InvestigationSession.goToPhase transitions between valid phases and maintains state", () => {
     const session = createInvestigationSession();
-    expect(session.getSnapshot().phase).toBe("title");
+    expect(session.getSnapshot().phase).toBe("workspace");
 
     // Navigate to cold-open
     expect(session.goToPhase("cold-open")).toBe(true);

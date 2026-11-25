@@ -37,9 +37,7 @@ export function pathToPhase(pathname: string, hash = "", baseUrl = "/"): Phase |
     if (Object.hasOwn(PHASE_PATHS, cleanedHash)) {
       return cleanedHash as Phase;
     }
-    if (cleanedHash === "" || cleanedHash === "title") {
-      return "title";
-    }
+    if (cleanedHash === "" || cleanedHash === "title") return "title";
     return "not-found";
   }
 
@@ -52,9 +50,7 @@ export function pathToPhase(pathname: string, hash = "", baseUrl = "/"): Phase |
   }
   relative = (relative.split("?")[0] ?? "").replace(/\/$/, "");
 
-  if (!relative || relative === "title") {
-    return "title";
-  }
+  if (!relative || relative === "title") return "title";
   for (const [phaseKey, subPath] of Object.entries(PHASE_PATHS)) {
     if (subPath && relative === subPath) {
       return phaseKey as Phase;

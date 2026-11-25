@@ -1,18 +1,21 @@
-# LEVEL.md — Per-level contracts (PROPOSAL, not approved)
+# Level contracts
 
-> Status: proposal for review. Companion to STORY_BIBLE / STORY_ARC / NARRATIVE_DESIGN (proposals).
-> This document owns the per-level join between story beats and interface lessons. It teaches no Herdr
-> behavior beyond `HERDR_FIDELITY.md` (pinned upstream `e8d7d97`, docs edition 0.9.5) and
-> `HERDR_RESEARCH.md`. Canonical terms follow the root `GLOSSARY.md` (action evidence / process
-> evidence / learning evidence, story clock, capture context, certifying evidence, keyboard transfer
-> vs story completion).
+Milestone 2 authorizes L1–L3 gameplay only. L4–L15 are design contracts. This document joins the story to one curriculum: authentic Herdr operations. `LEARNING_DESIGN.md` defines the skills and fading rules. `HERDR_FIDELITY.md` and `HERDR_RESEARCH.md` govern pinned Herdr v0.9.5 behavior.
 
 ## Standing rules (apply to every block below)
 
-- **Story clock.** Fictional dates come from the ARC date table. The clock advances only on declared
-  story events (filings, receipts, postings). Never wall-time, never skill speed. A missed story
-  deadline produces an explicit recovery (Beck untimely slip + one cure path); evidence is never
-  rewritten.
+- **The dual clock system: real tension without punishing learning.**
+  - **Story clock (fictional deadline).** Fictional dates and times come from the ARC date table. The
+    story clock advances strictly on declared story events (filings, receipts, hearings). Never
+    wall-time, never typing speed. Statutory deadline is 08:00 EST November 24. A missed story deadline
+    produces an explicit recovery (Beck untimely slip + one cure path during the 10:00–10:30
+    Housekeeping window); evidence is never rewritten and the ending is never blocked.
+  - **Optional Boss Challenge clock (mastery countdown).** An illustrative 15:00 real-time challenge
+    for players seeking high-pressure operational triage in Episode III. Automatically pauses when the
+    authentic help overlay (`prefix+?`) is open, when input capture is released, or when Accessible
+    Navigation mode is active. Never alters evidence, invalidates proof, or prevents the correct
+    ending. Finishing within the challenge window earns a distinct "Speed Mastery Commendation" on the
+    final case record card.
 - **Capture context.** Herdr-operation lessons run under deliberate capture, engaged and released via
   a page-level control outside the simulated Herdr surface. Capture entry/exit is keyboard-reachable,
   is never a Herdr binding, is never scored, and is never `prefix+q` or Herdr `Esc`. Where a level
@@ -26,7 +29,10 @@
   credit. The record reports per skill: independent / assisted / practiced / not observed. No opaque
   mastery percentage.
 - **Checkpoints (L5, L10).** Previously-taught skills only, faded scaffolding, tier-0 start.
-  Deficiency slips name missing elements, never supply answers. Retry preserves evidence.
+  Deficiency slips name missing elements, never supply answers. Retry preserves evidence. Zero new Herdr skills.
+- **Herdr-only progression.** Introduce an operation, guide its use in new work, then ask for an outcome without naming the keys. Checkpoints combine known operations. Claude and the newsroom's preconfigured tools supply the work, not a second curriculum. Tool names in L4–L15 identify planned fictional surfaces, not implemented APIs.
+- **Mission HUD.** Give the player an objective, a reason, and three to five short steps. Mark progress on committed outcomes. Start the level with a live problem. Do not insert shortcut drills that add nothing to the investigation.
+- **Design test.** Each mission needs a Herdr arrangement or navigation outcome. An equivalent record from a different connector must leave the Herdr predicate unchanged. Story conditions can require a receipt, choice, or filing, but none can award keyboard credit.
 - **L15.** Five separately scored subtasks, each with its own action/result predicate and score line.
   The disclosure (reading into the log) is required process evidence and is never sufficient alone.
 - **Fidelity.** A lesson may teach only verified contracts. Anything routing through an unresolved
@@ -36,7 +42,7 @@
   authorization, 2026-11-23)**: Chromium 158 evidenced (synthetic 18/18 + two physical chords),
   Firefox accepted by user decision with Ctrl+W risk-chord handling, IME/AltGr outside taught
   scope. A capture lesson ships only under that envelope and the decided hold policies (void-on-blur,
-  Esc release, clipboard-failure fallback); probe item numbers below refer to that document's
+  Herdr-owned Escape, external capture release, clipboard-failure fallback); probe item numbers below refer to that document's
   checklist (#1 Ctrl+B alone, #2 sequential Ctrl+B-then-key, #3 Ctrl+W plain,
   #4 Ctrl+W in field, #5 prefix+letter chords incl. h/j/k/l, #6 Esc, #7 Ctrl+[ alone,
   #8 field keys, #9 Tab, #10 AltGr, #11 IME/composition; #12–#18: prefix+? help,
@@ -73,107 +79,35 @@
 
 ---
 
-## L1 — Nov 12 — accept assignment — "Stringer Rates"
+## Episode I — The Leak
 
-**Discoveries:** assignment memo + source-handling rules (story content, no EV). Ends with the SOC-tip
-assignment accepted.
+### L1 — Nov 12 — “Stringer Rates”
 
-**Interface lesson (matrix):** S01 intro (prefix sequence vs ordinary forwarded terminal input),
-S02 intro (authentic help: `prefix+?`, list is exactly the pinned active bindings, `/` filters),
-S03 intro (session/workspace/tab/pane/process hierarchy: one workspace, one tab, two panes —
-assignment pane + memo pane).
+- **Objective and stakes:** Accept June Adebayo's assignment without exposing the source. Read CPA-01A before contact.
+- **Starting state:** Open terminal at `$`. No memo, player workspace, or Claude session. The landing page offers the skippable cold open. `/workspace` goes straight to the terminal.
+- **New Herdr operations:** Launch (`herdr`, Enter), use the prefix, create a workspace (`prefix+shift+n`), and create a research tab (`prefix+c`). The default session precedes the player's workspace. One investigation workspace and one agent in its research tab are active for the assignment.
+- **HUD route:** Start Herdr → create the investigation workspace → open a research tab → type `claude` and ask for the memo → inspect the original and tell Claude to accept the assignment. Show exact keys for new operations. Clear each completed instruction.
+- **Assessment:** `L1-O1` is a successful player-origin shell launch. `L1-O2` is a committed keyboard workspace creation. `L1-O3` is a committed keyboard tab creation in that workspace. Neither the launch of Claude nor the response is graded.
+- **Story and tools:** Claude searches the preconfigured document index and reads CPA-01A. The transcript shows both calls and the original memo: verify origin, preserve attribution, and avoid claiming corroboration from one origin. June acknowledges acceptance only after retrieval. No new helper clue. The equipment and evidence stay available in L2.
+- **Recovery:** Unknown commands, unrecognized requests, and denied reads leave the current terminal and evidence intact. Retry without replaying the cold open.
 
-**Objectives (testable predicates):**
-- O1 (S01/S03): Starting from the memo pane focused, perform prefix-only pane focus via
-  `prefix+h/l` (admissible alternative: no alternative at intro — guided demonstration first, then
-  one guided attempt). Resulting state: focus in the assignment pane; a subsequent typed character
-  is accepted by the assignment process (input-destination evidence). Provenance: player action
-  (action + learning evidence). FIDELITY: Prefix table (arm/resolve/consume/Esc); Core five focus
-  row (directional-overlap, no wrap, no focus loss).
-- O2 (S02): Open help (`prefix+?`), filter with `/`, clear with `ctrl+u`, exit. Resulting state:
-  help lists exactly the pinned bindings; filter cleared. Provenance: player action.
-  FIDELITY: Prefix Help row. Field-edge constraint applies to the filter field.
-- O3 (S01-negative): Press an invalid follow-up after prefix; observe consumption (nothing reaches
-  the pane, prefix mode exits). Resulting state: mode returns to Terminal, pane log unchanged.
-  Provenance: player action + fixture log comparison. FIDELITY: Prefix invalid-follow-up row.
+### L2 — Nov 12 (afternoon) — “Supplied Goods”
 
-**Input context:** deliberate capture for O1–O3 (page affordance, outside chrome). External controls
-may complete O1–O3 as story access (modality recorded, no transfer credit).
+- **Objective and stakes:** Compare the shared SOC report with the handling memo. The shared copy lacks an origin header.
+- **New and reused Herdr operations:** Reuse the investigation workspace and tab creation. Add a named report tab and navigate back to the research tab and then the report. Keep the prior agent and transcript live. One investigation workspace, two agents: source guidance and SOC material.
+- **Assessment and guidance:** `L2-O1` checks a player-created and named tab. `L2-O2` checks a keyboard traversal away from and back to it. Give the first switching sequence (`prefix+p`, `prefix+n`); mark it complete once the result commits. Do not grade a conclusion about report provenance.
+- **Story and tools:** Claude retrieves UM-1109-88 through document search/read. The original shared copy gives the portal, banner, five-minute window, and absent header. June permits a follow-up with Park, not a claim of a second source. No separate helper clue. Carry both agents and reports into L3.
+- **Recovery:** Return to the intended tab and retry after a wrong-target request. The prior document stays readable.
 
-**Fidelity dependencies:** FIDELITY Prefix table; Core-five focus row; Help row; Presentation safety
-(effects after committed state).
+### L3 — Nov 13 (morning) — “Five Minutes”
 
-**BLOCKED-ON:** standing prefix line applies (delivery #1–2–5; blur policy). Field-edge constraint
-applies to O2 filter typing.
+- **Objective and stakes:** Keep the SOC report visible while you consult Park's off-record account. His statement may explain the five-minute window.
+- **New and reused Herdr operations:** Split the report tab (`prefix+v` right or `prefix+minus` down), use directional focus, and rename the tab (`prefix+shift+t`). Reuse the workspace and prefix. One investigation workspace, three agents: reference memo, SOC report, and Park transcript.
+- **Assessment and guidance:** `L3-O1` links a new split, a keyboard focus transition, and typed input in the new pane. `L3-O2` checks a nonempty keyboard rename. Show the new split and focus keys. Do not grade witness consent or whether the player draws the right inference.
+- **Story and tools:** Claude retrieves `PARK-INTERVIEW-11-13` through document search/read. Park names `LT-47B`, the genuine misfire, and its five-minute window. Consent is part of the record. No new helper clue. June's response leads toward the VN-12 decision. The existing skippable outro follows the committed interview event where staged. The playable slice stops here.
+- **Recovery:** Return focus to the transcript pane and retry. The report remains in the other pane.
 
-**Failure/recovery:** wrong-pane input is corrected by refocusing (clerk line, not a fail). No deadline.
-
-**Hints:** tier 0 brief; tier 1 concept cue (prefix arms one key); tier 2 help entry (binding
-assistance, recorded); tier 3 worked example in practice task. Assistance recorded per objective.
-
-## L2 — Nov 12 (afternoon) — inspect artifact — "Supplied Goods"
-
-**Discoveries:** SOC-shared PDF (basis UM-1109-88; headers stripped in the share, noted on its face);
-origin line blank by the share's nature. No new EV; sets up UM-1109-88/SM-1.
-
-**Interface lesson:** S04 intro (new tab `prefix+c`, rename `prefix+shift+t`, switch `prefix+n/p`;
-tabs row), S01/S02/S03 reinf.
-
-**Objectives:**
-- O1 (S04/S03): From the reading tab, create a second tab for the artifact, rename it via the
-  Herdr field (printable text + Backspace + Enter only), switch between tabs. Admissible
-  alternatives: switching via `prefix+n/p` (either accepted; name-based check accepts any
-  legitimate name). Resulting state: two tabs, artifact tab named, active tab is the artifact tab;
-  hierarchy statable (which tab holds which process). Provenance: player action.
-  FIDELITY: Tabs row; Field editing (rename field); field-edge constraint (rename typing).
-- O2 (S01 reinf): invalid prefix follow-up inside the artifact tab is consumed (nothing forwarded).
-  Provenance: player action. FIDELITY: Prefix invalid row.
-- O3 (S02 reinf): voluntary help consultation available throughout; use recorded, never punished.
-
-**Input context:** deliberate capture for O1–O2. External controls legitimate for story access.
-
-**Fidelity dependencies:** FIDELITY Tabs row; Prefix table; Field editing; Help row.
-
-**BLOCKED-ON:** standing prefix line. Field-edge constraint (rename typing; `Ctrl+W`/IME/AltGr
-out of scope).
-
-**Failure/recovery:** malformed rename (empty) returns the field uncommitted with a clerk line;
-retry same session.
-
-**Hints:** tiers 0–3; tier 2 = binding assistance (recorded).
-
-## L3 — Nov 13 (morning) — interview technician — "Five Minutes"
-
-**Discoveries:** Park consent-interview transcript: script ID `LT-47B`, misfire, self-report timeline.
-Story floor established (EVT-1109-A genuine).
-
-**Interface lesson:** S05 intro (split right `prefix+v` / down `prefix+minus`; focus lands in new
-pane; split tree), S06 intro (directional focus to the intended input destination), S04 reinf
-(dedicated interview tab), S01 reinf.
-
-**Objectives:**
-- O1 (S05/S06, with S01 reinforcement in a changed context): Starting from one pane, split to stage assignment beside transcript draft; move
-  focus between panes to the intended destination; typed input lands in the intended process.
-  Admissible alternatives: right vs down split (either accepted unless the task states geometry;
-  geometry is not required here). Resulting state: split tree with two live panes; focus where the
-  player declares; input accepted by declared pane. Provenance: player action.
-  FIDELITY: Core-five split + focus rows (no wrap; focus lands in new pane).
-- O2 (S04 reinf): interview conducted in a named tab; tab arrangement statable. Provenance:
-  player action.
-
-**Input context:** deliberate capture. Interview consent recorded as story content (process evidence
-from simulated intake event, not a Herdr action).
-
-**Fidelity dependencies:** FIDELITY Core-five split/focus rows; Tabs row.
-
-**BLOCKED-ON:** standing prefix line.
-
-**Failure/recovery:** input in wrong pane → refocus and re-enter (clerk line cites the transcript,
-never fails the level).
-
-**Hints:** tiers 0–3; fading begins (no unsolicited key sequences after this level's reinforcement).
-
-**Cinematic outro:** Mission Outro 03 — "Five Minutes" (16s documentary sequence; Theo Park consent interview payoff; script `LT-47B` misfire, story floor confirmed; lead to L4 "Write it up"). Triggers only on committed `SE-L3-interview`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
+### Remaining Episode I contracts
 
 ## L4 — Nov 13 (evening, 19:05 filing) — file note — CHOICE 1 (source protection) — "Filed 19:05"
 
@@ -182,9 +116,12 @@ origin + retraction-always-receivable + counting-review-next-cycle visible). CHO
 NL-1: paraphrase (Quill safe; VN-12 thinner) vs identifying detail (VN-12 stronger now; exposure
 risk follows to L9/L13).
 
-**Interface lesson:** S07 intro (new workspace `prefix+shift+n` for the filing draft; navigate
-`prefix+w` up/down + Enter/Esc), S04/S05/S06 reinf (filing tab + split + focus), S02 reinf
-(voluntary help), S03 reinf.
+**Investigative problem:** Drafting Verifier Note VN-12 requires strict separation. Editing in the
+active interview/audit workspace risks terminal input confusion or accidental tampering with live
+transcripts. The player needs a separate workspace to prepare VN-12 while keeping the entire
+investigative interview and agent session running and intact in the background.
+
+**Herdr and story work:** Introduce workspace navigation (`prefix+w`) and Help (`prefix+?`). Reuse workspace creation, splits, and directed input. Keep two workspaces: the live investigation and filing. Two agents supply the interview basis and draft check. Use the document and filing surfaces. Show the new navigator and Help keys, not the prefix lesson again. An optional filing-margin lead appears after submission (D1 in the private ledger).
 
 **Objectives:**
 - O1 (S07/S04/S05): create a filing workspace, split it to stage the draft beside the assignment reference, draft VN-12 there, navigate back to the reading
@@ -214,12 +151,12 @@ never used (global avoidance).
 **Discoveries:** INT-RECEIPT-12 (= DR-2) in morning paperwork ("independent pending verification" —
 not yet understood). No Ellison knowledge (Q-118 filed Nov 15). Fresh evidence set, outcome brief.
 
-**Interface lesson: previously-taught skills only (S01 intro L1; S03 intro L1; S04 intro L2;
-S05/S06 intro L3). No new skills. Tier-0 start. Faded scaffolding: no unsolicited key sequences.**
-Assesses S01, S03–S06 (per LEARNING_DESIGN checkpoint) + S02 (resolve an unfamiliar task using help:
-reach a tab via number-jump `prefix+1..9`, an admissible S04 alternative resolved through the help
-overlay's filter — type a query fragment, Backspace/clear with listed field keys only (field-edge
-constraint), Enter the filtered row; the matrix's list-navigation keys stay untaught).
+**Investigative problem:** Morning paperwork delivers `INT-RECEIPT-12`, showing that the player's note
+`VN-12` has been entered into the EIAB queue as `R-2` with the designation "independent pending
+verification". A fresh batch of intake documents arrives that must be independently organized,
+cross-referenced, and filed without unsolicited prompts or hand-holding.
+
+**Herdr and story work:** No new skills. Triage the intake batch in a new workspace with named tabs, a comparison split, and deliberate input focus. Two workspaces and two agents separate open investigations from fresh intake. Claude fetches intake records and a second copy through documents and receipts. No helper clue here. Start with outcome-only prompts.
 
 **Objectives:**
 - O1: useful tab arrangement for the fresh set (≥2 tabs, named, stated purpose). Provenance:
@@ -230,13 +167,12 @@ constraint), Enter the filtered row; the matrix's list-navigation keys stay unta
 - O3: correct focus/input destination (declared pane accepts input). Provenance: player action.
   FIDELITY: focus row.
 - O4: provenance-backed finding on the fresh set (process evidence citing the fresh artifacts).
-- O5 (S02): number-jump to a tab resolved via the help overlay filter (listed field keys only; field-edge constraint). Provenance: player
-  action. FIDELITY: Tabs row (jump); Help row; Field editing.
+- O5 (S07): create the triage workspace without closing the live investigation. Provenance: player action. FIDELITY: Workspaces row.
 
 **Input context:** deliberate capture for O1–O3/O5. External controls: story may complete assisted;
 transfer credit withheld per skill.
 
-**Fidelity dependencies:** FIDELITY Prefix table; Tabs row; split/focus rows; Help row.
+**Fidelity dependencies:** FIDELITY Prefix table; Workspaces and Tabs rows; split/focus rows.
 
 **BLOCKED-ON:** standing prefix line (assessed evidence valid only under Gate-1 hold policy).
 
@@ -249,6 +185,8 @@ mark, with a fresh equivalent task available for independent retrieval.
 
 **Cinematic outro:** Episode I Finale — "The Third Count" (28s documentary sequence; morning paperwork arrival of `INT-RECEIPT-12`, counting line added, emergency recommendation sealed; cliffhanger question: why three distinct channels for one internal misfire?). Triggers only on committed `SE-L5-retention1`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
 
+## Episode II — The Containment
+
 ## L6 — Nov 16 — read finding — "Three Votes"
 
 **Discoveries:** F-47-E3 (filed Nov 14, released after stated weekend hold); Ellison leave/personnel
@@ -260,6 +198,8 @@ R-1/R-3/R-2 listing (player note is among them — not yet matched).
 the intake process among panes), S09 intro (zoom `prefix+z` the finding pane; pill state matches),
 S05/S06 reinf (stage finding beside R-list in a split, with a further focus-transition sequence
 declared and observed), S01/S03 further, S07 reinf (finding-analysis workspace).
+
+**Work board:** Two workspaces (investigation and intake) and two agents (finding retrieval and mirror search). Use documents and public records. Introduce the Goto and Zoom keys, reuse workspace travel and splits, and surface the optional archive lead D2 only after Q-118 is available.
 
 **Objectives:**
 - O1 (S08): locate the intake process via the goto picker (admissible: `/` search or manual row
@@ -296,13 +236,14 @@ client's projection of Idle-unacknowledged, never proof the verification is corr
 before citing), S09 reinf (zoom receipt beside finding), S04 reinf (comparison tabs created for the
 receipt-vs-finding match), S01 further (prefix discipline across the zoom/goto sequences).
 
+**Work board:** Two workspaces and two agents (intake receipt and finding). Use evidence records and the newsroom log. Introduce the Herdr status projection and focus cue. Reuse zoom and tabs with a reference to the intended records, not a key sequence. No new helper clue.
+
 **Objectives:**
 - O1 (S10): focus the verification-agent pane (pane-surface composition acknowledges; verified
-  client rule), read its output, record the output's content separately from its status badge.
-  Resulting state: citation references output lines, never the badge. Provenance: player action.
-  FIDELITY: Agent-status projection rows (raw Idle/Working/Blocked/Unknown; done-as-projection;
-  seen per-client; state changes move no focus). The background-completion-while-unfocused case is
-  explicitly excluded from this scenario (see BLOCKED-ON).
+  view), then locate the process output in its pane. Resulting state: the intended agent's output is
+  visible and attributable to that pane. Citations are story actions, not keyboard credit.
+  FIDELITY: Agent-status projection rows (raw Idle/Working/Blocked/Unknown, done-as-projection,
+  seen per-client, state changes move no focus).
 - O2 (S09 reinf, with S01 prefix discipline recorded across the zoom sequence): zoom/unzoom receipt and finding for the match. Provenance: player action.
 - O3 (S04 reinf): comparison tabs created for the receipt-vs-finding match (named, stated purpose). Provenance: player action. FIDELITY: Tabs row.
 
@@ -332,6 +273,8 @@ no new EV — intake describes R-3's arrival path, nothing about content truth).
 case rule — locate the `Origin-Event-ID` line / truncation in the forward record), S08 reinf
 (goto: find the OCC-forward process), S10 reinf (forward-process status read from output),
 S05/S06 further (split/zoom-adjacent staging of forward record beside the R-3 face), S01 further.
+
+**Work board:** Two workspaces and two agents (OCC forward and EIAB intake). Use records and cooperative communications. Teach copy-mode search in the forward scrollback. Locate the other agent without repeating its Goto instructions. Optional D3 points to a records request, not the profile diff itself.
 
 **Objectives:**
 - O1 (S11): enter copy mode, search for the origin-field line, repeat to next match, exit cleanly
@@ -372,6 +315,8 @@ S01/S03 further, S07 reinf (cross-walk workspace: move the twins between workspa
 board), S08/S09/S10 reinf (locate/zoom/read twins — a further goto sequence plus zoom pass on the
 twin faces).
 
+**Work board:** Two workspaces and three agents (vendor face, OCC forward, records request). Use documents, records requests, and newsroom communications. Explain new copy/selection keys and the safe scratch-pane close. Earlier operations get outcome-only prompts. No new clue; D3 pays off when the ordinary request returns records.
+
 **Objectives:**
 - O1: records-channel request filed for the profile diff (story control; process evidence on
   delivery). Diff delivered as fixture document (never player action).
@@ -410,9 +355,7 @@ Proof argued from R-1/R-3 shared root + VN-12 non-independence (VP-1109 records 
 examination — queue-depth-vs-finding-date comparison, explicitly not scored for retention; L10's
 common-root proof requirements unchanged.
 
-**Interface lesson: previously-taught skills only (S07 intro L4; S08/S09 intro L6; S10 intro L7).
-No new skills. Tier-0 start.** Assesses S07–S10 (per LEARNING_DESIGN) + retrieves S01/S04–S06.
-Scenario: multiple workspaces, ambiguous agent-status board, conflicting R-1/R-3 faces.
+**Herdr and story work:** No new skills or unsolicited keys. Across three workspaces (analysis, receipts, vendor), three agents retrieve the two report faces and the credential-session record. Use documents, receipts, and records requests. Reuse established Goto, zoom, status, workspace, layout, and scrollback operations. No new helper clue. The proof is a story gate, not part of the keyboard score.
 
 **Objectives:**
 - O1 (S07): work across ≥2 workspaces (analysis + intake-record workspaces); arrangement stated.
@@ -421,13 +364,11 @@ Scenario: multiple workspaces, ambiguous agent-status board, conflicting R-1/R-3
   the objective states which use is assessed; authentic alternatives are not marked wrong where
   the contract does not require the picker — here the picker IS the assessed path and the
   contract says so). Provenance: player action. FIDELITY: Goto row.
-- O3 (S10): interpret status without mistaking `done` for evidentiary correctness — focus the
-  agent pane, read output, cite output lines. The scenario stages ONLY the focused-pane
-  acknowledgment rule; no background-completion claim is required or accepted. Provenance: player
-  action. FIDELITY: Agent-status rows.
+- O3 (S10): use Herdr's status display to find and focus the agent that needs attention. Check the transcript rather than treating `done` as a finding. Only the focus and navigation result earns credit. The scenario uses the focused-pane acknowledgment rule. FIDELITY: Agent-status rows.
 - O4 (S09): zoom/unzoom comparison panes without topology change. Provenance: player action.
 - O5 (S01/S04–S06 retrieval): prefix discipline, tab handling, split/focus arrangement for the
   proof file. Provenance: player action.
+- O6 (S11): search the report's scrollback and exit without changing its output. Provenance: player action.
 
 **Input context:** deliberate capture for assessed ops. External controls: story may complete;
 transfer credit withheld per skill (honest reporting).
@@ -447,14 +388,27 @@ via a fresh equivalent task for transfer credit).
 
 **Cinematic outro:** Episode II Finale — "The Twin" (32s documentary sequence; common-root proof established; R-1 and R-3 proved twins; OCC forwarding rule exposed; containment turning point). Triggers only on committed `SE-L10-retention2`; skipping never awards objectives or bypasses progression (see `docs/PRESENTATION_PLAN.md`).
 
-## L11 — Nov 21 (morning) — read law + guidance — "Genuine Independence"
+## Episode III — The Mandate
+
+## L11 — Nov 21 (morning) — read law + guidance — "The Directive" (Understand the rules)
 
 **Discoveries:** D-47 §4 (ratified, noticed; genuine-independence standard) + IG-E3-02 (Reyes-signed;
 rebuttable presumption from faces); Cole §5 spot-check duty named. Re-read annotations on R-faces
 activate as dated entries.
 
+**Investigative problem:** Examine Directive 47 §4 (statutory genuine-independence requirement) and
+Implementation Guidance IG-E3-02 §3 (rebuttable presumption from faces) while juggling active agent
+work. Establish exactly what legal standard must be met before constructing the rebuttal.
+
+**Starting arrangement:** 2 workspaces (`analysis`, `retrieval`), tabs for legal guidance and agent
+scrapers.
+
+**Claude session(s):** Agent 1 parsing legal text; Agent 2 monitoring Board docket updates.
+
+**Tools and guidance:** Public records and docket documents. Introduce authentic detach with exact keys and carry the same running session into L12. Other goals are outcome-only. No new helper clue.
+
 **Interface lesson:** S11 reinf (search the guidance text for the presumption + §5 duty lines),
-S12 reinf — detach half (close-of-business detach: `prefix+q`; everything keeps running; reattach
+S12 intro — detach half (close-of-business detach: `prefix+q`; everything keeps running; reattach
 opens L12 with layout and running state restored), S04 further (guidance-reading tabs arranged and
 named for the two texts), S07 further (guidance workspace separated from the analysis board),
 S09/S10 further (zoom the §4 paragraph beside the §3 presumption; agent-process status for the
@@ -482,13 +436,23 @@ retrieval job read from output).
 
 **Hints:** tiers 0–3, recorded.
 
-## L12 — Nov 21–22 — request lodging — "Private Papers"
+## L12 — Nov 21–22 — request lodging — "Original Record" (Establish the truth)
 
 **Discoveries:** C-1 (vendor original + SOC sent-mail with headers) + Desai receipt via BCR request;
 Sam witnesses intake. Copy-vs-original comparison discipline (hash = copy-vs-comparison-original
 check only; no truth/tamper-proof claims). Reattached session from L11 detach opens the level.
 
-**Interface lesson:** S11 further + S11 ASSESSMENT (matrix assess: 12) — search the lodged originals
+**Investigative problem:** Multiple verification processes return evidence from BCR and SOC. Compare
+lodged originals (C-1) against forwarded copies, extract cryptographic hashes, and prove the shared
+source behind R-1 and R-2.
+
+**Starting arrangement:** Reattached session from L11; split panes with lodged originals and earlier copies.
+
+**Claude session(s):** Agent 1 verifying SHA-256 hashes of PDF attachments; Agent 2 diffing NOC auto-logs.
+
+**Tools and guidance:** Two workspaces and two agents continue from L11. Use custody records, requests, and document reads. Guide reattachment. Give an outcome-only scrollback task. No new helper clue.
+
+**Interface lesson:** S11 independent use — search the lodged originals
 for origin-ID lines, select + copy the controlling passage, exit; S05/S06/S08 further (stage
 originals beside earlier copies), S01 further.
 
@@ -516,7 +480,7 @@ retry with documents preserved.
 **Hints:** tiers 0–3; tier 2+ marks the S11 assessment assisted (story may complete; transfer
 credit requires an independent demonstration — fresh equivalent passage task available).
 
-## L13 — Nov 22 — meet via counsel — CHOICE 4 (now vs map-first)
+## L13 — Nov 22 — meet via counsel — "Counsel's Index" (Keep the investigation alive)
 
 **Discoveries:** Ellison lodging index relayed by counsel (relayed Nov 21, opened Nov 22);
 leave/credential facts stated (no puzzle, no key). Quill interview through counsel (consent;
@@ -524,6 +488,17 @@ conditions vary by L4 choice — paraphrase path cooperates readily; detail path
 conditions). CHOICE 4: request lodging-based chain immediately (faster; Beck notes single-chain
 reliance, requires SOC interview for second source) vs complete independent mapping first (two
 chains; acknowledged weight at hearing).
+
+**Investigative problem:** Ellison's counsel delivers a critical lodging index while an agent needs
+attention. Preserve the active session, organize the new material across workspaces, and prepare the
+final evidence chain while managing source exposure.
+
+**Starting arrangement:** 3 workspaces (`hearing-prep`, `counsel-link`, `bcr-archive`), concurrent
+Claude sessions.
+
+**Claude session(s):** Agent 1 verifying counsel index; Agent 2 parsing SOC sent-mail headers.
+
+**Tools and guidance:** Custody records, documents, and consent relay. Reuse workspace routing, scrollback, and session continuity without unsolicited keys. D4 reveals who left the leads after the counsel relay, without granting evidence or access.
 
 **Interface lesson:** S12 reinf (session detach after the counsel window; reattach L14 — state
 survives), S07 further (counsel workspace separated from analysis), S10 further (counsel-relay
@@ -546,7 +521,7 @@ workspaces), S11 further (search the relayed index for the lodging reference lin
 
 **Hints:** tiers 0–3, recorded. Choice consequences stated before deciding.
 
-## L14 — Nov 23 — draft retraction — CHOICE 5a (scope) + 5b (naming)
+## L14 — Nov 23 — draft retraction — "Counter-Provenance" (Submit the case)
 
 **Discoveries:** CPF-9 drafted: common-source proof + VN-12 retraction. Beck deficiency loop until
 the two-source rule is met (deficiencies name missing elements, never supply answers). CHOICE 5a:
@@ -556,6 +531,16 @@ signer (challenged on tone, not facts) vs cite role + memo number (same legal ef
 Okafor/Desai outcomes). Publish path (L9) adds the concrete correction step here (W3): a public
 correction notice filed and acknowledged BEFORE the CPF-9 counts as complete + Adebayo trust beat
 (acknowledgment slip as process evidence).
+
+**Investigative problem:** With the filing deadline approaching (08:00 EST Nov 24), assemble the
+complete Counter-Provenance Packet CPF-9, retract VN-12 on the record, verify supporting records,
+and satisfy Roland Beck's two-source corroboration rule under minimal guidance.
+
+**Starting arrangement:** High-density multi-workspace layout with 3 active Claude verification runs.
+
+**Claude session(s):** Agent A (Chain P-A), Agent B (Chain P-B + retraction basis), Agent C (Chain P-C + diff).
+
+**Tools and guidance:** Three workspaces (draft, custody, transmission) and three agents. Use filing, evidence, and records tools. Name the case outcomes and dependencies, not key sequences. No new helper clue. Dana's documented role remains limited to executing the written order.
 
 **Interface lesson:** S12 further (mid-draft detach/reattach confidence check — the packet survives),
 S11 further (search/cite profile-diff + lodging passages), S06/S08/S09 further (staging the filing
@@ -584,11 +569,25 @@ controls (field-edge constraint on draft typing).
 **Hints:** tiers 0–3, recorded. Scope/naming consequences stated before deciding; both recorded
 for the ending card.
 
-## L15 — Nov 24 (08:00 filing; 10:00 convene, Housekeeping to 10:30) — file + read aloud — "Into the Record" (CUMULATIVE)
+## L15 — Nov 24 (08:00 filing; 10:00 convene, Housekeeping to 10:30) — file + read aloud — "The Mandate" (The Final Confrontation — Boss Encounter)
 
 **Discoveries:** CPF-9 filed by 08:00 story-clock (SE-L15-filing; late until 09:30 draws one untimely slip + one cure path under Housekeeping to 10:30); Board convenes 10:00, hearing from a separate
 hearing-room client; Board rejects the extraordinary package, continues standard measures, enters
 referrals + costs on the record (per Bible §10); ending card reflects all five choices.
+
+**Herdr and story work:** No new operations. Give five outcome-based steps. Three workspaces hold the hearing packet, custody originals, and transmission records. Three agents return competing results through evidence and filing surfaces. Resolve their work by locating the correct panes and keeping the packet and comparison intact. No new helper clue. Record each Herdr result independently of the story. The optional 15:00 challenge cannot affect filing, recovery, or the ending.
+
+**The final boss encounter:**
+The Certification Review Board convenes. The record is about to close.
+Your agents have returned conflicting findings across workspaces. Ellison's preserved originals are in
+another workspace. The filing packet is incomplete. The Board is ready to hear the case.
+The player must coordinate Claude Code, navigate Herdr, manage multiple workspaces, verify conflicting
+evidence, and submit a defensible case before the deadline across five integrated subtasks:
+1. Organize the case across workspaces and tabs (T1: S03/S04/S07).
+2. Arrange and focus panes to compare records (T2: S05/S06/S09).
+3. Locate the verification agent and open its actual output (T3: S08/S10/S02).
+4. Search and copy the controlling passage (T4: S11).
+5. Detach and reattach without losing the session (T5: S12/S01).
 
 **Operational circumstance (why each demand exists):** the hearing convenes on a separate
 hearing-room client. Mid-hearing restructuring is not permitted, so the corpus must already be
@@ -609,9 +608,7 @@ Provenance: player action. FIDELITY: split/focus/zoom rows. **Score line T2: ___
 assisted / not observed.**
 
 **Subtask T3 — verify output (S08/S10 + S02):** Starting state: verification-agent process running
-in the packet workspace (fixture process). Use the help overlay (`prefix+?` + `/` filter, listed field keys only) to resolve which binding opens the goto picker, then perform that binding to locate the process (S02 unfamiliar-task assessment: the binding is documented in help itself — upstream Help lists bindings only, verified: no Home/End or on-screen overlay hints exist to discover from). Focus the agent pane, read output, cite output lines (never the
-badge). Resulting state: citation on record; help consultation logged. Provenance: player action
-(picker/focus/reading); agent output = simulated process event. FIDELITY: Goto row (rows/search/move/exit verified in overlay_input.rs:637–786 — no Home/End dependency); Agent-status rows; Help row; Field editing (filter typing). **Score line T3: ___ independent / assisted / not observed.**
+in the packet workspace (fixture). Find the Goto binding in authentic Help. Use the picker to locate the agent and focus its pane. Cite the output, not the badge, in the story packet. The Herdr result is the help lookup, picker selection, and correct focus. The citation is separate story evidence. FIDELITY: Goto, Agent-status, Help, and Field editing rows. **Score line T3: ___ independent / assisted / not observed.**
 
 **Subtask T4 — search/copy passage (S11):** Starting state: lodged-passage document open (fixture).
 Locate the verbatim reading passage via copy-mode search, select + copy, exit cleanly; place it
@@ -672,45 +669,10 @@ transfer record).
 - **W5 — E2 texture (Cole transcript): RESOLVED-in-contract.** L8 carries the Cole intake-call
   transcript via records request — story content, explicitly no new EV.
 
-## Staging notes (decided items removed; open items only)
+## Acceptance across levels
 
-**LEARNING_DESIGN deltas proposed:** none. The matrix is followed exactly (see verification walk);
-L12 S11 assessment is a matrix-sanctioned cell (S11 assess: 12). L15 T3's S02 assessment resolves a binding from the help overlay's own list — no untaught-key dependency.
-
-## Verification checks performed (traceability walk, no self-approval)
-
-- **Matrix coverage (every cell at its level, twice before L15 assessment):**
-  S01: I1 R2 R3(L3 focus-transition sequences) R4 F6 F7 F9 F12 → A5 A10 A15 · S02: I1 R2 R4 → A5 A15 (voluntary throughout) ·
-  S03: I1 R2 R4 F6 F7 F9 F12 F13 F14 → A5 A10 A15 · S04: I2 R3 R4 F6 F7 F9 F11 → A5 A10 A15 ·
-  S05: I3 R4 R6 F8 F12 → A5 A10 A15 · S06: I3 R4 R6 F8 F12 F14 → A5 A10 A15 ·
-  S07: I4 R6 R9 F11 F13 → A10 A15 · S08: I6 R8 R9 F12 F14 → A10 A15 ·
-  S09: I6 R7 R9 F11 F14 → A10 A15 · S10: I7 R8 R9 F11 F13 → A10 A15 ·
-  S11: I8 R9 R11 F12 F13 F14 → A12 A15 · S12: L9 close-half groundwork; full detach/reattach intro at L11 (matrix records the split); A15.
-  (I=intro R=reinforcement F=further A=assessment; letters keyed to LEARNING_DESIGN matrix cells.)
-- **Checkpoint purity:** L5 uses S01/S03–S06 + S02 only (all introduced L1–L4); L10 uses
-  S07–S10 + S01/S04–S06 retrieval (all introduced ≤L9, where L9's close half is groundwork, not the S12 intro); L15 introduces no new commands and no
-  story-critical facts (T3's S02 assessment resolves the goto-picker binding from the help overlay's own binding list).
-- **Predicate provenance:** every objective states starting state, admissible actions (with authentic
-  alternatives where the contract allows), resulting state, and provenance kind. Fixture-provided
-  states (lodged docs, diff, relay deliveries, agent output) are never credited as player action.
-- **Fidelity citations:** every taught operation cites its FIDELITY row (Prefix, Core five,
-  Pane/tab/workspace, Field editing, Agent projection, Chrome, Presentation safety). Unresolved
-  contracts touched carry BLOCKED-ON lines: browser delivery + host-blur (all capture levels),
-  IME/AltGr edges (all typing/search lessons), background-ack (L7/L10/L15 excluded-by-design with
-  lines), close-confirmation accept path (L9 avoidance constraint + line). Untouched contracts
-  (close-workspace, sidebar-list keys, checkout-deletion, handoff timing) are globally excluded
-  with the exclusion stated. Focus reflow (FIDELITY #4) additionally named at L9 (no-reliance statement + BLOCKED-ON).
-- **Choice hooks:** five choice points, six recorded decisions (L14 holds scope + naming) — L4 (NL-1 + L9/L13
-  conditions + L14 workload + ending card), L8 (single-source taint → L14 weight + ending card),
-  L9 (publish → L14 extra step + trust beat; hold → SOC path; ending card), L13 (chain weight →
-  Beck requirement + hearing weight + ending card), L14 scope + naming (Board weight, Okafor/Desai
-  outcomes, credit cost, ending card).
-- **Dates/story gates:** every block carries its ARC date-table date; receipt order
-  (DR-1 Nov 10 → DR-3 Nov 13 → DR-2 Nov 14), SUB-ACK-12 vs INT-RECEIPT-12 split, L6 weekend-hold
-  release, Q-118/leave at L6, VP-1109 request at L10 + BC-10 citation in L10 proof, IQ-1 Nov 17
-  request-fulfillment, and docket-buffer recovery at L15 match the story docs. No level consumes
-  undelivered knowledge.
-- **Remaining for parent:** FIDELITY re-verification if the upstream baseline moves; a *measured*
-  Firefox pass if a measured cross-browser envelope is ever claimed (user authorization of
-  2026-11-23 closed Gate 1 on the Chromium-evidenced basis); playtest of correction-notice staging
-  (W3) and copy-artifact readability (ARC W1-note carried into L9 O2).
+- Confirm that every required operation has an observed player action and intended state change. Fixtures can supply work, not credit.
+- Check that L5 and L10 introduce no required shortcut or operation. L15 reports five separate Herdr results and a separate narrative result.
+- Check the clue dates in the private ledger against the story bible. Never show an early clue as authenticated evidence.
+- Test deadline recovery and accessible alternatives without rewriting evidence or awarding keyboard proficiency.
+- Apply the pinned fidelity contracts and the unresolved-item exclusions above before authorizing any later level.

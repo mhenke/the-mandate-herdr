@@ -3,6 +3,7 @@
 ## Current gate: Milestone 2 (In Progress)
 
 - **Authorized scope**: M2 (L1–L3 vertical slice) only. **L4–L15 remain unauthorized** pending separate milestone approval.
+- **Learning scope**: Assess only accepted player-origin Herdr operations. Claude Code, fictional MCP tools, and investigative reasoning advance the story. They never grant keyboard credit.
 - **TUI escape contract**: The Escape key is Herdr-owned inside the simulated console. Host capture release is exclusively operated via the external accessible control.
 - **Evidence standard**: Browser chord support claims require physical-key or CDP-verified evidence (Firefox unmeasured; prefix+`?` partial).
 
@@ -15,9 +16,10 @@
 
 ## Architectural boundaries (ESLint-enforced)
 
-- **Pure simulation (`src/core/herdr`)**: Zero dependencies on React, DOM APIs, or adapters. Pure state transitions over immutable models.
+- **Pure simulation (`src/core/herdr`, `src/core/applications`)**: Zero dependencies on React, DOM APIs, or adapters. Pure state transitions over immutable models (multiplexer state and deterministic in-terminal CLI agent simulation per ADR 0007).
+- **Fictional tool changes**: Read `docs/CLAUDE_MCP_SIMULATION.md`. Keep pane histories separate and records shared. Do not run real commands or services.
 - **Observation cores (`src/core/narrative`, `src/core/assessment`)**: Observe committed facts; zero state ownership of Herdr multiplexer data.
-- **Host adapters (`src/adapters`)**: Translate browser events and enforce session recovery; never own simulation rules.
+- **Host adapters (`src/adapters`)**: Translate browser events and enforce session recovery. They never own simulation rules.
 - **Presentation (`src/ui`)**: Read-only projections of committed session snapshots. Zero direct core mutations.
 - **Local exploration**: Graphify (`graphify-out/`) accelerates code navigation; it is an exploration aid, never a runtime dependency or architectural authority.
 

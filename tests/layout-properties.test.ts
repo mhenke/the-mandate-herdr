@@ -159,7 +159,6 @@ describe("layout geometry property tests", () => {
     fc.assert(
       fc.property(arbitrarySplitNode(), (tree) => {
         const ids = paneIds(tree);
-        const initialCount = paneCount(tree);
         // Deduplicate IDs
         const uniqueIds = Array.from(new Set(ids));
         if (uniqueIds.length === 0) return;
@@ -167,7 +166,7 @@ describe("layout geometry property tests", () => {
         const targetId = uniqueIds[0]!;
         const remainingTree = removePane(tree, targetId);
 
-        if (initialCount === 1) {
+        if (uniqueIds.length <= 1) {
           expect(remainingTree).toBeNull();
         } else {
           expect(remainingTree).not.toBeNull();

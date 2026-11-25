@@ -28,17 +28,10 @@ export interface KeyboardToast {
 
 export interface MandatePreviewProps {
   readonly snapshot: HerdrSnapshot;
+  readonly paneInputs: Readonly<Record<string, string>>;
   readonly captured: boolean;
-  /** Show the brief Standard-mode keyboard reminder while set. */
   readonly reminder: KeyboardToast | null;
-  readonly focusedApp: string | null;
-  readonly assignmentAccepted: boolean;
-  readonly memoRead: boolean;
-  readonly artifactExamined: boolean;
-  readonly onPreviewKey: (input: PreviewKeyInput) => void;
-  readonly onReadMemo: () => void;
-  readonly onAcknowledgeAssignment: () => void;
-  readonly onExamineArtifact: () => void;
+  readonly onPreviewKey: (input: PreviewKeyInput) => boolean;
   readonly onSelectWorkspace: (workspaceId: string) => void;
   readonly onSelectTab: (tabId: string) => void;
   readonly onNewTab: () => void;
@@ -46,7 +39,14 @@ export interface MandatePreviewProps {
 }
 
 function renderHeaderLine(line: string, key: string): JSX.Element | null {
-  if (line === "Assignment terminal" || line === "Interview terminal") {
+  if (
+    line === "Assignment terminal" ||
+    line === "Interview terminal" ||
+    line.startsWith("Claude Code") ||
+    line.startsWith("CLAUDE CODE") ||
+    line.startsWith("AUDIT REFERENCE") ||
+    line.startsWith("WITNESS TRANSCRIPT")
+  ) {
     return (
       <div key={key} className="term-head">
         {line}
@@ -55,7 +55,9 @@ function renderHeaderLine(line: string, key: string): JSX.Element | null {
   }
   if (
     line === "Reference material stays in this pane." ||
-    line === "Source: baseline demonstration"
+    line === "Source: baseline demonstration" ||
+    line.startsWith("BOUNDED AUDIT:") ||
+    line.startsWith("CORROBORATION:")
   ) {
     return (
       <div key={key} className="term-dim">
@@ -157,92 +159,19 @@ function renderLine(line: string, index: number, paneId: string): JSX.Element {
   return renderHeaderLine(line, key) ?? renderPromptLine(line, key) ?? renderContentLine(line, key);
 }
 
-function StoryControlButton({
-  focusedApp,
-  memoRead,
-  assignmentAccepted,
-  artifactExamined,
-  onReadMemo,
-  onAcknowledgeAssignment,
-  onExamineArtifact,
-}: {
-  readonly focusedApp: string | null;
-  readonly memoRead: boolean;
-  readonly assignmentAccepted: boolean;
-  readonly artifactExamined: boolean;
-  readonly onReadMemo: () => void;
-  readonly onAcknowledgeAssignment: () => void;
-  readonly onExamineArtifact: () => void;
-}): JSX.Element | null {
-  if (focusedApp === "memo" && !memoRead) {
-    return (
-      <button type="button" className="tui-story" onClick={onReadMemo}>
-        <span className="key-badge" aria-hidden="true">
-          M
-        </span>{" "}
-        Mark the memo read
-      </button>
-    );
-  }
-  if (focusedApp === "assignment" && memoRead && !assignmentAccepted) {
-    return (
-      <button type="button" className="tui-story" onClick={onAcknowledgeAssignment}>
-        <span className="key-badge" aria-hidden="true">
-          A
-        </span>{" "}
-        Accept the assignment
-      </button>
-    );
-  }
-  if (focusedApp === "artifact" && !artifactExamined) {
-    return (
-      <button type="button" className="tui-story" onClick={onExamineArtifact}>
-        <span className="key-badge" aria-hidden="true">
-          E
-        </span>{" "}
-        Examine the artifact
-      </button>
-    );
-  }
-  return null;
-}
-
 function ActiveTabView({
   tab,
-  focusedApp,
-  assignmentAccepted,
-  memoRead,
-  artifactExamined,
-  onReadMemo,
-  onAcknowledgeAssignment,
-  onExamineArtifact,
+  paneInputs,
   onFocusPane,
 }: {
   readonly tab: TabView;
-  readonly focusedApp: string | null;
-  readonly assignmentAccepted: boolean;
-  readonly memoRead: boolean;
-  readonly artifactExamined: boolean;
-  readonly onReadMemo: () => void;
-  readonly onAcknowledgeAssignment: () => void;
-  readonly onExamineArtifact: () => void;
+  readonly paneInputs: MandatePreviewProps["paneInputs"];
   readonly onFocusPane: (paneId: string) => void;
 }): JSX.Element {
   const panes =
     tab.zoomedPaneId !== null
       ? tab.panes.filter((pane) => pane.id === tab.zoomedPaneId)
       : tab.panes;
-  const storyControl = (
-    <StoryControlButton
-      focusedApp={focusedApp}
-      memoRead={memoRead}
-      assignmentAccepted={assignmentAccepted}
-      artifactExamined={artifactExamined}
-      onReadMemo={onReadMemo}
-      onAcknowledgeAssignment={onAcknowledgeAssignment}
-      onExamineArtifact={onExamineArtifact}
-    />
-  );
   return (
     <div className="tui-panes" role="group" aria-label={`Tab ${tab.name}`}>
       {panes.map((pane) => (
@@ -257,29 +186,23 @@ function ActiveTabView({
           }}
           aria-label={`${pane.title}${pane.id === tab.focusedPaneId ? " (focused)" : ""}`}
           onMouseDown={(event) => {
-            // Pointer focus is view-only: route through the chrome callback
-            // (no story ack here, no focus theft from the story buttons).
             if (event.target instanceof HTMLElement && event.target.closest("button")) return;
             onFocusPane(pane.id);
           }}
         >
           <div className="tui-pane-body">
             {pane.output.map((line, index) => renderLine(line, index, pane.id))}
-            {pane.input.length > 0 ? (
-              <p className="tui-forwarded" aria-label="Keys forwarded to this pane">
-                <span className="term-dim" aria-hidden="true">
-                  ❯{" "}
-                </span>
-                {pane.input.join("")}
-                <span className="term-cursor" aria-hidden="true">
-                  ▊
-                </span>
+            {pane.app === "shell" ? (
+              <p className="tui-command-line">
+                {"$ "}
+                {paneInputs[pane.id]}
+                {pane.id === tab.focusedPaneId ? (
+                  <span className="term-cursor" aria-hidden="true" />
+                ) : null}
               </p>
-            ) : null}
-            {pane.output.length === 0 && pane.input.length === 0 ? (
+            ) : pane.output.length === 0 ? (
               <p className="tui-empty">No output yet.</p>
             ) : null}
-            {pane.id === tab.focusedPaneId ? storyControl : null}
           </div>
         </section>
       ))}
@@ -387,7 +310,7 @@ function WorkspaceItem({
     >
       <span className="herdr-ws-name">
         <span className="herdr-ws-dot" aria-hidden="true">
-          ●
+          ·
         </span>
         {workspace.name}
       </span>
@@ -425,18 +348,40 @@ function TabButton({
   );
 }
 
+interface ModeHintItem {
+  readonly key: string;
+  readonly desc: string;
+}
+
+function ModeHints({
+  badge,
+  badgeClass,
+  hints,
+}: {
+  readonly badge: string;
+  readonly badgeClass?: string;
+  readonly hints: readonly ModeHintItem[];
+}) {
+  return (
+    <>
+      <span className={`herdr-mode-badge ${badgeClass ?? ""}`.trim()}>{badge}</span>
+      {hints.map((hint, idx) => (
+        <span key={hint.key}>
+          {idx > 0 && "\u00A0\u00A0"}
+          <span className="herdr-mode-key">{hint.key}</span>{" "}
+          <span className="herdr-mode-desc">{hint.desc}</span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function MandatePreview({
   snapshot,
+  paneInputs,
   captured,
   reminder,
-  focusedApp,
-  assignmentAccepted,
-  memoRead,
-  artifactExamined,
   onPreviewKey,
-  onReadMemo,
-  onAcknowledgeAssignment,
-  onExamineArtifact,
   onSelectWorkspace,
   onSelectTab,
   onNewTab,
@@ -445,51 +390,31 @@ export function MandatePreview({
   const surfaceRef = useRef<HTMLDivElement>(null);
   const workspace = snapshot.workspaces.find((w) => w.id === snapshot.activeWorkspaceId);
   const tab = workspace?.tabs.find((t) => t.id === workspace.activeTabId) ?? null;
+  const activeWorkspaceIndex = Math.max(
+    0,
+    snapshot.workspaces.findIndex((w) => w.id === snapshot.activeWorkspaceId),
+  );
+  const activeTabIndex = Math.max(
+    0,
+    workspace?.tabs.findIndex((t) => t.id === workspace.activeTabId) ?? 0,
+  );
+  const totalTabs = Math.max(1, workspace?.tabs.length ?? 1);
+  const paneCount = tab?.panes.length ?? 0;
+  const agents = snapshot.workspaces.flatMap((currentWorkspace) =>
+    currentWorkspace.tabs.flatMap((currentTab) =>
+      currentTab.panes
+        .filter((pane) => pane.agent.projected !== "idle" && pane.agent.projected !== "unknown")
+        .map((pane) => ({
+          id: pane.id,
+          label: `${currentWorkspace.name} · ${currentTab.name}`,
+          status: pane.agent.projected,
+        })),
+    ),
+  );
 
   useEffect(() => {
     if (captured) surfaceRef.current?.focus();
   }, [captured]);
-
-  useEffect(() => {
-    if (!captured) return;
-
-    function handleWindowKeyDown(event: KeyboardEvent) {
-      if (
-        event.target instanceof HTMLElement &&
-        (event.target.tagName === "INPUT" ||
-          event.target.tagName === "TEXTAREA" ||
-          event.target.isContentEditable)
-      ) {
-        return;
-      }
-
-      if (
-        event.target === surfaceRef.current ||
-        (event.target instanceof Node &&
-          surfaceRef.current?.contains(event.target) &&
-          !(event.target instanceof HTMLButtonElement))
-      ) {
-        return;
-      }
-
-      if (event.ctrlKey && (event.key === "b" || event.key === "B")) {
-        event.preventDefault();
-        surfaceRef.current?.focus();
-        onPreviewKey({
-          key: event.key,
-          code: event.code,
-          ctrlKey: event.ctrlKey,
-          altKey: event.altKey,
-          shiftKey: event.shiftKey,
-          metaKey: event.metaKey,
-          repeat: event.repeat,
-        });
-      }
-    }
-
-    window.addEventListener("keydown", handleWindowKeyDown, true);
-    return () => window.removeEventListener("keydown", handleWindowKeyDown, true);
-  }, [captured, onPreviewKey]);
 
   return (
     <div className="herdr">
@@ -520,25 +445,17 @@ export function MandatePreview({
               <p className="herdr-side-head herdr-side-agents-head">
                 agents <span className="herdr-side-grouped">grouped</span>
               </p>
-              <div className="herdr-agent">
-                <p className="herdr-agent-name">
-                  <span className="herdr-agent-dot agent-working" aria-hidden="true">
-                    ●
-                  </span>
-                  the-mandate
-                </p>
-                <p className="herdr-agent-meta">stringer</p>
-              </div>
-              <div className="herdr-agent">
-                <p className="herdr-agent-name">
-                  <span className="herdr-agent-dot agent-blocked" aria-hidden="true">
-                    ●
-                  </span>
-                  the-mandate
-                </p>
-                <p className="herdr-agent-meta">codex</p>
-              </div>
-              <div className="herdr-collapse-toggle">«</div>
+              {agents.map((agent) => (
+                <div className="herdr-agent" key={agent.id}>
+                  <p className="herdr-agent-name">
+                    <span className={`herdr-agent-dot agent-${agent.status}`} aria-hidden="true">
+                      ●
+                    </span>
+                    {agent.label}
+                  </p>
+                  <p className="herdr-agent-meta">{agent.status}</p>
+                </div>
+              ))}
             </div>
           </aside>
         ) : null}
@@ -580,46 +497,11 @@ export function MandatePreview({
                 : "Simulated Herdr surface. Keyboard capture released."
             }
             onKeyDown={(event) => {
-              if (!captured) return;
-              // Plain Tab always leaves the surface so the Release control
-              // stays keyboard-reachable. This is a browser accessibility
-              // constraint of this preview, not authentic upstream behavior
-              // (Herdr binds prefix+Tab to cycle panes).
-              if (event.key === "Tab" && !event.ctrlKey && !event.altKey && !event.metaKey) return;
-              if (event.key.startsWith("F") && /^F\d+$/.test(event.key)) return;
-              // Reserved browser chords (e.g. Ctrl+W) are never claimed:
-              // handled=false leaves default behavior with the browser.
-              if (
-                event.ctrlKey &&
-                (event.key === "w" || event.key === "W") &&
-                !event.altKey &&
-                !event.metaKey
-              )
-                return;
-              onPreviewKey({
-                key: event.key,
-                code: event.code,
-                ctrlKey: event.ctrlKey,
-                altKey: event.altKey,
-                shiftKey: event.shiftKey,
-                metaKey: event.metaKey,
-                repeat: event.repeat,
-              });
-              event.preventDefault();
+              if (captured && onPreviewKey(event)) event.preventDefault();
             }}
           >
             {tab ? (
-              <ActiveTabView
-                tab={tab}
-                focusedApp={focusedApp}
-                assignmentAccepted={assignmentAccepted}
-                memoRead={memoRead}
-                artifactExamined={artifactExamined}
-                onReadMemo={onReadMemo}
-                onAcknowledgeAssignment={onAcknowledgeAssignment}
-                onExamineArtifact={onExamineArtifact}
-                onFocusPane={onFocusPane}
-              />
+              <ActiveTabView tab={tab} paneInputs={paneInputs} onFocusPane={onFocusPane} />
             ) : (
               <p className="tui-empty">Detached.</p>
             )}
@@ -630,6 +512,55 @@ export function MandatePreview({
               « {snapshot.modeBar.mode.toUpperCase()}
             </p>
           ) : null}
+          <footer
+            className="herdr-bottom-bar"
+            aria-label="Status bar"
+            hidden={snapshot.mode === "terminal"}
+          >
+            <div className="herdr-bottom-left">
+              {snapshot.mode === "prefix" ? (
+                <ModeHints
+                  badge="PREFIX"
+                  hints={[
+                    { key: "esc", desc: "cancel" },
+                    { key: "ctrl+b", desc: "send prefix" },
+                    { key: "w", desc: "workspace nav" },
+                    { key: "?", desc: "keybinds" },
+                  ]}
+                />
+              ) : snapshot.mode === "navigate" ? (
+                <ModeHints
+                  badge="NAVIGATE"
+                  badgeClass="herdr-mode-badge-nav"
+                  hints={[
+                    { key: "esc", desc: "back" },
+                    { key: "↑/↓", desc: "workspace" },
+                    { key: "tab", desc: "pane" },
+                    { key: "?", desc: "keybinds" },
+                  ]}
+                />
+              ) : snapshot.mode === "copy" ? (
+                <ModeHints
+                  badge="COPY"
+                  badgeClass="herdr-mode-badge-copy"
+                  hints={[
+                    { key: "esc", desc: "cancel" },
+                    { key: "/", desc: "search" },
+                    { key: "n/N", desc: "next" },
+                    { key: "y", desc: "yank" },
+                  ]}
+                />
+              ) : (
+                <span className="herdr-mode-hint">? for shortcuts</span>
+              )}
+            </div>
+            <div className="herdr-bottom-right">
+              <span>
+                WORKSPACE {activeWorkspaceIndex + 1} · TAB {activeTabIndex + 1}/{totalTabs} · PANES{" "}
+                {paneCount}
+              </span>
+            </div>
+          </footer>
         </div>
       </div>
       {reminder ? (

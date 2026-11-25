@@ -2,200 +2,152 @@ import { describe, expect, it } from "vitest";
 import { createInvestigationSession } from "../src/adapters/investigation-session";
 import type { InputEvent, Modifier } from "../src/core/herdr";
 
-const key = (
-  k: string,
-  modifiers: readonly Modifier[] = [],
-  origin: "player" | "script" | "fixture" = "player",
-): InputEvent => ({ kind: "key", origin, key: k, modifiers, phase: "press" });
+const key = (value: string, modifiers: readonly Modifier[] = []): InputEvent => ({
+  kind: "key",
+  origin: "player",
+  key: value,
+  modifiers,
+  phase: "press",
+});
+const prefix = () => key("b", ["ctrl"]);
+type Session = ReturnType<typeof createInvestigationSession>;
 
-const prefix = key("b", ["ctrl"]);
+function type(session: Session, value: string): void {
+  for (const character of value) session.dispatch(key(character));
+}
 
-function toL2Workspace(session: ReturnType<typeof createInvestigationSession>): void {
-  session.newInvestigation();
-  session.skipPresentation();
-  // Satisfy Level 1 to advance
-  session.storyAction("read-memo");
-  session.dispatch(prefix);
-  session.dispatch(key("h"));
-  session.dispatch(key("x"));
-  session.storyAction("acknowledge-assignment");
-  session.dispatch(prefix);
-  session.dispatch(key("?"));
-  session.dispatch(key("/"));
-  session.dispatch(key("a"));
-  session.dispatch(key("u", ["ctrl"]));
+function submit(session: Session, value: string): void {
+  type(session, value);
   session.dispatch(key("enter"));
-  session.dispatch(prefix);
-  session.dispatch(key("y"));
+}
+
+function activeWorkspace(session: Session) {
+  const { herdr } = session.getSnapshot();
+  return herdr.workspaces.find((workspace) => workspace.id === herdr.activeWorkspaceId);
+}
+
+function activeTab(session: Session) {
+  const workspace = activeWorkspace(session);
+  return workspace?.tabs.find((tab) => tab.id === workspace.activeTabId);
+}
+
+function focusedPane(session: Session) {
+  const tab = activeTab(session);
+  return tab?.panes.find((pane) => pane.id === tab.focusedPaneId);
+}
+
+function createWorkspace(session: Session, name: string): void {
+  session.dispatch(prefix());
+  session.dispatch(key("n", ["shift"]));
+  type(session, name);
+  session.dispatch(key("enter"));
+}
+
+function createTab(session: Session, name: string): void {
+  session.dispatch(prefix());
+  session.dispatch(key("c"));
+  type(session, name);
+  session.dispatch(key("enter"));
+}
+
+function enterLevel2(): Session {
+  const session = createInvestigationSession();
+  submit(session, "herdr");
+  createWorkspace(session, "investigation");
+  createTab(session, "research");
+  submit(session, "claude");
+  submit(session, "Find the cooperative source-handling memo and show me the original.");
+  submit(session, "Accept the assignment");
   expect(session.getSnapshot().phase).toBe("response");
-  session.advancePresentation(); // to L2 briefing
-  expect(session.getSnapshot().phase).toBe("briefing");
+  session.advancePresentation();
+  session.skipPresentation();
   expect(session.getSnapshot().level).toBe(2);
-  session.advancePresentation(); // to L2 workspace
   expect(session.getSnapshot().phase).toBe("workspace");
+  return session;
 }
 
-function objectiveMet(session: ReturnType<typeof createInvestigationSession>, id: string): boolean {
-  return session.getSnapshot().assessment.objectives.some((o) => o.id === id && o.met);
+function objectiveMet(session: Session, id: string): boolean {
+  return session
+    .getSnapshot()
+    .assessment.objectives.some((objective) => objective.id === id && objective.met);
 }
 
-describe("L2 investigation runtime and Herdr simulator fidelity", () => {
-  it("starts L2 with the reading queue tab and L2 objectives", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
-    const snap = session.getSnapshot();
-    expect(snap.level).toBe(2);
-    expect(snap.herdr.workspaces[0]?.tabs).toHaveLength(1);
-    expect(snap.herdr.workspaces[0]?.tabs[0]?.name).toBe("reading");
-    expect(snap.herdr.workspaces[0]?.tabs[0]?.panes[0]?.output).toEqual([
-      "COOPERATIVE INTAKE — READING QUEUE",
-      "ITEM: SOC Memo UM-1109-88 (Shared Copy)",
-      "SOURCE: Campus SOC via Quill transfer",
-      "NOTE ON FACE: Headers stripped per external sharing policy.",
-      "Open a dedicated artifact tab to inspect the supplied banner screenshot.",
-    ]);
-    expect(snap.assessment.objectives.map((o) => o.id)).toEqual(["L2-O1", "L2-O2"]);
-    expect(snap.assessment.objectives.every((o) => !o.met)).toBe(true);
-  });
-
-  it("prefix+c opens the new tab prompt; Escape cancels without creating a tab", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
-    session.dispatch(prefix);
-    session.dispatch(key("c"));
-    expect(session.getSnapshot().herdr.overlay).toMatchObject({
-      kind: "rename",
-      target: "new-tab",
-      text: "2",
+describe("L2 continues the same investigation session", () => {
+  it("keeps the L1 workspace, source memo, and agent session while comparing the shared SOC copy", () => {
+    const session = enterLevel2();
+    const workspace = activeWorkspace(session);
+    const sourceTabId = workspace?.activeTabId;
+    submit(session, "Find UM-1109-88");
+    expect(session.getSnapshot().storyConditionMet).toBe(false);
+    const sourcePaneId = focusedPane(session)?.id;
+    const l1Application = session.getSnapshot().application;
+    expect(workspace?.name).toBe("investigation");
+    expect(workspace?.tabs.find((tab) => tab.id === sourceTabId)?.name).toBe("research");
+    expect(l1Application.readReceipts).toContainEqual({
+      documentId: "CPA-01A",
+      paneId: sourcePaneId,
     });
-    session.dispatch(key("escape"));
-    expect(session.getSnapshot().herdr.overlay).toBeNull();
-    expect(session.getSnapshot().herdr.workspaces[0]?.tabs).toHaveLength(1);
-  });
 
-  it("creates a second tab, renames it through the Herdr field, and switches tabs (L2-O1)", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
-
-    // Create second tab: prefix+c then Enter commits default
-    session.dispatch(prefix);
-    session.dispatch(key("c"));
-    session.dispatch(key("enter"));
-    expect(session.getSnapshot().herdr.workspaces[0]?.tabs).toHaveLength(2);
-    const artifactTabId = session.getSnapshot().herdr.workspaces[0]?.activeTabId;
-
-    // Rename tab via prefix+shift+t (S04)
-    session.dispatch(prefix);
-    session.dispatch(key("t", ["shift"]));
-    expect(session.getSnapshot().herdr.overlay).toMatchObject({
-      kind: "rename",
-      target: "tab",
-    });
-    session.dispatch(key("u", ["ctrl"])); // clear default
-    session.dispatch(key("a"));
-    session.dispatch(key("r"));
-    session.dispatch(key("t"));
-    session.dispatch(key("i"));
-    session.dispatch(key("f"));
-    session.dispatch(key("a"));
-    session.dispatch(key("c"));
-    session.dispatch(key("t"));
-    session.dispatch(key("enter"));
-
-    const tab = session.getSnapshot().herdr.workspaces[0]?.tabs.find((t) => t.id === artifactTabId);
-    expect(tab?.name).toBe("artifact");
-    expect(tab?.panes[0]?.output).toEqual([
-      "ATTACHMENT: UM-1109-88 / BANNER CAPTURE",
-      "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
-      "TARGET: Vendor Demonstration Portal (VP-1109)",
-      "WINDOW: 2026-11-09 21:47 - 21:52 EST",
-      "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
-      "ATTRIBUTION: Remote banner verification of supplied artifact only.",
-    ]);
-
-    // Switch tabs: prefix+p switches to reading tab, prefix+n switches back to artifact tab
-    session.dispatch(prefix);
-    session.dispatch(key("p"));
-    expect(session.getSnapshot().herdr.workspaces[0]?.activeTabId).not.toBe(artifactTabId);
-
-    session.dispatch(prefix);
-    session.dispatch(key("n"));
-    expect(session.getSnapshot().herdr.workspaces[0]?.activeTabId).toBe(artifactTabId);
-
-    expect(objectiveMet(session, "L2-O1")).toBe(true);
-  });
-
-  it("consumes an invalid prefix follow-up inside the artifact tab (L2-O2)", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
-
-    // Create second tab and focus it
-    session.dispatch(prefix);
-    session.dispatch(key("c"));
-    session.dispatch(key("enter"));
-
-    // Press prefix, then unbound key 'y' inside the artifact tab
-    session.dispatch(prefix);
-    session.dispatch(key("y"));
-
-    expect(objectiveMet(session, "L2-O2")).toBe(true);
-  });
-
-  it("earns response and advances to Level 3 when story action and objectives are met", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
-
-    // Fulfill L2-O1
-    session.dispatch(prefix);
-    session.dispatch(key("c"));
-    session.dispatch(key("enter"));
-    session.dispatch(prefix);
-    session.dispatch(key("t", ["shift"]));
-    session.dispatch(key("u", ["ctrl"]));
-    session.dispatch(key("a"));
-    session.dispatch(key("enter"));
-    session.dispatch(prefix);
-    session.dispatch(key("p"));
-    session.dispatch(prefix);
-    session.dispatch(key("n"));
+    createTab(session, "report");
+    const reportTabId = activeWorkspace(session)?.activeTabId;
+    const reportPaneId = focusedPane(session)?.id;
+    expect(reportTabId).not.toBe(sourceTabId);
     expect(objectiveMet(session, "L2-O1")).toBe(true);
 
-    // Fulfill L2-O2
-    session.dispatch(prefix);
-    session.dispatch(key("y"));
+    submit(session, "claude");
+    submit(session, "Please retrieve SOC Memo UM-1109-88 and show the cooperative shared copy.");
+    const output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("MCP CALL documents.search");
+    expect(output).toContain("MCP CALL documents.read");
+    expect(output).toContain("ORIGIN-EVENT-ID: [BLANK ON SHARED COPY].");
+    expect(session.getSnapshot().application.readReceipts).toContainEqual({
+      documentId: "UM-1109-88",
+      paneId: reportPaneId,
+    });
+    expect(session.getSnapshot().application.readReceipts).toContainEqual({
+      documentId: "CPA-01A",
+      paneId: sourcePaneId,
+    });
+    expect(session.getSnapshot().storyConditionMet).toBe(true);
+    expect(session.getSnapshot().phase).toBe("workspace");
+
+    session.dispatch(prefix());
+    session.dispatch(key("p"));
+    expect(activeWorkspace(session)?.activeTabId).toBe(sourceTabId);
+    expect(objectiveMet(session, "L2-O2")).toBe(false);
+    session.dispatch(prefix());
+    session.dispatch(key("n"));
+    expect(activeWorkspace(session)?.activeTabId).toBe(reportTabId);
     expect(objectiveMet(session, "L2-O2")).toBe(true);
+    expect(session.getSnapshot().phase).toBe("response");
 
-    // Story action: examine artifact
-    session.storyAction("examine-artifact");
-
-    // Settle into response phase
-    const snap = session.getSnapshot();
-    expect(snap.phase).toBe("response");
-    expect(snap.story.events).toContain("SE-L2-artifact");
-    expect(snap.presentation.response).toContain("Artifact examined");
-
-    // Advancing from L2 response opens L3 briefing
-    session.advancePresentation();
-    expect(session.getSnapshot().phase).toBe("briefing");
-    expect(session.getSnapshot().level).toBe(3);
+    const agents = session.getSnapshot().application.agents;
+    expect(Object.keys(agents)).toHaveLength(2);
+    expect(
+      agents[sourcePaneId ?? ""]?.history.some((entry) => entry.content.includes("CPA-01A")),
+    ).toBe(true);
+    expect(
+      agents[reportPaneId ?? ""]?.history.some((entry) => entry.content.includes("UM-1109-88")),
+    ).toBe(true);
+    expect(
+      session.getSnapshot().application.records.find((record) => record.id === "CPA-01A"),
+    ).toEqual(l1Application.records.find((record) => record.id === "CPA-01A"));
   });
 
-  it("Accessible mode allows completing Level 2 without keyboard mastery credit", () => {
-    const session = createInvestigationSession();
-    toL2Workspace(session);
+  it("allows story progress in Accessible mode without Herdr mastery credit", () => {
+    const session = enterLevel2();
     session.setAccessibleMode(true);
-
-    // Pointer chrome creates tab and focuses it
-    session.dispatchChrome({ action: "new-tab" });
+    expect(session.dispatchChrome({ action: "new-tab" })).toBe(true);
+    type(session, "report");
     session.dispatch(key("enter"));
+    submit(session, "claude");
+    submit(session, "Find UM-1109-88 and show the shared record.");
 
-    // Story action
-    session.storyAction("examine-artifact");
-
-    const snap = session.getSnapshot();
-    expect(snap.phase).toBe("response");
-    expect(snap.storyConditionMet).toBe(true);
-    expect(snap.objectivesMet).toBe(false);
-    expect(snap.assessment.objectives.every((o) => !o.met)).toBe(true);
+    expect(session.getSnapshot().storyConditionMet).toBe(true);
+    expect(session.getSnapshot().phase).toBe("response");
+    expect(session.getSnapshot().objectivesMet).toBe(false);
+    expect(session.getSnapshot().assessment.objectives.every((objective) => !objective.met)).toBe(
+      true,
+    );
   });
 });

@@ -51,7 +51,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/core/narrative/**/*.{ts,tsx}", "src/core/assessment/**/*.{ts,tsx}"],
+    files: [
+      "src/core/narrative/**/*.{ts,tsx}",
+      "src/core/assessment/**/*.{ts,tsx}",
+      "src/core/applications/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-restricted-imports": coreOnly("Core observation modules", [
         "react",

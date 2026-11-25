@@ -1,9 +1,7 @@
-// Cooperative Intelligence Desk — Game HUD.
-// Sits cleanly outside the simulated Herdr TUI, framing the educational
-// mission, active objective, keyboard capture state, and investigative docket.
-
-import type { JSX, ReactNode, Ref } from "react";
+import type { JSX, Ref } from "react";
+import type { ApplicationState } from "../core/applications";
 import type { ObjectiveRecord } from "../core/assessment";
+import type { StoryState } from "../core/narrative";
 
 export interface GameHudProps {
   readonly releaseButtonRef?: Ref<HTMLButtonElement>;
@@ -11,46 +9,123 @@ export interface GameHudProps {
   readonly objectives: readonly ObjectiveRecord[];
   readonly hints: readonly string[];
   readonly hintsUsed: number;
-  readonly focusedApp: string | null;
-  readonly memoRead: boolean;
-  readonly assignmentAccepted: boolean;
-  readonly artifactExamined: boolean;
+  readonly application: ApplicationState;
+  readonly story: StoryState;
+  readonly responseReady: boolean;
   readonly captured: boolean;
   readonly accessible: boolean;
+  readonly onReturnToTitle?: () => void;
   readonly onRequestHint: () => void;
   readonly onToggleCapture: () => void;
   readonly onSetAccessible: (on: boolean) => void;
 }
 
-function HudStep({
-  badge,
-  heading,
-  instruction,
-  complete,
-}: {
-  readonly badge: string;
-  readonly heading: string;
-  readonly instruction?: ReactNode;
-  readonly complete?: boolean;
-}): JSX.Element {
-  return (
-    <div className={complete ? "hud-objective-complete" : "hud-objective-active"}>
-      <span className={complete ? "hud-step-badge hud-step-badge-done" : "hud-step-badge"}>
-        {badge}
-      </span>
-      <span className="hud-step-heading">{heading}</span>
-      {instruction ? (
-        <>
-          <span className="hud-step-sep" aria-hidden="true">
-            ·
-          </span>
-          <span className="hud-step-instruction">{instruction}</span>
-        </>
-      ) : null}
-    </div>
-  );
+interface HudStep {
+  readonly label: string;
+  readonly instruction?: string;
+  readonly complete: boolean;
 }
 
+function met(objectives: readonly ObjectiveRecord[], id: string): boolean {
+  return objectives.some((objective) => objective.id === id && objective.met);
+}
+
+function mission(
+  level: number,
+  props: GameHudProps,
+): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  const { application, objectives, responseReady, story } = props;
+  if (level === 1) {
+    return {
+      objective: "Accept June's assignment.",
+      why: "Read the handling memo before you contact the source.",
+      steps: [
+        {
+          label: "Start Herdr",
+          instruction: "Type herdr, then press Enter.",
+          complete: application.herdrLaunched,
+        },
+        {
+          label: "Create the investigation workspace",
+          instruction: "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
+          complete: met(objectives, "L1-O2"),
+        },
+        {
+          label: "Open a research tab",
+          instruction: "Press Ctrl+B, then C. Name it research.",
+          complete: met(objectives, "L1-O3"),
+        },
+        {
+          label: "Ask Claude to find CPA-01A",
+          instruction: "Type claude. Ask it to find CPA-01A.",
+          complete: story.events.includes("SE-L1-assignment"),
+        },
+        {
+          label: "Read CPA-01A, then accept June's assignment",
+          instruction: "Read the rules. Tell Claude: Accept the assignment.",
+          complete: story.flags.includes("assignment-accepted"),
+        },
+      ],
+    };
+  }
+  if (level === 2) {
+    return {
+      objective: "Compare the SOC report with the handling memo.",
+      why: "The shared report has no origin header.",
+      steps: [
+        {
+          label: "Add a report tab",
+          instruction: "Press Ctrl+B, then C. Name it report.",
+          complete: met(objectives, "L2-O1"),
+        },
+        {
+          label: "Switch to the source, then back to the report",
+          instruction: "Switch with Ctrl+B P, then Ctrl+B N.",
+          complete: met(objectives, "L2-O2"),
+        },
+        {
+          label: "Ask Claude for UM-1109-88",
+          instruction: "Start Claude in the report tab. Ask for UM-1109-88.",
+          complete: story.events.includes("SE-L2-artifact"),
+        },
+        {
+          label: "Get June's update",
+          complete: responseReady,
+        },
+      ],
+    };
+  }
+  return {
+    objective: "Put Park's account beside the SOC report.",
+    why: "His account may explain what happened during those five minutes.",
+    steps: [
+      {
+        label: "Split the report tab",
+        instruction:
+          "Press Ctrl+B V. Move with Ctrl+B H and Ctrl+B L. Type claude in the new pane.",
+        complete: met(objectives, "L3-O1"),
+      },
+      {
+        label: "Name the interview tab",
+        instruction: "Press Ctrl+B, then Shift+T. Clear with Ctrl+U, then type park-interview.",
+        complete: met(objectives, "L3-O2"),
+      },
+      {
+        label: "Ask Claude for Park's transcript",
+        instruction: "Ask Claude for Park's interview about LT-47B.",
+        complete: story.events.includes("SE-L3-interview"),
+      },
+      {
+        label: "Get June's update",
+        complete: responseReady,
+      },
+    ],
+  };
+}
 function HudCaptureIndicator({
   captured,
   releaseButtonRef,
@@ -79,141 +154,47 @@ function HudCaptureIndicator({
         {captured ? "Release capture" : "Engage capture"}
       </button>
       <span id="capture-desc" className="release-hint">
-        {captured
-          ? "Keys go to the simulated surface. Tab leaves it."
-          : "Released: keys stay in the page."}
+        {captured ? "Keys go to the simulated surface. Tab leaves it." : "Keys stay in the page."}
       </span>
     </div>
   );
 }
 
-function LevelOneMission({
-  memoRead,
-  assignmentAccepted,
-}: {
-  readonly memoRead: boolean;
-  readonly assignmentAccepted: boolean;
-}): JSX.Element {
-  if (!memoRead) {
-    return (
-      <HudStep
-        badge="Objective 1 of 2"
-        heading="Review the source-handling memo in the right pane."
-        instruction={
-          <>
-            Shortcut: <kbd>Ctrl+B</kbd> then <kbd>O</kbd> (or <kbd>L</kbd>) to cycle pane focus
-          </>
-        }
-      />
-    );
-  }
-  if (!assignmentAccepted) {
-    return (
-      <HudStep
-        badge="Objective 2 of 2"
-        heading="Return to the assignment pane and accept the cooperative assignment."
-        instruction={
-          <>
-            Shortcut: <kbd>Ctrl+B</kbd> then <kbd>H</kbd> to return to left pane
-          </>
-        }
-      />
-    );
-  }
-  return (
-    <HudStep
-      badge="✓ Objectives Met"
-      heading="Assignment accepted. Origin verified. Desk ready for filing."
-      complete
-    />
-  );
-}
-
-function LevelTwoMission({
-  artifactExamined,
-}: {
-  readonly artifactExamined: boolean;
-}): JSX.Element {
-  if (!artifactExamined) {
-    return (
-      <HudStep
-        badge="Level 2 Objective"
-        heading="Create a new tab and examine the supplied goods artifact."
-        instruction={
-          <>
-            Shortcut: <kbd>Ctrl+B</kbd> <kbd>C</kbd> (new tab), <kbd>Ctrl+B</kbd> <kbd>Shift+T</kbd>{" "}
-            (rename)
-          </>
-        }
-      />
-    );
-  }
-  return (
-    <HudStep
-      badge="✓ Level 2 Complete"
-      heading="Artifact examined. Evidence docket updated."
-      complete
-    />
-  );
-}
-
-function HudMission({
-  level,
-  memoRead,
-  assignmentAccepted,
-  artifactExamined,
-}: {
-  readonly level: number;
-  readonly memoRead: boolean;
-  readonly assignmentAccepted: boolean;
-  readonly artifactExamined: boolean;
-}): JSX.Element {
-  return (
-    <div className="game-hud-mission">
-      {level === 1 ? (
-        <LevelOneMission memoRead={memoRead} assignmentAccepted={assignmentAccepted} />
-      ) : level === 2 ? (
-        <LevelTwoMission artifactExamined={artifactExamined} />
-      ) : (
-        <HudStep badge="Level 3 Objective" heading="Split panes and complete the interview." />
-      )}
-    </div>
-  );
-}
-
-export function GameHud({
-  releaseButtonRef,
-  level,
-  objectives,
-  hints,
-  hintsUsed,
-  memoRead,
-  assignmentAccepted,
-  artifactExamined,
-  captured,
-  accessible,
-  onRequestHint,
-  onToggleCapture,
-  onSetAccessible,
-}: GameHudProps): JSX.Element {
-  const metCount = objectives.filter((o) => o.met).length;
+export function GameHud(props: GameHudProps): JSX.Element {
+  const {
+    releaseButtonRef,
+    level,
+    objectives,
+    hints,
+    hintsUsed,
+    captured,
+    accessible,
+    onReturnToTitle,
+    onRequestHint,
+    onToggleCapture,
+    onSetAccessible,
+  } = props;
+  const { objective, why, steps } = mission(level, props);
+  const nextStep = steps.findIndex((step) => !step.complete);
+  const metCount = objectives.filter((objective) => objective.met).length;
 
   return (
-    <header className="game-hud" aria-label="Investigation Desk HUD">
+    <header className="game-hud" aria-label="Investigation objectives">
       <div className="game-hud-top">
         <div className="game-hud-brand">
-          <span className="game-hud-kicker">Cooperative Intelligence Desk</span>
           <h1 className="game-hud-title">Episode I · Level {level}</h1>
-          <span className="hud-sep" aria-hidden="true">
-            ·
-          </span>
+          {onReturnToTitle ? (
+            <button
+              type="button"
+              className="hud-return-btn"
+              onClick={onReturnToTitle}
+              title="Return to title"
+            >
+              Title
+            </button>
+          ) : null}
           <p className="objectives-quiet" aria-live="polite">
-            {metCount > 0
-              ? `Objectives met: ${objectives
-                  .filter((o) => o.met)
-                  .map((o) => o.id)
-                  .join(", ")}`
-              : "No objectives met yet."}
+            {metCount} of {objectives.length} Herdr skills shown
           </p>
         </div>
 
@@ -223,80 +204,61 @@ export function GameHud({
             releaseButtonRef={releaseButtonRef}
             onToggleCapture={onToggleCapture}
           />
-
           <label className="hud-access-toggle">
             <input
               type="checkbox"
               checked={accessible}
-              onChange={(e) => onSetAccessible(e.target.checked)}
+              onChange={(event) => onSetAccessible(event.target.checked)}
             />
             Accessible navigation
           </label>
-
           <details className="hints-quiet">
-            <summary>Hints (optional{hintsUsed > 0 ? ", recorded" : ""})</summary>
+            <summary>Hints{hintsUsed > 0 ? " (used)" : " (optional)"}</summary>
             <div className="hints-body">
-              {hints.length > 0 ? (
-                <ol>
-                  {hints.map((hint, index) => (
-                    <li key={index}>{hint}</li>
-                  ))}
-                </ol>
-              ) : (
-                <p>Requesting a hint records assistance — never punishment.</p>
-              )}
+              <ol>
+                {hints.map((hint, index) => (
+                  <li key={index}>{hint}</li>
+                ))}
+              </ol>
               <button type="button" onClick={onRequestHint}>
-                <span className="key-badge" aria-hidden="true">
-                  H
-                </span>{" "}
                 Request a hint
               </button>
-            </div>
-          </details>
-
-          <details className="hud-shortcuts-menu">
-            <summary>Shortcuts</summary>
-            <div className="hud-shortcuts-popover">
-              <p className="hud-popover-title">Herdr TUI Shortcuts</p>
-              <div className="hud-shortcut-row">
-                <span className="hud-shortcut-desc">Prefix chord</span>
-                <kbd>Ctrl+B</kbd>
-              </div>
-              <div className="hud-shortcut-row">
-                <span className="hud-shortcut-desc">Switch pane</span>
-                <span>
-                  <kbd>Ctrl+B</kbd> <kbd>O</kbd>
-                </span>
-              </div>
-              <div className="hud-shortcut-row">
-                <span className="hud-shortcut-desc">Directional focus</span>
-                <span>
-                  <kbd>Ctrl+B</kbd> <kbd>H</kbd> / <kbd>L</kbd>
-                </span>
-              </div>
-              <div className="hud-shortcut-row">
-                <span className="hud-shortcut-desc">Help modal</span>
-                <span>
-                  <kbd>Ctrl+B</kbd> <kbd>?</kbd>
-                </span>
-              </div>
-              <div className="hud-shortcut-row">
-                <span className="hud-shortcut-desc">New tab</span>
-                <span>
-                  <kbd>Ctrl+B</kbd> <kbd>C</kbd>
-                </span>
-              </div>
             </div>
           </details>
         </div>
       </div>
 
-      <HudMission
-        level={level}
-        memoRead={memoRead}
-        assignmentAccepted={assignmentAccepted}
-        artifactExamined={artifactExamined}
-      />
+      <section className="game-hud-mission" aria-labelledby="mission-objective">
+        <p id="mission-objective" className="mission-why">
+          <strong>Objective:</strong> {objective}
+        </p>
+        <p className="mission-why">
+          <strong>Why:</strong> {why}
+        </p>
+        <ol className="mission-steps">
+          {steps.map((step, index) => {
+            const complete = step.complete || props.responseReady;
+            return (
+              <li
+                key={step.label}
+                className={complete ? "mission-step is-complete" : "mission-step"}
+                aria-label={complete ? `Complete: ${step.label}` : step.label}
+              >
+                {complete ? (
+                  <s>{step.label}</s>
+                ) : (
+                  <>
+                    <span className="hud-step-heading">{step.label}</span>
+                    {step.instruction && (accessible || index === nextStep) ? (
+                      <span className="hud-step-instruction">{step.instruction}</span>
+                    ) : null}
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
     </header>
   );
 }

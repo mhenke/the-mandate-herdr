@@ -8,65 +8,84 @@ import type { InputEvent } from "../src/core/herdr";
 
 describe("toInputEvent", () => {
   it("translates Ctrl+B to the prefix combo", () => {
-    const result = toInputEvent({
-      key: "b",
-      code: "KeyB",
-      ctrlKey: true,
-      altKey: false,
-      shiftKey: false,
-      metaKey: false,
-      repeat: false,
-    });
-    expect(result.handled).toBe(true);
-    expect(result.event).toMatchObject({ key: "b", modifiers: ["ctrl"], phase: "press" });
+    const result = toInputEvent(
+      {
+        key: "b",
+        code: "KeyB",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        repeat: false,
+      },
+      { attached: true, mode: "terminal", overlay: null },
+    );
+    expect(result).toMatchObject({ key: "b", modifiers: ["ctrl"], phase: "press" });
   });
 
   it("marks repeats without dropping them (core classifies repeats)", () => {
-    const result = toInputEvent({
-      key: "a",
-      code: "KeyA",
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: false,
-      metaKey: false,
-      repeat: true,
-    });
-    expect(result.handled).toBe(true);
-    expect(result.event).toMatchObject({ phase: "repeat" });
+    const result = toInputEvent(
+      {
+        key: "a",
+        code: "KeyA",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        repeat: true,
+      },
+      null,
+    );
+    expect(result).toMatchObject({ phase: "repeat" });
   });
 
-  it("consumes modifier-only reports without a core event", () => {
-    const result = toInputEvent({
-      key: "Shift",
-      code: "ShiftLeft",
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: true,
-      metaKey: false,
-      repeat: false,
-    });
-    expect(result).toEqual({ event: null, handled: true });
+  it("leaves modifier-only reports with the browser", () => {
+    const result = toInputEvent(
+      {
+        key: "Shift",
+        code: "ShiftLeft",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        metaKey: false,
+        repeat: false,
+      },
+      null,
+    );
+    expect(result).toBeNull();
   });
 
-  it("leaves reserved Ctrl+W with the browser (handled=false)", () => {
-    const result = toInputEvent({
-      key: "w",
-      code: "KeyW",
-      ctrlKey: true,
-      altKey: false,
-      shiftKey: false,
-      metaKey: false,
-      repeat: false,
-    });
-    expect(result).toEqual({ event: null, handled: false });
+  it.each(["r", "R", "w", "t", "l", "h", "v"])("leaves Control+%s with the browser", (key) => {
+    const result = toInputEvent(
+      {
+        key,
+        code: `Key${key.toUpperCase()}`,
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: key === "R",
+        metaKey: false,
+        repeat: false,
+      },
+      { attached: true, mode: "terminal", overlay: null },
+    );
+    expect(result).toBeNull();
   });
 });
+
+function submit(session: ReturnType<typeof createInvestigationSession>, text: string) {
+  for (const key of [...text, "enter"]) {
+    session.dispatch({ kind: "key", origin: "player", key, modifiers: [], phase: "press" });
+  }
+}
+
+function startHerdr(session: ReturnType<typeof createInvestigationSession>) {
+  submit(session, "herdr");
+}
 
 describe("workspace host blur through the runtime", () => {
   it("voids a pending prefix and records the void", () => {
     const session = createInvestigationSession();
-    session.newInvestigation();
-    session.skipPresentation();
+    startHerdr(session);
     session.dispatch({
       kind: "key",
       origin: "player",
@@ -74,7 +93,7 @@ describe("workspace host blur through the runtime", () => {
       modifiers: ["ctrl"],
       phase: "press",
     });
-    const entry = session.dispatch({ kind: "host", origin: "host", host: "blur" });
+    const entry = session.dispatch({ kind: "host", origin: "host", host: "blur" })?.entry;
     expect(entry?.action).toBe("prefix-voided");
   });
 });
@@ -88,11 +107,9 @@ describe("development reload recovery", () => {
     phase: "press",
   });
 
-  it("returns null on a fresh title and restores a suspended investigation", () => {
+  it("restores a suspended investigation from the title", () => {
     const first = createInvestigationSession();
-    expect(first.serializeRecovery()).toBeNull();
-    first.newInvestigation();
-    first.skipPresentation();
+    startHerdr(first);
     first.returnToTitle();
     const json = first.serializeRecovery();
     expect(json).not.toBeNull();
@@ -102,20 +119,11 @@ describe("development reload recovery", () => {
     expect(second.getSnapshot().canContinue).toBe(true);
   });
 
-  it("replays the workspace exactly, seeded documents included, without new credit", () => {
+  it("restores player-retrieved documents and agent history without new credit", () => {
     const first = createInvestigationSession();
-    first.newInvestigation();
-    first.skipPresentation();
-    first.dispatch(key("b"));
-    first.dispatch({
-      kind: "key",
-      origin: "player",
-      key: "?",
-      modifiers: ["ctrl"],
-      phase: "press",
-    });
-    // Accessible modality: chrome clicks are allowed and journaled, so the
-    // recovery replay reproduces the same state — but they never grant mastery.
+    startHerdr(first);
+    submit(first, "claude");
+    submit(first, "Find the source-handling memo.");
     first.setAccessibleMode(true);
     first.dispatchChrome({ action: "new-tab" });
     first.dispatch(key("escape"));
@@ -130,11 +138,16 @@ describe("development reload recovery", () => {
     expect(after.assessment).toEqual(before.assessment);
     expect(after.objectivesMet).toBe(false);
     expect(after.inputPolicy).toBe("accessible");
-    // Seeded documents live in the journaled process events: replay restores them.
-    const memo = after.herdr.workspaces[0]?.tabs[0]?.panes.find((p) => p.app === "memo");
-    expect(memo?.output.some((line) => line.includes("Verify origin"))).toBe(true);
+    expect(after.application).toEqual(before.application);
+    expect(after.application.readReceipts).toContainEqual({
+      documentId: "CPA-01A",
+      paneId: before.herdr.workspaces[0]?.tabs[0]?.panes[0]?.id,
+    });
+    expect(after.herdr.workspaces[0]?.tabs[0]?.panes[0]?.output).toContain(
+      "SOURCE-HANDLING MEMORANDUM // CPA-01A",
+    );
     // The restored session keeps accepting input deterministically.
-    const entry = second.dispatch(key("x"));
+    const entry = second.dispatch(key("x"))?.entry;
     expect(entry?.playerAction).toBe(true);
   });
 
@@ -149,6 +162,6 @@ describe("development reload recovery", () => {
         JSON.stringify({ version: 2, phase: "workspace", suspendedPhase: "title" }),
       ),
     ).toBe(false);
-    expect(session.getSnapshot().phase).toBe("title");
+    expect(session.getSnapshot().phase).toBe("workspace");
   });
 });

@@ -1,14 +1,19 @@
-// Theatrical L1 shell: title -> cold open -> episode -> briefing ->
-// workspace -> earned response. React renders the runtime view model only;
-// every transition comes from the session's methods. Escape stays
-// core-owned inside the simulated surface; the external release control is
-// the separate accessible capture control.
+// The player starts in a terminal. Cinematics remain optional and skippable.
+// React renders committed state; Herdr owns workspace and key behavior.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
+import type { ApplicationState } from "./core/applications";
 import { createInvestigationSession, RECOVERY_STORAGE_KEY } from "./adapters/investigation-session";
 import { pathToPhase, phaseToPath, PHASE_TITLES } from "./adapters/navigation";
 import { toInputEvent } from "./adapters/herdr-browser";
-import { MandatePreview, type KeyboardToast } from "./ui/MandatePreview";
+import { MandatePreview, type KeyboardToast, type PreviewKeyInput } from "./ui/MandatePreview";
 import { GameHud } from "./ui/GameHud";
 import { useInvestigationSnapshot } from "./ui/useHerdrSnapshot";
 import {
@@ -36,22 +41,51 @@ const COLD_OPEN_TRANSCRIPT =
   "SOURCE-HANDLING MEMORANDUM: verify origin · preserve attribution · no assumed confirmation. " +
   "Your desk is live.";
 
+function StartupTerminal({
+  application,
+  workspaceName,
+  captured,
+  onPreviewKey,
+}: {
+  readonly application: ApplicationState;
+  readonly workspaceName: string | undefined;
+  readonly captured: boolean;
+  readonly onPreviewKey: (input: PreviewKeyInput) => boolean;
+}) {
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (captured && onPreviewKey(event)) event.preventDefault();
+  };
+  const history = application.terminal.output.slice(0, -1);
+  const prompt = application.terminal.output.at(-1) ?? "$ ";
+  return (
+    <section
+      className="terminal-boot"
+      data-surface="true"
+      tabIndex={0}
+      role="region"
+      aria-label="Terminal. Type herdr and press Enter to start."
+      onKeyDown={handleKeyDown}
+    >
+      <pre className="terminal-boot-history">{history.join("\n")}</pre>
+      <p className="terminal-boot-line">
+        {workspaceName ? (
+          <span className="terminal-boot-path">~/Projects/{workspaceName} </span>
+        ) : null}
+        {prompt}
+        {application.terminal.input}
+        <span className="term-cursor" aria-hidden="true">
+          ▊
+        </span>
+      </p>
+    </section>
+  );
+}
+
 function usePhaseNavigation(
   session: ReturnType<typeof createInvestigationSession>,
   phase: string,
 ): void {
   const isPopStateRef = useRef(false);
-
-  const initialPhase = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return pathToPhase(window.location.pathname, window.location.hash, import.meta.env.BASE_URL);
-  }, []);
-
-  useEffect(() => {
-    if (initialPhase && initialPhase !== "title") {
-      session.goToPhase(initialPhase);
-    }
-  }, [session, initialPhase]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -82,7 +116,11 @@ function usePhaseNavigation(
     }
 
     const currentPath = window.location.pathname;
-    if (phase === "not-found") {
+    if (
+      phase === "not-found" ||
+      (currentPath !== targetPath &&
+        pathToPhase(currentPath, window.location.hash, import.meta.env.BASE_URL) === phase)
+    ) {
       window.history.replaceState({ phase }, "", targetPath);
     } else if (currentPath !== targetPath) {
       window.history.pushState({ phase }, "", targetPath);
@@ -101,6 +139,14 @@ export function App() {
     if (import.meta.env.DEV && typeof sessionStorage !== "undefined") {
       const saved = sessionStorage.getItem(RECOVERY_STORAGE_KEY);
       if (saved) created.restoreRecovery(saved);
+    }
+    if (typeof window !== "undefined") {
+      const phase = pathToPhase(
+        window.location.pathname,
+        window.location.hash,
+        import.meta.env.BASE_URL,
+      );
+      if (phase) created.goToPhase(phase);
     }
     return created;
   }, []);
@@ -141,35 +187,23 @@ export function App() {
     [],
   );
 
-  // After a scene action the runtime commits new state; restore DOM focus to
-  // the surface so subsequent real keys keep routing to the simulation.
   const focusSurface = useCallback(() => {
     surfaceHostRef.current?.querySelector<HTMLElement>("[data-surface]")?.focus();
   }, []);
-
-  const handleReadMemo = useCallback(() => {
-    session.storyAction("read-memo");
-    focusSurface();
-  }, [session, focusSurface]);
-
-  const handleAcknowledge = useCallback(() => {
-    session.storyAction("acknowledge-assignment");
-    focusSurface();
-  }, [session, focusSurface]);
-
-  const handleExamineArtifact = useCallback(() => {
-    session.storyAction("examine-artifact");
-    focusSurface();
-  }, [session, focusSurface]);
 
   const handleRequestHint = useCallback(() => {
     session.requestHint();
     focusSurface();
   }, [session, focusSurface]);
 
+  const handleReturnToTitle = useCallback(() => {
+    session.returnToTitle();
+  }, [session]);
+
   const engage = useCallback(() => {
     setCaptured(true);
-  }, []);
+    focusSurface();
+  }, [focusSurface]);
 
   const release = useCallback(() => {
     setCaptured(false);
@@ -191,39 +225,21 @@ export function App() {
   // Scenes cut, never scroll the page into motion; move DOM focus to the
   // scene heading for screen-reader and keyboard users on each phase change.
   useEffect(() => {
-    sceneTopRef.current?.focus();
-  }, [snapshot.phase]);
+    if (snapshot.phase === "workspace") focusSurface();
+    else sceneTopRef.current?.focus();
+  }, [focusSurface, snapshot.phase, snapshot.application.herdrLaunched]);
 
   const handlePreviewKey = useCallback(
-    (input: {
-      readonly key: string;
-      readonly code: string;
-      readonly ctrlKey: boolean;
-      readonly altKey: boolean;
-      readonly shiftKey: boolean;
-      readonly metaKey: boolean;
-      readonly repeat: boolean;
-    }) => {
-      // Plain Tab never reaches the runtime — it moves DOM focus so keyboard
-      // users can always reach the release control. This is a browser
-      // accessibility constraint of this preview, not authentic upstream
-      // behavior (Herdr binds prefix+Tab to cycle panes). Escape stays
-      // core-owned inside the captured surface.
-      if (input.key === "Tab") return;
-      const { event, handled } = toInputEvent(input);
-      if (!handled) return;
-      if (!event) return;
-      session.dispatch(event);
+    (input: PreviewKeyInput) => {
+      const { application, herdr } = session.getSnapshot();
+      const event = toInputEvent(input, application.herdrLaunched ? herdr : null);
+      return event ? (session.dispatch(event)?.consumed ?? false) : false;
     },
     [session],
   );
 
   const inWorkspace = snapshot.phase === "workspace";
   const showChrome = inWorkspace || snapshot.phase === "response";
-  const herdr = snapshot.herdr;
-  const activeWorkspace = herdr.workspaces.find((w) => w.id === herdr.activeWorkspaceId);
-  const activeTab = activeWorkspace?.tabs.find((t) => t.id === activeWorkspace.activeTabId);
-  const focusedApp = activeTab?.panes.find((p) => p.id === activeTab.focusedPaneId)?.app ?? null;
 
   const coldOpenTranscript = useMemo(() => COLD_OPEN_TRANSCRIPT, []);
 
@@ -238,7 +254,6 @@ export function App() {
       if (!session.dispatchChrome({ action: "select-workspace", workspaceId })) {
         showReminder({
           chord: "Ctrl+B W",
-          altChord: "Ctrl+B N",
           action: "to navigate workspaces",
         });
         if (captured) focusSurface();
@@ -281,8 +296,7 @@ export function App() {
     (paneId: string) => {
       if (!session.dispatchChrome({ action: "focus-pane", paneId })) {
         showReminder({
-          chord: "Ctrl+B O",
-          altChord: "Ctrl+B H/L",
+          chord: "Ctrl+B H/J/K/L",
           action: "to switch panes",
         });
         if (captured) focusSurface();
@@ -353,34 +367,37 @@ export function App() {
             objectives={snapshot.assessment.objectives}
             hints={snapshot.presentation.hints}
             hintsUsed={snapshot.assessment.hintsUsed}
-            focusedApp={focusedApp}
-            memoRead={snapshot.story.events.includes("SE-L1-assignment")}
-            assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
-            artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
+            application={snapshot.application}
+            story={snapshot.story}
+            responseReady={snapshot.phase === "response"}
             captured={captured && inWorkspace}
             accessible={snapshot.inputPolicy === "accessible"}
+            onReturnToTitle={handleReturnToTitle}
             onRequestHint={handleRequestHint}
             onToggleCapture={captured ? release : engage}
             onSetAccessible={(on) => session.setAccessibleMode(on)}
           />
           <div className="terminal" ref={surfaceHostRef}>
-            <MandatePreview
-              snapshot={herdr}
-              captured={captured && inWorkspace}
-              reminder={reminder}
-              focusedApp={focusedApp}
-              assignmentAccepted={snapshot.story.flags.includes("assignment-accepted")}
-              memoRead={snapshot.story.events.includes("SE-L1-assignment")}
-              artifactExamined={snapshot.story.events.includes("SE-L2-artifact")}
-              onPreviewKey={handlePreviewKey}
-              onReadMemo={handleReadMemo}
-              onAcknowledgeAssignment={handleAcknowledge}
-              onExamineArtifact={handleExamineArtifact}
-              onSelectWorkspace={handleSelectWorkspace}
-              onSelectTab={handleSelectTab}
-              onNewTab={handleNewTab}
-              onFocusPane={handleFocusPane}
-            />
+            {snapshot.application.herdrLaunched ? (
+              <MandatePreview
+                snapshot={snapshot.herdr}
+                paneInputs={snapshot.application.paneInputs}
+                captured={captured && inWorkspace}
+                reminder={reminder}
+                onPreviewKey={handlePreviewKey}
+                onSelectWorkspace={handleSelectWorkspace}
+                onSelectTab={handleSelectTab}
+                onNewTab={handleNewTab}
+                onFocusPane={handleFocusPane}
+              />
+            ) : (
+              <StartupTerminal
+                workspaceName={snapshot.herdr.workspaces[0]?.name}
+                application={snapshot.application}
+                captured={captured && inWorkspace}
+                onPreviewKey={handlePreviewKey}
+              />
+            )}
           </div>
         </div>
       ) : null}

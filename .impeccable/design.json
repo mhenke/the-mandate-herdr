@@ -19,7 +19,7 @@
           "#edeef0"
         ]
       },
-      "action-gold": {
+      "primary": {
         "role": "primary",
         "displayName": "Muted Action Gold",
         "canonical": "#e8b53a",
@@ -34,7 +34,7 @@
           "#faedd4"
         ]
       },
-      "action-text": {
+      "on-primary": {
         "role": "neutral",
         "displayName": "Action Ink",
         "canonical": "#171204",
@@ -124,6 +124,30 @@
           "#edeef2"
         ]
       },
+      "terminal-muted": {
+        "role": "secondary",
+        "displayName": "Terminal Muted Text",
+        "canonical": "#9aa4b0",
+        "tonalRamp": ["#0b0d10", "#23262b", "#3d424a", "#585e68", "#737b86", "#929aa6", "#b9c0c9", "#eff1f3"]
+      },
+      "terminal-bright": {
+        "role": "neutral",
+        "displayName": "Terminal Bright Text",
+        "canonical": "#e6edf3",
+        "tonalRamp": ["#0a0b0c", "#202224", "#393c3f", "#55585c", "#72767a", "#909498", "#b9bec3", "#f1f3f5"]
+      },
+      "terminal-border": {
+        "role": "neutral",
+        "displayName": "Terminal Border",
+        "canonical": "#3e4452",
+        "tonalRamp": ["#090a0c", "#1e2025", "#363941", "#51545e", "#6e717b", "#8b8e99", "#b4b6c0", "#edeef1"]
+      },
+      "terminal-inverse": {
+        "role": "neutral",
+        "displayName": "Terminal Inverse Text",
+        "canonical": "#181825",
+        "tonalRamp": ["#0a0b10", "#20212a", "#393948", "#535463", "#6f7080", "#8d8d9f", "#b5b6c8", "#eeeef3"]
+      },
       "focus-blue": {
         "role": "tertiary",
         "displayName": "Restrained Steel Blue",
@@ -186,6 +210,10 @@
       "navigation": {
         "displayName": "Terminal Navigation",
         "purpose": "Tab labels and compact Herdr navigation controls."
+      },
+      "action": {
+        "displayName": "Narrative Action",
+        "purpose": "Primary story actions."
       }
     },
     "shadows": [
@@ -225,14 +253,14 @@
       "refersTo": "narrative-primary",
       "description": "Gold monospace action used by narrative scenes.",
       "html": "<button class=\"ds-narrative-primary\">New investigation</button>",
-      "css": ".ds-narrative-primary { background: #e8b53a; color: #171204; border: 1px solid #e8b53a; border-radius: 4px; padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; } .ds-narrative-primary:hover { background: #f2c659; border-color: #f2c659; } .ds-narrative-primary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
+      "css": ".ds-narrative-primary { background: var(--color-primary); color: var(--color-on-primary); border: 1px solid var(--color-primary); border-radius: var(--radius-story); padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; } .ds-narrative-primary:hover { background: #f2c659; border-color: #f2c659; } .ds-narrative-primary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
     },
     {
       "name": "Narrative Secondary Action",
       "kind": "button",
       "description": "Transparent supporting action with warm muted emphasis.",
       "html": "<button class=\"ds-narrative-secondary\">Skip to the workspace</button>",
-      "css": ".ds-narrative-secondary { background: transparent; color: #f0d48a; border: 1px solid rgba(232, 181, 58, 0.65); border-radius: 4px; padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-narrative-secondary:hover { background: #f2c659; } .ds-narrative-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
+      "css": ".ds-narrative-secondary { background: transparent; color: var(--color-warm-muted); border: 1px solid rgba(232, 181, 58, 0.65); border-radius: var(--radius-story); padding: 12px 28px; font: 400 15px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-narrative-secondary:hover { background: #f2c659; } .ds-narrative-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }"
     },
     {
       "name": "Game HUD Capture Control",
@@ -247,21 +275,28 @@
       "refersTo": "terminal-active-tab",
       "description": "Square active tab using the simulated terminal's blue selection color.",
       "html": "<button class=\"ds-herdr-tab ds-herdr-tab-active\" aria-current=\"page\">1</button>",
-      "css": ".ds-herdr-tab { border: 0; border-right: 1px solid #3e4452; border-radius: 0; background: #21252b; color: #7d8894; padding: 5.6px 14.4px; font: 400 13px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-herdr-tab-active { background: #89b4fa; color: #181825; font-weight: 700; } .ds-herdr-tab:focus-visible { outline: 1px solid #89b4fa; outline-offset: -1px; }"
+      "css": ".ds-herdr-tab { border: 0; border-right: 1px solid var(--color-terminal-border); border-radius: 0; background: var(--color-terminal-chrome); color: var(--color-terminal-muted); padding: 5.6px 14.4px; font: 400 13px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-herdr-tab-active { background: var(--color-focus-blue); color: var(--color-terminal-inverse); font-weight: 700; } .ds-herdr-tab:focus-visible { outline: 1px solid var(--color-focus-blue); outline-offset: -1px; }"
     },
     {
       "name": "Herdr Focused Pane",
       "kind": "custom",
       "description": "Flat terminal pane with a blue boundary and restrained focus glow.",
       "html": "<section class=\"ds-herdr-pane ds-herdr-pane-focused\"><header>Workspace</header><p>Terminal content</p></section>",
-      "css": ".ds-herdr-pane { overflow: hidden; border: 1px solid #4b5263; border-radius: 3px; background: #282c34; color: #abb2bf; font: 400 14px/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; } .ds-herdr-pane header { padding: 5.6px 12px; background: #21252b; border-bottom: 1px solid #3e4452; color: #dcdfe4; font-size: 12px; font-weight: 700; } .ds-herdr-pane p { margin: 0; padding: 13.6px 18.4px; } .ds-herdr-pane-focused { border: 2px solid #89b4fa; box-shadow: 0 0 16px rgba(137, 180, 250, 0.18); }"
+      "css": ".ds-herdr-pane { overflow: hidden; border: 1px solid #4b5263; border-radius: var(--radius-pane); background: var(--color-terminal-surface); color: var(--color-terminal-text); font: 400 14px/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; } .ds-herdr-pane header { padding: 5.6px 12px; background: var(--color-terminal-chrome); border-bottom: 1px solid var(--color-terminal-border); color: #dcdfe4; font-size: 12px; font-weight: 700; } .ds-herdr-pane p { margin: 0; padding: 13.6px 18.4px; } .ds-herdr-pane-focused { border: 2px solid var(--color-focus-blue); box-shadow: 0 0 16px rgba(137, 180, 250, 0.18); }"
     },
     {
       "name": "Objective Badge",
       "kind": "chip",
       "description": "Compact uppercase gold badge for the active game objective.",
       "html": "<span class=\"ds-objective-badge\">OBJECTIVE 1 OF 2</span>",
-      "css": ".ds-objective-badge { display: inline-block; background: rgba(232, 181, 58, 0.12); color: #e8b53a; border: 1px solid rgba(232, 181, 58, 0.35); border-radius: 3.2px; padding: 1.28px 6.4px; font: 700 10px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; }"
+      "css": ".ds-objective-badge { display: inline-block; background: rgba(232, 181, 58, 0.12); color: var(--color-primary); border: 1px solid rgba(232, 181, 58, 0.35); border-radius: 3.2px; padding: 1.28px 6.4px; font: 700 10px/1.2 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Accessible Navigation Toggle",
+      "kind": "input",
+      "description": "Native checkbox paired with the compact accessible-navigation label in the game HUD.",
+      "html": "<label class=\"ds-access-toggle\"><input type=\"checkbox\"> Accessible navigation</label>",
+      "css": ".ds-access-toggle { display: inline-flex; align-items: center; gap: 4.8px; color: #8b949e; font: 400 11px ui-monospace, 'SF Mono', Menlo, Consolas, monospace; cursor: pointer; } .ds-access-toggle input { margin: 0; cursor: pointer; }"
     }
   ],
   "narrative": {

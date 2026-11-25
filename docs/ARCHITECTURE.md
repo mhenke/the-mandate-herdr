@@ -1,10 +1,10 @@
 # Architecture
 
-Status: proposed, refined by M0 approval and the technology selection (ADR-0004). No gameplay content beyond the authorized milestones exists; dependency installation awaits M2 approval.
+Milestone 2 authorizes L1–L3. Later levels remain design contracts. `IMPLEMENTATION_PLAN.md` records the gate and its evidence requirements.
 
 ## Decision and alternatives
 
-Recommend a static HTTPS browser application with a deterministic simulation core. **Presentation is React 19 with CSS Modules and CSS custom properties** (selected per ADR-0004, replacing the earlier "native DOM first, React not required" default): React renders committed view models and owns no authoritative simulation, narrative, or assessment state. TypeScript 5.9 strict supplies domain contracts. A feasibility study remains a gate before content implementation (M1); no browser/OS/layout/assistive-technology combination is verified as supported.
+The game is a static browser application with deterministic TypeScript state and React presentation. React renders committed snapshots. It owns no authoritative simulation, narrative, or assessment state. The published keyboard envelope is in `FEASIBILITY_KEYBOARD.md`.
 
 | Alternative | Benefits | Costs and decision |
 |---|---|---|
@@ -21,9 +21,9 @@ The game models a declared, pinned Herdr subset around fictional applications. I
 | Boundary | Owns | Excludes |
 |---|---|---|
 | Herdr simulation | Hierarchy, split tree, modes, bindings, logical focus, attachment, agent detection/status behavior | Plot, hints, grading, DOM focus |
-| Fictional applications | Allowlisted commands, fictional records, process output and activity | Real shell, host filesystem, invented Herdr actions |
+| Fictional applications (`src/core/applications`) | Simulated shell, pane-local Claude sessions, shared fictional documents, allowlisted commands and tool effects | Real shell, live services, credentials, host files, Herdr navigation |
 | Narrative | Facts, discoveries, character knowledge, causal consequences, one-shot/re-entry triggers | Navigation rules and keyboard-credit fabrication |
-| Learning | Objectives, accepted action/state evidence, attempts, assistance and modality | Story completion as proof of skill |
+| Learning | Only Herdr operation evidence, attempts, assistance, and modality | Claude prompts, MCP use, case reasoning, story completion as proof of skill |
 | Presentation/accessibility | Authentic visual projection, transcript, external controls, announcements | Authoritative domain state |
 | Host/persistence adapters | Browser input, permissions, visibility, storage, clipboard results | Unrecorded domain decisions |
 
@@ -54,7 +54,7 @@ Unknown source branches block the relevant lesson. They are not opportunities to
 
 Herdr's default is `Ctrl+B`, release, then an action key [H1]. `prefix+w` is therefore different from simultaneous `Ctrl+W`. Chrome assigns tab close to `Ctrl+W` on Windows/Linux and `Command+W` on macOS [B1]. Firefox source assigns its bookmarks-sidebar shortcut to accelerator+B [B2].
 
-Those assignments establish a conflict to investigate, not whether a particular page can cancel it. No browser/OS/layout/assistive-technology combination is verified yet.
+Those conflicts define what must be measured. `FEASIBILITY_KEYBOARD.md` distinguishes Chromium evidence from Firefox acceptance without measurement.
 
 Input must survive the operating system, assistive technology and enclosing host, then browser handling, before page code can interpret delivered events. An enclosing multiplexer may consume its prefix first. The game cannot recover an event it never receives.
 
@@ -78,7 +78,7 @@ The pending-prefix policy at this host boundary must be explicit. Never apply a 
 
 Inside capture, implement only verified Herdr modes. Tests must cover prefix press/release, valid/invalid actions, repeat prefix, held modifiers, cancel, nested cancellation, focus changes, and forwarding.
 
-An accessible keyboard-only escape from capture is mandatory. A visible button alone is insufficient if the keyboard cannot reach it. Do not hijack Escape or Tab when their authentic context requires them. The exact non-conflicting release affordance remains a feasibility blocker.
+The host release control is outside the simulated surface and reachable by keyboard. Escape inside capture belongs to Herdr. Host blur voids a pending prefix according to the published policy.
 
 ## Determinism and time
 
@@ -129,6 +129,8 @@ Never read the clipboard in the background or claim a successful copy after deni
 
 Fictional commands use reviewed allowlists and deterministic responses. No `eval`, imported scripts, real shell/SSH/PTTY launch, real Herdr control, or arbitrary URL loading. Paste never auto-executes. Fictional paths are not host filesystem paths.
 
+The newsroom preconfigures `documents.search` and `documents.read`. Their contracts live in `CLAUDE_MCP_SIMULATION.md`. Agents share records without sharing their histories. Document receipts never become learning evidence.
+
 ## Persistence and trust
 
 Propose IndexedDB for transactional checkpoints and event journals [B13], without a wrapper dependency. Save manifests identify schema, rules, Herdr commit/profile, narrative/level/learning versions, input normalization version, attempt, and committed event sequence.
@@ -152,7 +154,7 @@ Delivery is static, self-contained assets over HTTPS on **GitHub Pages via GitHu
 - **Boundary enforcement:** ESLint import restrictions plus a bare-Node import test prove `src/core/*` runs without React, DOM, or adapters — TypeScript interfaces alone do not stop an agent from violating the state-ownership table above.
 - **Visual regression:** Playwright screenshot comparisons with fixed viewports, seeded states, deterministic fonts. Interface baselines are captured from a real build of the pinned upstream Herdr (M2) and pinned with their commit; the illustrative images in `assets/reference/` (a community fork, a third-party product) are never baselines or authority. A baseline update requires recorded justification and reviewer sign-off.
 - **Automated accessibility floor:** @axe-core/playwright in the Playwright runs; a floor that never substitutes for the manual audits in the presentation section.
-- **CI gates and dependency security:** typecheck, lint (ESLint + Stylelint + Prettier), unit/property tests, Playwright smoke + visual, Knip + fallow with recorded baselines, vulnerability gate, Dependabot, Actions pinned to immutable SHAs, branch protection with required checks. StrykerJS runs scheduled/manual in report-only mode first (policy in TECH_STACK).
+- **Verification:** Follow `AGENT_WORKFLOW.md` on `main`. Run typecheck, lint, unit/property tests, and browser tests for presentation changes. Keep the scheduled and manual tooling policies in `TECH_STACK.md`.
 - **Agent workflow:** `docs/AGENT_WORKFLOW.md` is the contract for agent contributions; its prohibitions are review failures.
 
 No runtime performance was measured. After authorization, establish budgets on named hardware and a worst-case scene: input-transition latency, dropped/duplicate/misrouted actions, render long tasks with effects/zoom/transcript, output/log growth, persistence latency, and bounded import/replay.
@@ -204,4 +206,4 @@ Web-platform references describe APIs; they are not project runtime results.
 | A4 | [WCAG interaction animation](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html) |
 | A5 | [WCAG resize text](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html) |
 
-Unverified: browser capture, capture-release gesture, clipboard envelope, runtime performance, accessibility conformance, learner transfer, and final cross-document reconciliation. These remain release blockers, not completed tests.
+Release claims about browser support, clipboard behavior, runtime performance, accessibility conformance, and learner transfer require their own evidence.

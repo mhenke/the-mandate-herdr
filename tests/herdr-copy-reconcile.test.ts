@@ -59,6 +59,8 @@ function expectTerminalAndForwarded(s: ReturnType<typeof createStore>): void {
 describe("copy reconciliation: pane close (state.rs:1478-1490)", () => {
   it("closing the copy pane in a multi-pane tab clears copy and restores Terminal", () => {
     const s = createStore(createScenario(1));
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     enterCopy(s);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("x"));
@@ -147,6 +149,8 @@ describe("copy reconciliation: workspace switch (state.rs:1496-1503)", () => {
 describe("copy reconciliation: focus change (state.rs:1496-1503)", () => {
   it("moving focus off the copy pane clears copy and restores Terminal", () => {
     const s = createStore(createScenario(1));
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     enterCopy(s);
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("h"));

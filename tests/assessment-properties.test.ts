@@ -2,7 +2,6 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
   createAssessment,
-  declareDestination,
   objectivesMet,
   observe,
   requestHint,
@@ -129,24 +128,6 @@ describe("assessment property tests", () => {
           lastHints = assessment.hintsUsed;
         }
       }),
-    );
-  });
-
-  it("property: declareDestination updates destination without affecting objectives", () => {
-    fc.assert(
-      fc.property(
-        arbitraryLevel,
-        fc.string({ minLength: 1, maxLength: 20 }),
-        (level, destPaneId) => {
-          const initial = createAssessment(level);
-          const updated = declareDestination(initial, destPaneId);
-
-          expect(updated.declaredDestination).toBe(destPaneId);
-          expect(updated.objectives).toEqual(initial.objectives);
-          expect(updated.hintsUsed).toBe(initial.hintsUsed);
-          expect(updated.helpConsulted).toBe(initial.helpConsulted);
-        },
-      ),
     );
   });
 

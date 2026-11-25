@@ -69,7 +69,7 @@ describe("session recovery property tests", () => {
           expect(afterSnapshot.phase).toBe(beforeSnapshot.phase);
           expect(afterSnapshot.level).toBe(beforeSnapshot.level);
           expect(afterSnapshot.inputPolicy).toBe(beforeSnapshot.inputPolicy);
-          expect(afterSnapshot.declaredDestination).toBe(beforeSnapshot.declaredDestination);
+          expect(afterSnapshot.application).toEqual(beforeSnapshot.application);
           expect(afterSnapshot.assessment.hintsUsed).toBe(beforeSnapshot.assessment.hintsUsed);
           expect(afterSnapshot.canContinue).toBe(beforeSnapshot.canContinue);
         },
@@ -107,7 +107,7 @@ describe("session recovery property tests", () => {
           const json = JSON.stringify(mutatedPayload);
           const result = session.restoreRecovery(json);
           // If version, phase, or policy are not valid, it must return false
-          const isValidVersion = mutatedPayload.version === 2;
+          const isValidVersion = mutatedPayload.version === 4;
           const isValidPhase = ALL_PHASES.includes(mutatedPayload.phase as Phase);
           const isValidSuspended = ALL_PHASES.includes(mutatedPayload.suspendedPhase as Phase);
           const isValidPolicy = ["standard", "accessible"].includes(mutatedPayload.policy);

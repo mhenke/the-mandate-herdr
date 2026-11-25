@@ -130,6 +130,8 @@ describe("chrome intents", () => {
 
   it("focus-pane activates the actual pane id in the active tab", () => {
     const store = createStore(createScenario(1));
+    store.dispatch({ kind: "key", origin: "player", key: "b", modifiers: ["ctrl"], phase: "press" });
+    store.dispatch({ kind: "key", origin: "player", key: "v", modifiers: [], phase: "press" });
     const tab = activeTab(store.getState());
     const target = tab.panes.find((p) => p.id !== tab.focusedPaneId)!;
     const entry = store.dispatch(
