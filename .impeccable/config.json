@@ -1,5 +1,10 @@
 {
   "buildPath": "code",
+  "detector": {
+    "ignoreValues": {
+      "design-system-font": ["jetbrains mono", "oswald"]
+    }
+  },
   "hook": {
     "enabled": true,
     "limits": {
