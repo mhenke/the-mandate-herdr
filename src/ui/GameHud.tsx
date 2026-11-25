@@ -99,29 +99,94 @@ function mission(
       ],
     };
   }
+  if (level === 3) {
+    return {
+      objective: "Put Park's account beside the SOC report.",
+      why: "His account may explain what happened during those five minutes.",
+      steps: [
+        {
+          label: "Split the report tab",
+          instruction:
+            "Press Ctrl+B V. Move with Ctrl+B H and Ctrl+B L. Type claude in the new pane.",
+          complete: met(objectives, "L3-O1"),
+        },
+        {
+          label: "Name the interview tab",
+          instruction: "Press Ctrl+B, then Shift+T. Clear with Ctrl+U, then type park-interview.",
+          complete: met(objectives, "L3-O2"),
+        },
+        {
+          label: "Ask Claude for Park's transcript",
+          instruction: "Ask Claude for Park's interview about LT-47B.",
+          complete: story.events.includes("SE-L3-interview"),
+        },
+        {
+          label: "Get June's update",
+          complete: responseReady,
+        },
+      ],
+    };
+  }
+  if (level === 4) {
+    return {
+      objective: "Draft and file Verifier Note VN-12.",
+      why: "Keep drafting strictly separated from your live investigation transcripts.",
+      steps: [
+        {
+          label: "Create a filing workspace",
+          instruction: "Press Ctrl+B then Shift+N. Name it filing.",
+          complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
+        },
+        {
+          label: "Split the filing tab to stage draft",
+          instruction: "Press Ctrl+B V. Move between panes with Ctrl+B H and Ctrl+B L.",
+          complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
+        },
+        {
+          label: "Draft and file VN-12 (paraphrase vs detail)",
+          instruction: "Start Claude. Ask Claude to file VN-12 with paraphrase or detail.",
+          complete: story.events.includes("SE-L4-filing"),
+        },
+        {
+          label: "Navigate back to reading workspace",
+          instruction: "Press Ctrl+B W to open navigator. Select your investigation workspace.",
+          complete: met(objectives, "L4-O1"),
+        },
+        {
+          label: "Receive submission acknowledgement",
+          complete: responseReady,
+        },
+      ],
+    };
+  }
   return {
-    objective: "Put Park's account beside the SOC report.",
-    why: "His account may explain what happened during those five minutes.",
+    objective: "Triage fresh intake batch and file finding.",
+    why: "Morning paperwork delivered INT-RECEIPT-12. Verify the intake batch independently.",
     steps: [
       {
-        label: "Split the report tab",
-        instruction:
-          "Press Ctrl+B V. Move with Ctrl+B H and Ctrl+B L. Type claude in the new pane.",
-        complete: met(objectives, "L3-O1"),
+        label: "Create triage workspace for fresh set",
+        instruction: "Organize fresh intake in its own workspace without closing previous work.",
+        complete: met(objectives, "L5-O5"),
       },
       {
-        label: "Name the interview tab",
-        instruction: "Press Ctrl+B, then Shift+T. Clear with Ctrl+U, then type park-interview.",
-        complete: met(objectives, "L3-O2"),
+        label: "Arrange and name tabs for intake records",
+        instruction: "Set up at least two named tabs for intake documents.",
+        complete: met(objectives, "L5-O1"),
       },
       {
-        label: "Ask Claude for Park's transcript",
-        instruction: "Ask Claude for Park's interview about LT-47B.",
-        complete: story.events.includes("SE-L3-interview"),
+        label: "Stage a comparison split",
+        instruction: "Split panes to compare records side-by-side.",
+        complete: met(objectives, "L5-O2"),
       },
       {
-        label: "Get June's update",
-        complete: responseReady,
+        label: "Direct input to the target pane",
+        instruction: "Ensure input focus lands in the declared pane before issuing requests.",
+        complete: met(objectives, "L5-O3"),
+      },
+      {
+        label: "File finding on fresh set",
+        instruction: "Ask Claude to retrieve intake records and compile the finding.",
+        complete: met(objectives, "L5-O4"),
       },
     ],
   };

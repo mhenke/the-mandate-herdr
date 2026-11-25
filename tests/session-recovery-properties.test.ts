@@ -1,6 +1,10 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { createInvestigationSession, type Phase } from "../src/adapters/investigation-session";
+import {
+  createInvestigationSession,
+  RECOVERY_VERSION,
+  type Phase,
+} from "../src/adapters/investigation-session";
 import type { InputEvent } from "../src/core/herdr";
 
 const ALL_PHASES: Phase[] = [
@@ -107,7 +111,7 @@ describe("session recovery property tests", () => {
           const json = JSON.stringify(mutatedPayload);
           const result = session.restoreRecovery(json);
           // If version, phase, or policy are not valid, it must return false
-          const isValidVersion = mutatedPayload.version === 4;
+          const isValidVersion = mutatedPayload.version === RECOVERY_VERSION;
           const isValidPhase = ALL_PHASES.includes(mutatedPayload.phase as Phase);
           const isValidSuspended = ALL_PHASES.includes(mutatedPayload.suspendedPhase as Phase);
           const isValidPolicy = ["standard", "accessible"].includes(mutatedPayload.policy);

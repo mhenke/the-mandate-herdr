@@ -10,7 +10,7 @@ import {
 import { createScenario, createStore, type HerdrState, type InputEvent } from "../src/core/herdr";
 import type { Level } from "../src/core/narrative";
 
-const LEVELS: Level[] = [1, 2, 3];
+const LEVELS: Level[] = [1, 2, 3, 4, 5];
 const arbitraryLevel: fc.Arbitrary<Level> = fc.constantFrom(...LEVELS);
 
 const arbitraryNonPlayerEvent: fc.Arbitrary<InputEvent> = fc.oneof(

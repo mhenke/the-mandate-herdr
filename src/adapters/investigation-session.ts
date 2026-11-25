@@ -21,6 +21,7 @@ import {
   createAssessment,
   objectivesMet,
   observe,
+  observeFindingSubmission,
   observeHerdrLaunch,
   requestHint as requestAssessmentHint,
   type AssessmentState,
@@ -136,17 +137,11 @@ interface Attempt {
   readonly story: StoryState;
   readonly assessment: AssessmentState;
 }
-// Development-only reload recovery: Vite full reloads during active development
-// wipe the in-memory session. A versioned snapshot of committed state is kept
-// in sessionStorage and restored on the next boot when schema and version match.
-// This is a development aid, NOT a save system: permanent persistence is
-// deferred to M3, the mechanism only replays committed facts (journal events
-// plus the already-earned story/assessment state), and it never manufactures
-// learning credit. Production builds do not save or restore.
-// v5 stores the player-origin Herdr launch skill with the Herdr event journal
-// and fictional application sessions.
-const RECOVERY_VERSION = 5;
-export const RECOVERY_STORAGE_KEY = `mandate-dev-recovery:v${RECOVERY_VERSION}`;
+// M3 validated save and recovery persistence. Stores versioned session facts
+// (Herdr event journal, fictional application sessions, story flags, and
+// assessment records) and restores them across reloads and episode continuity.
+export const RECOVERY_VERSION = 6;
+export const RECOVERY_STORAGE_KEY = `the-mandate:session:v${RECOVERY_VERSION}`;
 
 interface RecoveryPayload {
   readonly version: number;
@@ -187,7 +182,7 @@ function parseRecovery(json: string): RecoveryPayload | null {
     const saved = payload.attempt;
     if (
       !saved ||
-      ![1, 2, 3].includes(saved.level) ||
+      ![1, 2, 3, 4, 5].includes(saved.level) ||
       !saved.application ||
       !Array.isArray(saved.events)
     )
@@ -324,7 +319,7 @@ export function createInvestigationSession(): InvestigationSession {
       else if (phase === "episode") phase = "briefing";
       else if (phase === "briefing") phase = "workspace";
       else if (phase === "response") {
-        if (!attempt || attempt.level === 3) {
+        if (!attempt || attempt.level === 5) {
           phase = "complete";
         } else {
           const level = (attempt.level + 1) as Level;
@@ -405,7 +400,7 @@ export function createInvestigationSession(): InvestigationSession {
       const before = attempt.store.getState();
       const entry = attempt.store.dispatch(event);
       const after = attempt.store.getState();
-      const assessment =
+      let assessment =
         policy === "accessible"
           ? attempt.assessment
           : observe(attempt.assessment, before, after, entry);
@@ -460,6 +455,14 @@ export function createInvestigationSession(): InvestigationSession {
                 });
               } else if (effect.kind === "assignment-acknowledged" && researchTab) {
                 story = applyStoryAction(story, "acknowledge-assignment");
+              } else if (effect.kind === "vn12-filed") {
+                story = applyStoryAction(
+                  story,
+                  effect.choice === "paraphrase" ? "file-vn12-paraphrase" : "file-vn12-detail",
+                );
+              } else if (effect.kind === "finding-submitted") {
+                story = applyStoryAction(story, "submit-finding");
+                assessment = observeFindingSubmission(assessment);
               } else if (effect.kind === "document-read") {
                 let placementHint: string | undefined;
                 if (attempt.level === 1 && effect.documentId === "CPA-01A") {
@@ -482,6 +485,8 @@ export function createInvestigationSession(): InvestigationSession {
                     story = applyStoryAction(story, "record-consent");
                     story = applyStoryAction(story, "complete-interview");
                   } else placementHint = "June: Open the transcript in a pane beside the report.";
+                } else if (attempt.level === 4 && effect.documentId === "SUB-ACK-12") {
+                  story = applyStoryAction(story, "draft-vn12");
                 }
                 if (placementHint) {
                   attempt.store.dispatch({

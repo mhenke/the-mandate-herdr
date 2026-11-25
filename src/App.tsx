@@ -131,16 +131,52 @@ function usePhaseNavigation(
   }, [phase]);
 }
 
+function readStorage(key: string): string | null {
+  try {
+    if (typeof localStorage !== "undefined") {
+      const val = localStorage.getItem(key);
+      if (val) return val;
+    }
+  } catch {
+    // Ignore storage availability errors
+  }
+  try {
+    if (typeof sessionStorage !== "undefined") {
+      return sessionStorage.getItem(key);
+    }
+  } catch {
+    // Ignore storage availability errors
+  }
+  return null;
+}
+
+function writeStorage(key: string, value: string | null): void {
+  try {
+    if (typeof localStorage !== "undefined") {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore storage write errors
+  }
+  try {
+    if (typeof sessionStorage !== "undefined") {
+      if (value === null) sessionStorage.removeItem(key);
+      else sessionStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore storage write errors
+  }
+}
+
 export function App() {
   const session = useMemo(() => {
     const created = createInvestigationSession();
-    // Development-only reload recovery: Vite full reloads wipe the in-memory
-    // session. Restore committed state when the versioned snapshot matches.
-    // Not a save system; production persistence is deferred to M3.
-    if (import.meta.env.DEV && typeof sessionStorage !== "undefined") {
-      const saved = sessionStorage.getItem(RECOVERY_STORAGE_KEY);
-      if (saved) created.restoreRecovery(saved);
-    }
+    // M3 validated save and recovery persistence. Restores committed session facts
+    // across reloads and episode continuity.
+    const saved = readStorage(RECOVERY_STORAGE_KEY);
+    if (saved) created.restoreRecovery(saved);
+
     if (typeof window !== "undefined") {
       const phase = pathToPhase(
         window.location.pathname,
@@ -152,16 +188,18 @@ export function App() {
     return created;
   }, []);
 
-  // Save on unload only in development; a fresh title clears any stale snapshot.
+  // Save session state on updates and before unload.
   useEffect(() => {
-    if (!import.meta.env.DEV || typeof sessionStorage === "undefined") return;
     const save = () => {
       const json = session.serializeRecovery();
-      if (json === null) sessionStorage.removeItem(RECOVERY_STORAGE_KEY);
-      else sessionStorage.setItem(RECOVERY_STORAGE_KEY, json);
+      writeStorage(RECOVERY_STORAGE_KEY, json);
     };
+    const unsubscribe = session.subscribe(save);
     window.addEventListener("beforeunload", save);
-    return () => window.removeEventListener("beforeunload", save);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("beforeunload", save);
+    };
   }, [session]);
 
   const snapshot = useInvestigationSnapshot(session.subscribe, session.getSnapshot);

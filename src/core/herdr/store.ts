@@ -165,7 +165,7 @@ function buildState(seeds: readonly WorkspaceSeed[]): HerdrState {
  * L1 starts in Herdr's default shell workspace. Players create the story
  * workspace and research tab through Herdr's keyboard bindings.
  */
-export function createScenario(level: 1 | 2 | 3): HerdrState {
+export function createScenario(level: number): HerdrState {
   if (level === 1) {
     return buildState([
       {
@@ -219,25 +219,76 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
       },
     ]);
   }
+  if (level === 3) {
+    return buildState([
+      {
+        name: "cooperative",
+        newTabApp: "shell",
+        tabs: [
+          {
+            name: "1",
+            splitApp: "transcript",
+            panes: [
+              {
+                app: "assignment",
+                title: "Audit Reference",
+                output: [
+                  "AUDIT REFERENCE // UM-1109-88 REVIEW (Claude Code)",
+                  "TARGET: Vendor Demonstration Portal (VP-1109)",
+                  "WINDOW: 2026-11-09 21:47 - 21:52 EST",
+                  "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+                  "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
+                  "NOTE: Split pane (Ctrl+B - or Ctrl+B V) to compare witness testimony.",
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  }
+  if (level === 4) {
+    return buildState([
+      {
+        name: "investigation",
+        newTabApp: "shell",
+        tabs: [
+          {
+            name: "interview",
+            splitApp: "shell",
+            panes: [
+              {
+                app: "shell",
+                title: "audit-reference",
+                output: [
+                  "AUDIT REFERENCE // UM-1109-88 & THEO PARK INTERVIEW",
+                  "EVENT: Diagnostic script LT-47B misfire (21:47–21:52 EST).",
+                  "STAKES: Prepare VN-12 in a separate workspace before the intake cycle closes.",
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  }
   return buildState([
     {
-      name: "cooperative",
+      name: "investigation",
       newTabApp: "shell",
       tabs: [
         {
-          name: "1",
-          splitApp: "transcript",
+          name: "records",
+          splitApp: "shell",
           panes: [
             {
-              app: "assignment",
-              title: "Audit Reference",
+              app: "shell",
+              title: "records",
               output: [
-                "AUDIT REFERENCE // UM-1109-88 REVIEW (Claude Code)",
-                "TARGET: Vendor Demonstration Portal (VP-1109)",
-                "WINDOW: 2026-11-09 21:47 - 21:52 EST",
-                "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
-                "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
-                "NOTE: Split pane (Ctrl+B - or Ctrl+B V) to compare witness testimony.",
+                "MORNING PAPERWORK // 2026-11-14",
+                "INT-RECEIPT-12: VN-12 entered into EIAB queue as R-2.",
+                "CLASSIFICATION: INDEPENDENT PENDING VERIFICATION.",
+                "Triage incoming batch in a fresh workspace.",
               ],
             },
           ],
@@ -864,8 +915,15 @@ function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifie
       action: "navigate-cancel",
     };
   }
-  if (key === "up" || key === "down") {
-    const delta = key === "up" ? -1 : 1;
+  if (
+    key === "up" ||
+    key === "down" ||
+    key === "arrowup" ||
+    key === "arrowdown" ||
+    key === "k" ||
+    key === "j"
+  ) {
+    const delta = key === "up" || key === "arrowup" || key === "k" ? -1 : 1;
     const count = state.workspaces.length;
     const next = (state.navigateSelection + delta + count) % count;
     return {

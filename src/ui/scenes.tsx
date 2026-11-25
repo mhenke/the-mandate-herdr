@@ -403,12 +403,16 @@ export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): 
   });
 
   return (
-    <SceneShell labelledBy="complete-heading">
-      <p className="scene-kicker">End of the preview slice</p>
-      <h2 id="complete-heading">The preview ends here</h2>
+    <SceneShell
+      imageUrl="/images/Redacted%20Nighttime%20Investigation%20Dossier-2.webp"
+      labelledBy="complete-heading"
+    >
+      <p className="scene-kicker">Episode I Complete — The Leak</p>
+      <h2 id="complete-heading">The Third Count</h2>
       <p className="scene-lede">
-        The L1–L3 slice continues in later scope. Your attempt stays in memory until you start a new
-        investigation.
+        Verifier Note VN-12 has been counted as R-2 under &ldquo;independent pending verification.&rdquo;
+        With three reports on file, Emergency Package F-47-E3 has been recommended for Board vote on November 24.
+        Episode II: The Containment begins in the next milestone release.
       </p>
       <div className="scene-actions">
         <button type="button" autoFocus onClick={onReturn} aria-keyshortcuts="R">
@@ -418,6 +422,9 @@ export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): 
           Return to the title screen
         </button>
       </div>
+      <p className="scene-note">
+        Your investigation progress and evidence records are preserved across sessions.
+      </p>
     </SceneShell>
   );
 }

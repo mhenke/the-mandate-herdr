@@ -2,18 +2,33 @@
 // docs/STORY_ARC.md, docs/STORY_BIBLE.md). No Herdr bindings, no wall clock,
 // no React/DOM/adapters. Story events are idempotent and gated by story state.
 
-export type Level = 1 | 2 | 3;
+export type Level = 1 | 2 | 3 | 4 | 5;
 
-export type StoryEventId = "SE-L1-assignment" | "SE-L2-artifact" | "SE-L3-interview";
+export type StoryEventId =
+  | "SE-L1-assignment"
+  | "SE-L2-artifact"
+  | "SE-L3-interview"
+  | "SE-L4-filing"
+  | "SE-L5-retention1";
 
 export type StoryActionId =
   | "read-memo"
   | "acknowledge-assignment"
   | "examine-artifact"
   | "record-consent"
-  | "complete-interview";
+  | "complete-interview"
+  | "draft-vn12"
+  | "file-vn12-paraphrase"
+  | "file-vn12-detail"
+  | "submit-finding";
 
-export type StoryFlag = "assignment-accepted" | "consent-recorded";
+export type StoryFlag =
+  | "assignment-accepted"
+  | "consent-recorded"
+  | "source-protection-paraphrase"
+  | "source-protection-detail"
+  | "vn12-filed"
+  | "retention1-submitted";
 
 export interface StoryState {
   readonly level: Level;
@@ -27,12 +42,16 @@ const LEVEL_DATE: Record<Level, string> = {
   1: "2026-11-12",
   2: "2026-11-12",
   3: "2026-11-13",
+  4: "2026-11-13",
+  5: "2026-11-14",
 };
 
 const EVENT_DATE: Record<StoryEventId, string> = {
   "SE-L1-assignment": "2026-11-12",
   "SE-L2-artifact": "2026-11-12",
   "SE-L3-interview": "2026-11-13",
+  "SE-L4-filing": "2026-11-13",
+  "SE-L5-retention1": "2026-11-14",
 };
 
 export function initialStory(level: Level): StoryState {
@@ -70,6 +89,20 @@ export function applyStoryAction(story: StoryState, action: StoryActionId): Stor
       return story.level === 3 && story.flags.includes("consent-recorded")
         ? fire(story, "SE-L3-interview")
         : story;
+    case "draft-vn12":
+      return story.level === 4 ? fire(story, "SE-L4-filing") : story;
+    case "file-vn12-paraphrase":
+      return story.level === 4
+        ? fire(flag(flag(story, "source-protection-paraphrase"), "vn12-filed"), "SE-L4-filing")
+        : story;
+    case "file-vn12-detail":
+      return story.level === 4
+        ? fire(flag(flag(story, "source-protection-detail"), "vn12-filed"), "SE-L4-filing")
+        : story;
+    case "submit-finding":
+      return story.level === 5
+        ? fire(flag(story, "retention1-submitted"), "SE-L5-retention1")
+        : story;
   }
 }
 
@@ -79,7 +112,10 @@ export function storyConditionMet(story: StoryState): boolean {
     return story.events.includes("SE-L1-assignment") && story.flags.includes("assignment-accepted");
   }
   if (story.level === 2) return story.events.includes("SE-L2-artifact");
-  return story.events.includes("SE-L3-interview");
+  if (story.level === 3) return story.events.includes("SE-L3-interview");
+  if (story.level === 4) return story.events.includes("SE-L4-filing");
+  if (story.level === 5) return story.events.includes("SE-L5-retention1");
+  return false;
 }
 
 export interface PresentationText {
@@ -113,6 +149,15 @@ const BRIEFING: Record<Level, string> = {
   3:
     "Theo Park agreed to an interview about the load-test misfire. Keep the audit and transcript " +
     "visible in separate Herdr panes. Ask Claude to retrieve the transcript before June reviews the case.",
+  4:
+    "Drafting Verifier Note VN-12 requires strict separation from your live investigation. " +
+    "Create a new workspace named filing (Ctrl+B Shift+N), split it with Ctrl+B V to stage the draft beside your notes, " +
+    "and submit VN-12. Use the workspace navigator (Ctrl+B W) or authentic Help (Ctrl+B ?) to return to your reading workspace.",
+  5:
+    "Morning paperwork delivers INT-RECEIPT-12: VN-12 is entered into the EIAB queue as R-2 with status " +
+    '"independent pending verification". A fresh batch of intake records requires triage. ' +
+    "Create a triage workspace without closing your investigation, arrange tabs, stage a comparison split, " +
+    "and file your finding on the fresh set.",
 };
 
 const RESPONSE: Record<Level, string> = {
@@ -127,6 +172,15 @@ const RESPONSE: Record<Level, string> = {
     "Adebayo: Park's account matches the portal and the five-minute window. " +
     "The scan happened. That does not make this an independent report. " +
     "Keep LT-47B with the transcript. We will need it when we write VN-12.",
+  4:
+    'Adebayo: Verifier Note VN-12 filed at 19:05 EST. Submission acknowledgement SUB-ACK-12 returned on the wire: ' +
+    '"Origin blank (form default). Retraction always receivable prior to formal certification. ' +
+    'Counting review next cycle." Keep both workspaces intact—morning paperwork arrives tomorrow.',
+  5:
+    "EPISODE I FINALE — THE THIRD COUNT\n\n" +
+    "INT-RECEIPT-12 committed to the docket: 3 of 3 required corroborating submissions recorded. " +
+    "Emergency package F-47-E3 recommended for Board vote on November 24. " +
+    "Why did three distinct channels report the same five-minute misfire as separate events?",
 };
 
 const HINTS: Record<Level, readonly string[]> = {
@@ -147,6 +201,18 @@ const HINTS: Record<Level, readonly string[]> = {
     "Move focus to the new pane before you type.",
     "Name the tab for the witness record.",
     "Ask Claude to retrieve Park's interview.",
+  ],
+  4: [
+    "Create a new workspace named filing: press Ctrl+B then Shift+N.",
+    "Split the tab with Ctrl+B V, then switch panes with Ctrl+B H and Ctrl+B L.",
+    "Start Claude in the draft pane and file VN-12 (specify paraphrase or detail).",
+    "Press Ctrl+B then W to open the workspace navigator and return to your investigation workspace.",
+  ],
+  5: [
+    "Create a dedicated triage workspace for the fresh intake batch.",
+    "Organize and name multiple tabs for the incoming records.",
+    "Stage a comparison split to analyze the records side-by-side.",
+    "Direct input to the target pane and submit your finding on the fresh set.",
   ],
 };
 

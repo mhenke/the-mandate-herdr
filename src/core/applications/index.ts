@@ -4,7 +4,7 @@ export interface FictionalDocument {
   readonly id: string;
   readonly title: string;
   readonly access: DocumentAccess;
-  readonly availableFromLevel?: 2 | 3;
+  readonly availableFromLevel?: 2 | 3 | 4 | 5;
   readonly body: readonly string[];
   readonly searchTerms: readonly string[];
 }
@@ -79,7 +79,9 @@ export type ApplicationEffect =
   | { readonly kind: "pane-output"; readonly paneId: string; readonly line: string }
   | { readonly kind: "claude-started"; readonly paneId: string }
   | { readonly kind: "assignment-acknowledged" }
-  | { readonly kind: "document-read"; readonly documentId: string };
+  | { readonly kind: "document-read"; readonly documentId: string }
+  | { readonly kind: "vn12-filed"; readonly choice: "paraphrase" | "detail" }
+  | { readonly kind: "finding-submitted" };
 
 export interface ApplicationTransition {
   readonly state: ApplicationState;
@@ -128,6 +130,50 @@ const RECORDS: readonly FictionalDocument[] = [
       "STATUS: Consent recorded · off-record.",
       "PARK: 'Load-test script LT-47B misfired against demo portal VP-1109.'",
       "PARK: 'Execution window was 21:47 to 21:52 EST. Five minutes total.'",
+    ],
+  },
+  {
+    id: "SUB-ACK-12",
+    title: "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+    access: "cooperative",
+    availableFromLevel: 4,
+    searchTerms: ["sub-ack-12", "ack", "acknowledgement", "receipt", "vn-12", "submission"],
+    body: [
+      "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+      "FILING: Verifier Note VN-12 (EIAB Intake Desk).",
+      "ORIGIN: [BLANK ON RECORD - FORM DEFAULT].",
+      "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
+      "NOTE: Retraction always receivable prior to formal certification.",
+      "RECORD COMMITTED 19:05 EST.",
+    ],
+  },
+  {
+    id: "INT-RECEIPT-12",
+    title: "INTAKE RECEIPT // INT-RECEIPT-12 (EIAB QUEUE ENTRY R-2)",
+    access: "cooperative",
+    availableFromLevel: 5,
+    searchTerms: ["int-receipt-12", "receipt", "dr-2", "r-2", "intake", "morning paperwork"],
+    body: [
+      "INTAKE RECEIPT // INT-RECEIPT-12 (EIAB QUEUE ENTRY R-2)",
+      "SOURCE NOTE: VN-12.",
+      "CLASSIFICATION: INDEPENDENT PENDING VERIFICATION.",
+      "DOCKET: EIAB-2026-47-E3.",
+      "COUNTING LINE: 3 OF 3 REQUIRED CORROBORATING SUBMISSIONS COMMITTED.",
+      "ACTION: EMERGENCY PACKAGE FORMATION RECOMMENDED.",
+    ],
+  },
+  {
+    id: "INTAKE-BATCH-1114",
+    title: "INTAKE BATCH MANIFEST // 2026-11-14",
+    access: "cooperative",
+    availableFromLevel: 5,
+    searchTerms: ["intake", "batch", "manifest", "1114", "intake-batch-1114", "triage"],
+    body: [
+      "INTAKE BATCH MANIFEST // 2026-11-14",
+      "ENTRY 01 // VENDOR ADVISORY NOTICE (VP-1109)",
+      "ENTRY 02 // EIAB QUEUE LOG (R-1, R-2, R-3)",
+      "ENTRY 03 // MORNING DISPATCH ACKNOWLEDGEMENT",
+      "STATUS: Triage required before morning press cycle.",
     ],
   },
   {
@@ -240,6 +286,52 @@ function isAssignmentIntent(request: string): boolean {
   return false;
 }
 
+function isVn12FilingIntent(
+  request: string,
+): { filing: boolean; choice: "paraphrase" | "detail" | null } {
+  const norm = normalize(request);
+  const mentionsVn12 =
+    norm.includes("vn-12") ||
+    norm.includes("vn12") ||
+    norm.includes("verifier note") ||
+    norm.includes("note") ||
+    norm.includes("filing");
+  const mentionsFile =
+    norm.includes("file") ||
+    norm.includes("draft") ||
+    norm.includes("submit") ||
+    norm.includes("commit");
+  const mentionsParaphrase =
+    norm.includes("paraphrase") || norm.includes("quill safe") || norm.includes("protect source");
+  const mentionsDetail =
+    norm.includes("detail") || norm.includes("identifying") || norm.includes("stronger");
+
+  if (mentionsVn12 || mentionsFile) {
+    if (mentionsParaphrase) return { filing: true, choice: "paraphrase" };
+    if (mentionsDetail) return { filing: true, choice: "detail" };
+    if (mentionsVn12 && mentionsFile) return { filing: true, choice: null };
+  }
+  if (mentionsParaphrase) return { filing: true, choice: "paraphrase" };
+  if (mentionsDetail) return { filing: true, choice: "detail" };
+  return { filing: false, choice: null };
+}
+
+function isFindingSubmissionIntent(request: string): boolean {
+  const norm = normalize(request);
+  return (
+    (norm.includes("finding") &&
+      (norm.includes("submit") ||
+        norm.includes("file") ||
+        norm.includes("compile") ||
+        norm.includes("triage") ||
+        norm.includes("provenance"))) ||
+    norm.includes("submit finding") ||
+    norm.includes("compile finding") ||
+    norm.includes("file finding") ||
+    norm.includes("triage intake")
+  );
+}
+
 function documentForRequest(state: ApplicationState, request: string): FictionalDocument | null {
   const queryTokens = new Set(tokenize(request));
   if (queryTokens.size === 0) return null;
@@ -332,6 +424,91 @@ function runAgentRequest(
           "Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.",
         ]),
         { kind: "assignment-acknowledged" },
+      ],
+    };
+  }
+
+  if (level === 4) {
+    const vn12Intent = isVn12FilingIntent(request);
+    if (vn12Intent.filing) {
+      if (!vn12Intent.choice) {
+        agent = addHistory(
+          { ...agent, lastTask: null, phase: "waiting_for_input" },
+          "assistant",
+          "Specify source protection choice: paraphrase or detail.",
+        );
+        nextState = setAgent(nextState, paneId, agent);
+        return {
+          state: nextState,
+          effects: paneOutput(paneId, [
+            "CLAUDE CODE // VN-12 FILING STAGING",
+            "CHOICE 1 (Source Protection):",
+            "  Option A: 'paraphrase' — Paraphrase witness account (Quill safe; thinner filing basis).",
+            "  Option B: 'detail' — Include specific technical details from LT-47B log (stronger now; exposure risk follows).",
+            "Type 'paraphrase' or 'detail' to commit Verifier Note VN-12 to the wire.",
+          ]),
+        };
+      }
+
+      const choice = vn12Intent.choice;
+      const choiceLabel =
+        choice === "paraphrase"
+          ? "Paraphrase witness account (Source Quill protected)"
+          : "Identifying technical detail (LT-47B log specifics included)";
+      const ackDoc = state.records.find((r) => r.id === "SUB-ACK-12");
+      const subReceipt = { documentId: "SUB-ACK-12", paneId };
+      const readReceipts = state.readReceipts.some(
+        (item) => item.documentId === "SUB-ACK-12" && item.paneId === paneId,
+      )
+        ? state.readReceipts
+        : [...state.readReceipts, subReceipt];
+
+      agent = addHistory(
+        { ...agent, lastTask: "completed", phase: "settled" },
+        "assistant",
+        `Filed VN-12 with ${choice}. Received SUB-ACK-12.`,
+      );
+      nextState = setAgent({ ...nextState, readReceipts }, paneId, agent);
+      return {
+        state: nextState,
+        effects: [
+          ...paneOutput(paneId, [
+            "SUBMITTING VERIFIER NOTE VN-12 TO EIAB INTAKE…",
+            `CHOICE COMMITTED: ${choiceLabel}`,
+            "--- WIRE ACKNOWLEDGEMENT FOLLOWS ---",
+            ...(ackDoc?.body ?? [
+              "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+              "FILING: Verifier Note VN-12.",
+              "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
+            ]),
+            "EIAB WIRE STATUS: 19:05 EST — Filing acknowledged. Retraction always receivable.",
+          ]),
+          { kind: "document-read", documentId: "SUB-ACK-12" },
+          { kind: "vn12-filed", choice },
+        ],
+      };
+    }
+  }
+
+  if (level === 5 && isFindingSubmissionIntent(request)) {
+    agent = addHistory(
+      { ...agent, lastTask: "completed", phase: "settled" },
+      "assistant",
+      "Compiled finding on fresh intake set.",
+    );
+    nextState = setAgent(nextState, paneId, agent);
+    return {
+      state: nextState,
+      effects: [
+        ...paneOutput(paneId, [
+          "COOPERATIVE PROVENANCE AUDIT // INTAKE BATCH 1114",
+          "FINDING COMPILED FOR INTAKE QUEUE:",
+          "  1. INT-RECEIPT-12: VN-12 docketed as R-2 under 'independent pending verification'.",
+          "  2. INTAKE-BATCH-1114: Triage complete across entries 01–03.",
+          "  3. COUNTING LINE: 3 of 3 required corroborating submissions committed.",
+          "STATUS: Finding committed to newsroom record. Emergency package recommendation noted.",
+        ]),
+        { kind: "finding-submitted" },
       ],
     };
   }

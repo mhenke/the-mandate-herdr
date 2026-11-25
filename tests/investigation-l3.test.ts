@@ -138,7 +138,10 @@ describe("L3 continues the newspaper investigation", () => {
     expect(snapshot.phase).toBe("response");
 
     session.advancePresentation();
-    expect(session.getSnapshot().phase).toBe("complete");
+    expect(session.getSnapshot().phase).toBe("briefing");
+    expect(session.getSnapshot().level).toBe(4);
+    session.skipPresentation();
+    expect(session.getSnapshot().phase).toBe("workspace");
     expect(activeWorkspace(session)?.activeTabId).toBe(reportTabId);
   });
 });

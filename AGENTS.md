@@ -1,11 +1,11 @@
 # The Mandate: Herdr
 
-## Current gate: Milestone 2 (In Progress)
+## Current gate: Milestone 3 (In Progress)
 
-- **Authorized scope**: M2 (L1–L3 vertical slice) only. **L4–L15 remain unauthorized** pending separate milestone approval.
+- **Authorized scope**: Milestone 3 implementation for Levels 4–15 authorized in sequential, playable batches, beginning with Batch 1 (L4 "Filed 19:05" and L5 "Fit to File"). Completed L1–L3 vertical slice accepted and preserved.
 - **Learning scope**: Assess only accepted player-origin Herdr operations. Claude Code, fictional MCP tools, and investigative reasoning advance the story. They never grant keyboard credit.
 - **TUI escape contract**: The Escape key is Herdr-owned inside the simulated console. Host capture release is exclusively operated via the external accessible control.
-- **Evidence standard**: Browser chord support claims require physical-key or CDP-verified evidence (Firefox unmeasured; prefix+`?` partial).
+- **Evidence standard**: Browser chord support claims require physical-key or CDP-verified evidence (Firefox unmeasured; prefix+`?` partial). The known Firefox measurement limitation remains open and must not be represented as resolved.
 
 ## Agent workflow & governance
 

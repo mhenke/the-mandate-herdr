@@ -2,7 +2,9 @@
 
 ## Current scope
 
-Milestone 2 authorizes L1–L3. L4–L15 remain design-only. Work directly on `main` under `AGENT_WORKFLOW.md`. Do not copy worktree or PR instructions from older handoffs.
+Milestone 2 is accepted. Milestone 3 is authorized, proceeding in sequential, playable batches beginning with Batch 1: Level 4 ("Filed 19:05") and Level 5 ("Fit to File"). L1–L3 slice is preserved. Work directly on `main` under `AGENT_WORKFLOW.md`. Do not implement future levels (L6–L15) in an uncontrolled pass.
+
+Firefox remains unmeasured and this limitation must not be represented as resolved.
 
 ## Play the slice
 

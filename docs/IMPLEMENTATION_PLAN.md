@@ -14,9 +14,18 @@ Gate 1 closed on 2026-11-23 by user authorization. The Chromium record includes 
 
 Exit report: `docs/M1_EXIT_REPORT.md` (per-criterion evidence; requests separate M2 approval).
 
-## Milestone 2 — vertical slice — **APPROVED, in progress** (user decision, 2026-11-23)
+## Milestone 2 — vertical slice — **ACCEPTED** (user decision, 2026-11-24)
 
-Scope: L1–L3 only (per LEVEL.md contracts), in-memory attempt, no settings surface — and the first dependency installation with the exact TECH_STACK versions (React 19.3.1, TS 5.9.3 strict, Vite 8.3.8, Vitest 5.1.1, fast-check, Playwright, ESLint stack, pnpm 12.23.0 pinned, Node 22.12+, lockfile committed). **L4–L15 remain unauthorized** and require a separate approval after M2 acceptance.
+Scope: L1–L3 completed and accepted. Exit report preserved at `docs/M2_EXIT_REPORT.md`. Zero simulation contamination, authentic Herdr-owned Escape, external capture release, unbroken L1–L3 session continuity, and provenance-gated assessment verified.
+
+## Milestone 3 — full content — **AUTHORIZED, in progress** (user decision, 2026-11-24)
+
+Scope: Implementation of Levels 4–15 executed in sequential, playable batches:
+- **Batch 1 (Authorized & In Progress)**: Episode I completion — L4 ("Filed 19:05", introducing workspace navigation `prefix+w`, Help `prefix+?`, VN-12 drafting/filing, Choice 1 source protection) and L5 ("Fit to File", Retention Checkpoint 1 on fresh intake set without new Herdr shortcuts, culminating in Episode I Finale "The Third Count").
+- **Batch 2 (Pending Batch 1 review)**: Episode II (L6–L10) navigating and supervising multiple simulated Claude sessions, culminating in L10 Retention Checkpoint 2.
+- **Batch 3 (Pending Batch 2 review)**: Episode III (L11–L15) advancing toward the final boss, concurrent agents, session continuity, and the Nov 24 hearing deadline.
+
+Standing constraint: Browser chord support claims require physical-key or CDP-verified evidence. The known Firefox measurement limitation remains open and must not be represented as resolved. Validated save/recovery persistence across episodes. Visual regression across chrome states and axe-core checks per batch.
 
 Recorded corrections (user, M2 approval):
 
@@ -70,7 +79,7 @@ As before (manual accessibility audits, performance budgets, learner study, rele
 2. ~~Manual keyboard pass~~ — **closed 2026-11-23 by user authorization** (acceptance, not measurement; FEASIBILITY_KEYBOARD "User authorization").
 3. ~~Gate-1 hold policies~~ — decided (void-on-blur, Herdr-owned Escape, external release, clipboard-failure fallback).
 4. No runtime performance, accessibility, or learner-retention evidence exists yet — all are M3/M4 gates, not current claims.
-5. **M2 approval** — ~~the only open gate~~ **GRANTED 2026-11-23** with two corrections (Escape conflict resolution; evidence-based browser claims). M2 is now in progress; L4–L15 remain unauthorized.
+5. **M2 approval & completion** — **ACCEPTED 2026-11-24** (exit report: `docs/M2_EXIT_REPORT.md`). M3 authorized for sequential batch delivery beginning with L4–L5.
 
 ## Review-gate decisions recorded (user)
 
