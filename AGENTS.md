@@ -9,7 +9,7 @@
 
 ## Agent workflow & governance
 
-- **Solo developer workflow**: Single-developer project ("one person"). Direct commits and pushes to `main`; pull requests and branch protection ceremonies are omitted. Follow the core workflow in `docs/AGENT_WORKFLOW.md` (Understand → Scope → Implement → Verify → Inspect → Report).
+- **Solo developer workflow**: Single-developer project ("one person"). Direct commits and pushes to `main`; pull requests and branch protection ceremonies are omitted. Follow the core workflow in `docs/AGENT_WORKFLOW.md` (Understand → Scope → Implement → Verify → Inspect → Watch CI → Report). After any push to `main` (or a lane branch), watch remote CI to completion using the `loop-on-ci` workflow (`gh run watch` or `gh run view`); diagnose and fix any failures iteratively until green before concluding.
 - **Worktree isolation**: Parallel agents develop in dedicated worktrees under `.worktrees/<lane-name>` (`lane/<lane-name>`). On creation, bootstrap the shared graph: `ln -s ../../graphify-out .worktrees/<lane-name>/graphify-out`. Keep worktrees git-ignored and prune after lane completion.
 - **Code exploration (Graphify)**: Query before searching. Run `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` before grepping or reading files. Baseline index lives at root `graphify-out/` and is symlinked into worktrees. Run `pnpm graphify:update` after structural changes; avoid concurrent rebuilds across worktrees. Exploration aid only (never an architectural authority or runtime dependency); keep `graphify-out` uncommitted.
 - **Guardrails**: Preserve fidelity contracts, keep test assertions strict, keep generated artifacts (`graphify-out`) uncommitted, and maintain pure simulation free of React/DOM dependencies.
@@ -45,4 +45,5 @@ Every change must prove compliance before reporting completion:
 2. Run `pnpm lint` (ESLint, Stylelint, Prettier zero errors).
 3. Run `pnpm test` (all Vitest unit, property, and purity tests passing).
 4. For visual/presentation changes, inspect screenshots against `references/herdr-baselines/`.
-5. Report exact commands executed, exit codes, and verifiable evidence.
+5. **Watch CI post-push**: After pushing to `main` (or a lane branch), watch remote CI using the `loop-on-ci` workflow (`gh run watch <run-id>` or `gh run view <run-id>`). If any job fails, inspect logs via `gh run view <run-id> --log-failed`, apply focused fixes, and repeat until all checks pass green. Never declare completion while CI is pending or failed.
+6. Report exact commands executed, exit codes, CI run link/verdict, and verifiable evidence.
