@@ -21,6 +21,7 @@
     "audit:changed": "knip && fallow audit --base origin/main",
     "graphify:update": "graphify update .",
     "graphify:report": "graphify cluster-only .",
+    "ci:watch": "bash scripts/watch-ci.sh",
     "mutation": "stryker run"
   },
   "dependencies": {

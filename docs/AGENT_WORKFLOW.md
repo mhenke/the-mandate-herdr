@@ -58,7 +58,7 @@ pstack's model-role configuration (`/setup-pstack`) may be used to map its roles
 4. **Verify.** Run `pnpm typecheck`, `pnpm lint`, the narrow relevant tests (`pnpm test`), and the behavioral check covering the change. Property-based tests (fast-check) are required for any new transition or invariant in `src/core/*`.
 5. **Inspect.** Presentation changes attach before/after screenshots of the affected Herdr interface states (fixed viewport, seeded state). A failing visual test is resolved by fixing the CSS or by a justified, reviewer-approved baseline update — never by silently updating the snapshot.
 6. **Review.** Fidelity-sensitive changes (anything citing `HERDR_FIDELITY.md`), assessment-sensitive changes (`src/core/assessment`), and lifecycle semantics require an independent reviewer who did not write the change.
-7. **Watch CI.** After pushing to `main` or a lane branch, watch remote CI to completion using the `loop-on-ci` workflow (`gh run watch <run-id>` or `gh run view <run-id>`). If CI fails, diagnose using `gh run view <run-id> --log-failed`, apply focused fixes, and iterate until all workflow jobs (`quality`, `build`, `test`, `e2e`, `deploy`) are green. Never conclude a turn or declare work done while CI is pending or failed.
+7. **Watch CI.** After pushing to `main` or a lane branch, watch remote CI to completion using `pnpm ci:watch` (or `bash scripts/watch-ci.sh`). The script resolves the commit's 40-character SHA, waits for GitHub Actions registration, monitors execution via `gh run watch <run-id> --exit-status`, and automatically dumps logs via `gh run view <run-id> --log-failed` if any job fails. If CI fails, diagnose the failure, apply focused fixes, and iterate until all workflow jobs (`quality`, `build`, `test`, `e2e`, `deploy`) are green. Never conclude a turn or declare work done while CI is pending or failed.
 8. **Report.** List changed files, exact commands run with exit statuses, CI run URL and status, evidence (logs, screenshots, test output), residual risks, and anything not tested. A claim without a command is unverified.
 
 ## Hard prohibitions
@@ -73,7 +73,7 @@ pstack's model-role configuration (`/setup-pstack`) may be used to map its roles
 
 ## Solo developer workflow & optional worktrees
 
-The Mandate is developed by a solo human developer and agent ("one person"). Pull requests and branch protection ceremonies are omitted; work commits and pushes directly to `main`. After pushing, agents must execute the `loop-on-ci` workflow to monitor remote GitHub Actions to green completion before concluding.
+The Mandate is developed by a solo human developer and agent ("one person"). Pull requests and branch protection ceremonies are omitted; work commits and pushes directly to `main`. After pushing, agents must execute `pnpm ci:watch` (or `bash scripts/watch-ci.sh`) to monitor remote GitHub Actions to green completion before concluding.
 
 When isolated exploration or parallel subagents are helpful, optional worktrees may be created under `.worktrees/` (e.g. `git worktree add .worktrees/<lane-name> -b lane/<lane-name>`). Once verified, changes merge directly into `main` without PR ceremony, and temporary worktrees and branches are cleaned up immediately.
 
