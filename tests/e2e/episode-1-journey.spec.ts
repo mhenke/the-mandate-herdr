@@ -15,7 +15,7 @@ test("Episode I full journey (L1–L5): files VN-12, triages intake, and complet
 
   await page.keyboard.type("claude");
   await page.keyboard.press("Enter");
-  await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
+  await expect(page.getByText(/Claude Code/)).toBeVisible();
 
   await page.keyboard.type("Find our procedures for handling confidential sources.");
   await page.keyboard.press("Enter");

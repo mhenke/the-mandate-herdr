@@ -57,7 +57,7 @@ function missionL1(props: GameHudProps): {
         complete: story.events.includes("SE-L1-assignment"),
       },
       {
-        label: "Read CPA-01A, then accept June's assignment",
+        label: "Confirm source rules & accept assignment",
         instruction: "Tell Claude: Accept the assignment.",
         complete: story.flags.includes("assignment-accepted"),
       },

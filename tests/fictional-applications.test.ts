@@ -322,3 +322,163 @@ describe("fictional document tools and Claude Code", () => {
     expect(state.paneInputs.p1).toBe("read memo!");
   });
 });
+
+describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () => {
+  it("displays concise managed-environment notice when Claude first launches", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    const launched = typeLine(state, "claude", "p1");
+    const output = launched.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(output).toContain("Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC)");
+    expect(output).toContain("Approved tools: editorial mail, schedules, document archive, and incident logs.");
+    expect(output).toContain("External network, code generation, and shell tool execution are restricted.");
+
+    const agent = launched.state.agents.p1;
+    expect(agent?.history[0]?.content).toContain("Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC)");
+  });
+
+  it("answers compound schedule and email inquiries conversationally", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+    const res = typeLine(
+      state,
+      "what do i have going on today? also do i have any outstanding email?",
+      "p1",
+    );
+    const output = res.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(output).toContain("[tool: newsroom_schedule.get_today()]");
+    expect(output).toContain("[tool: newsroom_mail.list_inbox()]");
+    expect(output).toContain("Priority lead triage with June Adebayo");
+    expect(output).toContain("Vendor security incident & protected source");
+    expect(output).not.toContain("Ask me to read the message");
+    expect(res.state.agents.p1?.lastReferencedMessageId).toBe("MSG-1112-01");
+  });
+
+  it("handles conversational follow-up references: read it, show me that document, what about the other message", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+
+    // 1. List inbox
+    state = typeLine(state, "Do I have any email?", "p1").state;
+    expect(state.agents.p1?.lastReferencedMessageId).toBe("MSG-1112-01");
+
+    // 2. Follow-up "read it" reads June's email
+    const emailRes = typeLine(state, "read it", "p1");
+    const emailOutput = emailRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(emailOutput).toContain("newsroom_mail.get_message");
+    expect(emailOutput).toContain("Priority: Vendor security incident & protected source");
+    expect(emailOutput).toContain("CPA-01A");
+    state = emailRes.state;
+    expect(state.agents.p1?.lastReferencedDocumentId).toBe("CPA-01A");
+
+    // 3. Follow-up "show me that document" pulls up CPA-01A without typing CPA-01A
+    const docRes = typeLine(state, "show me that document", "p1");
+    const docOutput = docRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(docOutput).toContain("MCP CALL documents.read");
+    expect(docOutput).toContain("SOURCE-HANDLING MEMORANDUM // CPA-01A");
+    expect(docOutput).toContain("01 // VERIFY ORIGIN.");
+    expect(docRes.state.readReceipts).toContainEqual({ documentId: "CPA-01A", paneId: "p1" });
+    state = docRes.state;
+
+    // 4. Follow-up "what about the other message?"
+    const otherRes = typeLine(state, "what about the other message?", "p1");
+    const otherOutput = otherRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(otherOutput).toContain("There are no other unread messages in your newsroom inbox");
+    expect(otherOutput).toContain("MSG-1112-01 from June Adebayo is the only pending priority item today");
+  });
+
+  it("explains policy limitations naturally for restricted requests", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+
+    // Software development / app creation
+    const devRes = typeLine(state, "Create a web application", "p1");
+    const devOutput = devRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(devOutput).toContain("cannot execute software development or code generation tasks");
+    expect(devOutput).toContain("Policy ENF-24-SEC");
+    expect(devOutput).toContain("I can discuss or analyze software and technical concepts");
+
+    // Package installation
+    const pkgRes = typeLine(state, "npm install axios", "p1");
+    const pkgOutput = pkgRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(pkgOutput).toContain("Package installation and environment modifications are disabled");
+    expect(pkgOutput).toContain("Policy ENF-24-SEC");
+
+    // Shell tool execution
+    const shellRes = typeLine(state, "run bash script", "p1");
+    const shellOutput = shellRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(shellOutput).toContain("Arbitrary shell tool execution is disabled in this managed Claude Code session");
+
+    // External network browsing
+    const netRes = typeLine(state, "browse the web to find the vendor", "p1");
+    const netOutput = netRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(netOutput).toContain("External internet access is blocked on this investigative workstation");
+
+    // Arbitrary filesystem modifications
+    const fsRes = typeLine(state, "delete all files in the system", "p1");
+    const fsOutput = fsRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(fsOutput).toContain("Arbitrary filesystem modifications are restricted");
+  });
+
+  it("clearly distinguishes missing records, general guidance, and policy restrictions", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+
+    // Missing record does NOT trigger security policy violation
+    const searchRes = typeLine(state, "search for city budget report", "p1");
+    const searchOutput = searchRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(searchOutput).toContain("No matching document or record was found");
+    expect(searchOutput).not.toContain("ENF-24-SEC");
+    expect(searchOutput).not.toContain("restricted under Cooperative IT policy");
+
+    // General guidance does NOT trigger security policy violation
+    const helpRes = typeLine(state, "how can you help?", "p1");
+    const helpOutput = helpRes.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(helpOutput).toContain("Approved research workflows currently available:");
+    expect(helpOutput).toContain("Check your morning schedule or review unread newsroom email");
+    expect(helpOutput).not.toContain("disabled");
+  });
+
+  it("preserves session continuity and context across multiple panes", () => {
+    let state = createApplicationState();
+    state = typeLine(state, "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+    state = typeLine(state, "claude", "p2").state;
+
+    state = typeLine(state, "Do I have any email?", "p1").state;
+    expect(state.agents.p1?.lastReferencedMessageId).toBe("MSG-1112-01");
+    expect(state.agents.p2?.lastReferencedMessageId).toBeUndefined();
+
+    state = typeLine(state, "read it", "p1").state;
+    expect(state.agents.p1?.lastReferencedDocumentId).toBe("CPA-01A");
+    expect(state.agents.p2?.lastReferencedDocumentId).toBeUndefined();
+  });
+});

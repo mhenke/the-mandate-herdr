@@ -112,7 +112,10 @@ export function buildClaudeScreenModel(input: ClaudeScreenInput): TerminalScreen
         } else {
           lines.push({
             kind: "reply",
-            spans: [{ text: "  " + text, style: isDim ? "dim" : "plain" }],
+            spans: [
+              { text: "  ", style: "plain" },
+              { text, style: isDim ? "dim" : "plain" },
+            ],
           });
         }
       }

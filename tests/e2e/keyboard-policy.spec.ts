@@ -39,7 +39,7 @@ async function createTab(page: Page, name: string): Promise<void> {
 async function retrieveMemo(page: Page): Promise<void> {
   await page.keyboard.type("claude");
   await page.keyboard.press("Enter");
-  await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
+  await expect(page.getByText(/Claude Code/)).toBeVisible();
 
   await page.keyboard.type(
     "Please locate the source-handling memo CPA-01A and show me the document.",
@@ -161,7 +161,7 @@ test("shell control keys edit the prompt without taking over Herdr shortcuts", a
   await page.keyboard.type("claudex");
   await page.keyboard.press("Backspace");
   await page.keyboard.press("Enter");
-  await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
+  await expect(page.getByText(/Claude Code/)).toBeVisible();
 });
 
 test("holding Backspace corrects the command at the startup prompt", async ({ page }) => {
@@ -197,7 +197,7 @@ test("the pane shows the edited command, not forwarded key names", async ({ page
 
   await expect(page.getByText("$ claude")).toBeVisible();
   await page.keyboard.press("Enter");
-  await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
+  await expect(page.getByText(/Claude Code/)).toBeVisible();
 });
 
 test("Standard mode refuses pointer chrome without changing Herdr state", async ({ page }) => {

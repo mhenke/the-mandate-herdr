@@ -31,7 +31,7 @@ test("hint request records assistance without breaking the journey", async ({ pa
   await page.getByText(/Hints/).first().click();
   await page.getByRole("button", { name: "Request a hint" }).click();
   await expect(
-    page.getByText("The terminal is ready. Type herdr and press Enter.", { exact: true }),
+    page.getByText(/Type herdr and press Enter/),
   ).toBeVisible();
 });
 

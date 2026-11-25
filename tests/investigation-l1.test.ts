@@ -138,6 +138,13 @@ describe("L1 player-driven investigation", () => {
     expect(output).toContain("newsroom_mail.list_inbox");
     expect(output).toContain("Vendor security incident & protected source");
 
+    // Compound schedule and email inquiry:
+    submit(session, "what do i have going on today? also do i have any outstanding email?", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("newsroom_schedule.get_today");
+    expect(output).toContain("newsroom_mail.list_inbox");
+    expect(output).toContain("Priority lead triage with June Adebayo");
+
     // Assignment inquiry:
     submit(session, "What did June assign me?", paneId);
     output = focusedPane(session)?.output.join("\n") ?? "";

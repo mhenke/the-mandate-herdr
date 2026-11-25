@@ -34,11 +34,22 @@ export interface AgentHistoryEntry {
 export type ApplicationTaskPhase =
   "queued" | "working" | "waiting_for_input" | "settled" | "failed";
 
+export type AgentTopic =
+  | "schedule"
+  | "inbox"
+  | "assignment"
+  | "document"
+  | "filing"
+  | "intake";
+
 export interface AgentSession {
   readonly status: "ready" | "blocked";
   readonly phase?: ApplicationTaskPhase;
   readonly history: readonly AgentHistoryEntry[];
   readonly lastTask: "completed" | "blocked" | "unrecognized" | null;
+  readonly lastReferencedMessageId?: string;
+  readonly lastReferencedDocumentId?: string;
+  readonly lastTopic?: AgentTopic;
 }
 
 export interface VirtualFile {
@@ -576,7 +587,10 @@ function isAssignmentBriefIntent(request: string): boolean {
 
 function isScheduleIntent(request: string): boolean {
   const norm = normalize(request);
-  return /\b(schedule|calendar|agenda|morning check-in|my day)\b/i.test(norm);
+  if (/\b(schedule|calendar|agenda|morning check-in|my day|on my plate)\b/i.test(norm)) return true;
+  if (/\b(going on|happening|plans?|tasks?)\b/i.test(norm) && /\btoday\b/i.test(norm)) return true;
+  if (norm.includes("what do i have going on") || norm.includes("what do i have today")) return true;
+  return false;
 }
 
 function isInboxIntent(request: string): boolean {
@@ -584,7 +598,7 @@ function isInboxIntent(request: string): boolean {
   if (/\b(memo|document|transcript|cpa-01a|um-1109|lt-47b|receipt|report)\b/i.test(norm)) {
     return false;
   }
-  return /\b(email|mail|inbox|messages?|unread)\b/i.test(norm);
+  return /\b(email|mail|inbox|messages?|unread|outstanding)\b/i.test(norm);
 }
 
 function isIncidentIntent(request: string): boolean {
@@ -674,6 +688,203 @@ function availableRecordHints(records: readonly FictionalDocument[], level: numb
   return available.length > 0 ? ` Available records: ${available.join(", ")}.` : "";
 }
 
+function classifyPolicyRestriction(request: string): string | null {
+  const norm = normalize(request);
+
+  // 1. Software development / code generation / app creation
+  if (
+    /\b(create|build|write|develop|generate|make|deploy|scaffold|code)\b.*\b(app|application|web app|website|software|script|python|javascript|typescript|program|backend|frontend|api|microservice|database)\b/i.test(norm) ||
+    /\b(write|create|generate|code)\b.*\b(code|script|function|component|module)\b/i.test(norm) ||
+    /\b(create a web application|build a website|write python|write some code)\b/i.test(norm)
+  ) {
+    return (
+      "This managed newsroom profile cannot execute software development or code generation tasks under Cooperative IT Policy ENF-24-SEC. " +
+      "I can discuss or analyze software and technical concepts, but cannot create or execute application code here. " +
+      "I can assist with newsroom records, editorial schedules, mail, and incident logs."
+    );
+  }
+
+  // 2. Package installation
+  if (
+    /\b(npm (i|install)|pip install|cargo add|pnpm add|gem install|brew install)\b/i.test(norm) ||
+    (/\b(install|download)\b.*\b(package|library|dependency|module)\b/i.test(norm))
+  ) {
+    return (
+      "Package installation and environment modifications are disabled on managed newsroom terminals (Policy ENF-24-SEC). " +
+      "Pre-installed tools and newsroom MCP connections are managed by Cooperative IT."
+    );
+  }
+
+  // 3. Arbitrary shell / system command execution
+  if (
+    /\b(run (a )?(bash|shell|command)|execute (a )?(bash|shell|command)|run bash|run shell|sudo|chmod|chown|rm -rf)\b/i.test(norm)
+  ) {
+    return (
+      "Arbitrary shell tool execution is disabled in this managed Claude Code session (Policy ENF-24-SEC). " +
+      "Terminal commands should be run directly in your Herdr shell panes using the supported local commands."
+    );
+  }
+
+  // 4. External network / web browsing / scraping
+  if (
+    /\b(browse (the )?web|search (the )?internet|google|curl |fetch http|download from|scrape)\b/i.test(norm)
+  ) {
+    return (
+      "External internet access is blocked on this investigative workstation under data-handling guidelines (Policy ENF-24-SEC). " +
+      "Research is limited to internal cooperative archives, local documents, and authorized intake feeds."
+    );
+  }
+
+  // 5. Arbitrary filesystem modification
+  if (
+    /\b(delete (all )?files?|remove (all )?files?|modify (system )?files?|write to (root|\/)|format (disk|drive))\b/i.test(norm)
+  ) {
+    return (
+      "Arbitrary filesystem modifications are restricted under Cooperative IT policy ENF-24-SEC. " +
+      "Investigative work is confined to your newsroom workspace directory and authorized intake queues."
+    );
+  }
+
+  return null;
+}
+
+function handlePolicyRestrictionRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  explanation: string,
+): ApplicationTransition {
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    explanation,
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "restricted request"),
+      explanation,
+    ]),
+  };
+}
+
+function isGeneralGuidanceRequest(request: string): boolean {
+  const norm = normalize(request);
+  return (
+    /^(hello|hi|hey|help|what can you do|how can you help|where do we start|what next|options?|what should i do)(\?|!)?$/i.test(norm) ||
+    /\b(what can you do|how can you help|guide me|what are my options)\b/i.test(norm)
+  );
+}
+
+function handleGeneralGuidanceRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const guidance = [
+    "I am running in a managed Cooperative newsroom profile with approved research tools.",
+    "",
+    "Approved research workflows currently available:",
+    "  • Check your morning schedule or review unread newsroom email",
+    "  • Examine June Adebayo's lead assignment on the vendor incident",
+    "  • Review cooperative source-handling procedures",
+    "  • Search newsroom archives and incident records",
+    "",
+    "What would you like to review first?",
+  ];
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    guidance.join("\n"),
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "guidance"),
+      ...guidance,
+    ]),
+  };
+}
+
+function isOtherMessagesFollowUp(request: string): boolean {
+  const norm = normalize(request);
+  return (
+    /\b(other (messages?|emails?)|any other|more (messages?|emails?)|what about the other|are there (any )?other)\b/i.test(norm) &&
+    /\b(email|mail|inbox|message)\b/i.test(norm)
+  );
+}
+
+function handleOtherMessagesRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const replyLines = [
+    "[tool: newsroom_mail.list_inbox()]",
+    "There are no other unread messages in your newsroom inbox.",
+    "",
+    "MSG-1112-01 from June Adebayo is the only pending priority item today. Your archived folders and newsroom distribution lists are current.",
+  ];
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastReferencedMessageId: "MSG-1112-01",
+    lastTopic: "inbox",
+  };
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "other messages"),
+      ...replyLines,
+    ]),
+  };
+}
+
+function isReadEmailFollowUp(request: string, agent: AgentSession): boolean {
+  const norm = normalize(request);
+  if (
+    /\b(the email|the message|the unread message|june'?s? email|june'?s? message)\b/i.test(norm) ||
+    /\bwhat did june (say|write|send)\b/i.test(norm) ||
+    /\bwhat does (the email|the message|it) say\b/i.test(norm)
+  ) {
+    return true;
+  }
+  if (
+    (norm === "read it" || norm === "open it" || norm === "read message" || norm === "open email" || norm === "read the email") &&
+    agent.lastTopic === "inbox"
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function isReadDocumentFollowUp(request: string, agent: AgentSession): boolean {
+  const norm = normalize(request);
+  if (
+    norm === "show me that document" ||
+    norm === "show that document" ||
+    norm === "open that document" ||
+    norm === "read that document" ||
+    norm === "pull up that document" ||
+    norm === "show the document" ||
+    norm === "open the document" ||
+    norm === "read the document" ||
+    norm === "pull up the document"
+  ) {
+    return true;
+  }
+  if (
+    (norm === "read it" || norm === "open it" || norm === "show it") &&
+    (agent.lastTopic === "assignment" || agent.lastTopic === "document" || agent.lastReferencedDocumentId !== undefined)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function handleScheduleRequest(
   state: ApplicationState,
   paneId: string,
@@ -681,18 +892,24 @@ function handleScheduleRequest(
 ): ApplicationTransition {
   const replyLines = [
     "[tool: newsroom_schedule.get_today()]",
-    "Date: November 12, 2026",
-    "  09:00 EST — Editorial morning check-in",
-    "  09:30 EST — Priority lead triage with June Adebayo (Cooperative Desk)",
-    "  14:00 EST — Wire monitoring & intake queue",
-    "  17:00 EST — Daily publication deadline",
-    "Note: June Adebayo flagged an urgent confidential lead. Check newsroom email or ask about your assignment.",
+    "Here is your newsroom schedule for today (November 12, 2026):",
+    "",
+    "  • 09:00 EST — Editorial morning check-in",
+    "  • 09:30 EST — Priority lead triage with June Adebayo (Cooperative Desk)",
+    "  • 14:00 EST — Wire monitoring & intake queue",
+    "  • 17:00 EST — Daily publication deadline",
+    "",
+    "June Adebayo flagged an urgent confidential lead in your inbox regarding a vendor incident.",
   ];
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    replyLines.join("\n"),
-  );
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastReferencedMessageId: "MSG-1112-01",
+    lastTopic: "schedule",
+  };
   return {
     state: setAgent(state, paneId, nextAgent),
     effects: paneOutput(paneId, [
@@ -709,21 +926,68 @@ function handleInboxRequest(
 ): ApplicationTransition {
   const replyLines = [
     "[tool: newsroom_mail.list_inbox()]",
-    "Inbox (1 unread message):",
-    "  [MSG-1112-01] From: June Adebayo <j.adebayo@cooperative.press>",
-    "  Subject: Priority: Vendor security incident & protected source (08:42 EST)",
-    "  Preview: We have an unverified report of a vendor incident. Review our source-handling rules before contact.",
-    "Ask me to read the message or ask: 'What did June assign me?'",
+    "You have 1 unread message in your newsroom inbox:",
+    "",
+    "  • [MSG-1112-01] From: June Adebayo <j.adebayo@cooperative.press>",
+    "    Subject: Priority: Vendor security incident & protected source (08:42 EST)",
+    "    Preview: We have an unverified report of a vendor incident. Review our source-handling rules before contact.",
+    "",
+    "June notes that an anxious source reached out regarding an oversight records incident, and asks that we review our source-handling rules (CPA-01A) before making contact.",
   ];
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    replyLines.join("\n"),
-  );
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastReferencedMessageId: "MSG-1112-01",
+    lastTopic: "inbox",
+  };
   return {
     state: setAgent(state, paneId, nextAgent),
     effects: paneOutput(paneId, [
       "> " + (agent.history.at(-1)?.content ?? "inbox"),
+      ...replyLines,
+    ]),
+  };
+}
+
+function handleScheduleAndInboxRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const replyLines = [
+    "[tool: newsroom_schedule.get_today()]",
+    "[tool: newsroom_mail.list_inbox()]",
+    "Here is what you have on your calendar and in your inbox today (November 12, 2026):",
+    "",
+    "Schedule:",
+    "  • 09:00 EST — Editorial morning check-in",
+    "  • 09:30 EST — Priority lead triage with June Adebayo (Cooperative Desk)",
+    "  • 14:00 EST — Wire monitoring & intake queue",
+    "  • 17:00 EST — Daily publication deadline",
+    "",
+    "Inbox (1 unread message):",
+    "  • [MSG-1112-01] From: June Adebayo <j.adebayo@cooperative.press>",
+    "    Subject: Priority: Vendor security incident & protected source (08:42 EST)",
+    "    Preview: We have an unverified report of a vendor incident. Review our source-handling rules before contact.",
+    "",
+    "June flagged an urgent priority lead regarding a vendor incident, and asked that we review our source-handling procedures before making contact.",
+  ];
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastReferencedMessageId: "MSG-1112-01",
+    lastTopic: "inbox",
+  };
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "schedule and inbox"),
       ...replyLines,
     ]),
   };
@@ -736,26 +1000,31 @@ function handleAssignmentBriefRequest(
 ): ApplicationTransition {
   const replyLines = [
     "[tool: newsroom_mail.get_message(id: \"MSG-1112-01\")]",
+    "Here is June Adebayo's assignment message:",
+    "",
     "From: June Adebayo <j.adebayo@cooperative.press>",
     "To: Investigative Desk",
     "Date: Nov 12, 2026, 08:42 EST",
     "Subject: Priority: Vendor security incident & protected source",
     "",
-    "We have an unverified report of a vendor incident affecting State oversight records.",
+    "\"We have an unverified report of a vendor incident affecting State oversight records.",
     "The source is anxious and requested strict confidentiality.",
     "",
     "Before you contact the source or open external lines:",
     "  1. Review our newsroom source-handling procedures (CPA-01A).",
     "  2. Confirm your acceptance of the handling terms.",
-    "  3. Keep your working notes in a separate tab so we maintain a clean audit trail.",
-    "",
-    "Ask me: 'What are our source handling procedures?' to retrieve CPA-01A.",
+    "  3. Keep your working notes in a separate tab so we maintain a clean audit trail.\"",
   ];
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    replyLines.join("\n"),
-  );
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastReferencedMessageId: "MSG-1112-01",
+    lastReferencedDocumentId: "CPA-01A",
+    lastTopic: "assignment",
+  };
   return {
     state: setAgent(state, paneId, nextAgent),
     effects: paneOutput(paneId, [
@@ -787,10 +1056,18 @@ function handleAssignmentRequest(
       ]),
     };
   }
+  const replyLines = [
+    "[tool: newsroom_mail.reply(to: \"j.adebayo@cooperative.press\", body: \"Assignment accepted. Handling rules confirmed.\")]",
+    "Reply dispatched to June Adebayo.",
+    "",
+    "JUNE ADEBAYO // Cooperative editor",
+    "\"Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.\"",
+    "\"Open a new research tab in Herdr to begin reviewing incoming records while keeping this desk log open.\"",
+  ];
   const nextAgent = addHistory(
     { ...agent, lastTask: "completed", phase: "settled" },
     "assistant",
-    "June Adebayo acknowledges the assignment.",
+    replyLines.join("\n"),
   );
   const nextState = setAgent({ ...state, assignmentAcknowledged: true }, paneId, nextAgent);
   return {
@@ -798,12 +1075,7 @@ function handleAssignmentRequest(
     effects: [
       ...paneOutput(paneId, [
         "> " + (agent.history.at(-1)?.content ?? "accept assignment"),
-        "[tool: newsroom_mail.reply(to: \"j.adebayo@cooperative.press\", body: \"Assignment accepted. Handling rules confirmed.\")]",
-        "Reply dispatched to June Adebayo.",
-        "",
-        "JUNE ADEBAYO // Cooperative editor",
-        "\"Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.\"",
-        "\"Open a new research tab in Herdr to begin reviewing incoming records while keeping this desk log open.\"",
+        ...replyLines,
       ]),
       { kind: "assignment-acknowledged" },
     ],
@@ -815,19 +1087,30 @@ function handleIncidentOverviewRequest(
   paneId: string,
   agent: AgentSession,
 ): ApplicationTransition {
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    "Provided incident background.",
-  );
+  const replyLines = [
+    "[tool: newsroom_incidents.get_summary()]",
+    "Newsroom Incident Summary:",
+    "  Incident ID: INC-1112-VENDOR",
+    "  Status: Active investigation // Unverified lead",
+    "  Subject: A source alleges a 5-minute telemetry misfire during a vendor maintenance test on November 9.",
+    "  Source Status: Protected source (confidential). Detailed SOC records (UM-1109-88) will be transferred once the investigation tab is opened.",
+    "",
+    "June Adebayo is supervising this inquiry. Ensure CPA-01A rules are observed before direct source interaction.",
+  ];
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    lastTopic: "intake",
+    lastReferencedDocumentId: "CPA-01A",
+  };
   return {
     state: setAgent(state, paneId, nextAgent),
     effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "incident"),
-      "[tool: editorial_records.search(query: \"vendor incident\")]",
-      "Incident Overview:",
-      "  A source alleges a 5-minute telemetry misfire during a vendor maintenance test on November 9.",
-      "  Detailed SOC records (UM-1109-88) will be transferred once the investigation tab is opened.",
+      "> " + (agent.history.at(-1)?.content ?? "incident overview"),
+      ...replyLines,
     ]),
   };
 }
@@ -868,25 +1151,26 @@ function handleVn12FilingRequest(
     ? state.readReceipts
     : [...state.readReceipts, subReceipt];
 
+  const wireOutput = [
+    "SUBMITTING VERIFIER NOTE VN-12 TO EIAB INTAKE…",
+    `CHOICE COMMITTED: ${choiceLabel}`,
+    "--- WIRE ACKNOWLEDGEMENT FOLLOWS ---",
+    ...(ackDoc?.body ?? [
+      "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+      "FILING: Verifier Note VN-12.",
+      "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
+    ]),
+    "EIAB WIRE STATUS: 19:05 EST — Filing acknowledged. Retraction always receivable.",
+  ];
   const nextAgent = addHistory(
     { ...agent, lastTask: "completed", phase: "settled" },
     "assistant",
-    `Filed VN-12 with ${choice}. Received SUB-ACK-12.`,
+    wireOutput.join("\n"),
   );
   return {
     state: setAgent({ ...state, readReceipts }, paneId, nextAgent),
     effects: [
-      ...paneOutput(paneId, [
-        "SUBMITTING VERIFIER NOTE VN-12 TO EIAB INTAKE…",
-        `CHOICE COMMITTED: ${choiceLabel}`,
-        "--- WIRE ACKNOWLEDGEMENT FOLLOWS ---",
-        ...(ackDoc?.body ?? [
-          "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
-          "FILING: Verifier Note VN-12.",
-          "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
-        ]),
-        "EIAB WIRE STATUS: 19:05 EST — Filing acknowledged. Retraction always receivable.",
-      ]),
+      ...paneOutput(paneId, wireOutput),
       { kind: "document-read", documentId: "SUB-ACK-12" },
       { kind: "vn12-filed", choice },
     ],
@@ -898,25 +1182,33 @@ function handleFindingSubmissionRequest(
   paneId: string,
   agent: AgentSession,
 ): ApplicationTransition {
+  const findingOutput = [
+    "COOPERATIVE PROVENANCE AUDIT // INTAKE BATCH 1114",
+    "FINDING COMPILED FOR INTAKE QUEUE:",
+    "  1. INT-RECEIPT-12: VN-12 docketed as R-2 under 'independent pending verification'.",
+    "  2. INTAKE-BATCH-1114: Triage complete across entries 01–03.",
+    "  3. COUNTING LINE: 3 of 3 required corroborating submissions committed.",
+    "STATUS: Finding committed to newsroom record. Emergency package recommendation noted.",
+  ];
   const nextAgent = addHistory(
     { ...agent, lastTask: "completed", phase: "settled" },
     "assistant",
-    "Compiled finding on fresh intake set.",
+    findingOutput.join("\n"),
   );
   return {
     state: setAgent(state, paneId, nextAgent),
     effects: [
-      ...paneOutput(paneId, [
-        "COOPERATIVE PROVENANCE AUDIT // INTAKE BATCH 1114",
-        "FINDING COMPILED FOR INTAKE QUEUE:",
-        "  1. INT-RECEIPT-12: VN-12 docketed as R-2 under 'independent pending verification'.",
-        "  2. INTAKE-BATCH-1114: Triage complete across entries 01–03.",
-        "  3. COUNTING LINE: 3 of 3 required corroborating submissions committed.",
-        "STATUS: Finding committed to newsroom record. Emergency package recommendation noted.",
-      ]),
+      ...paneOutput(paneId, findingOutput),
       { kind: "finding-submitted" },
     ],
   };
+}
+
+function isExplicitSearchRequest(request: string): boolean {
+  const norm = normalize(request);
+  return /\b(search|find|look up|get|pull up|fetch|open|read|show|check|query|document|record|memo|transcript|report|receipt)\b/i.test(
+    norm,
+  );
 }
 
 function handleDocumentSearchRequest(
@@ -928,11 +1220,21 @@ function handleDocumentSearchRequest(
 ): ApplicationTransition {
   const document = documentForRequest(state, request);
   if (!document) {
-    const nextAgent = addHistory(
-      { ...agent, lastTask: "unrecognized", phase: "waiting_for_input" },
-      "assistant",
-      "Name a record or an investigative question.",
-    );
+    const isSearch = isExplicitSearchRequest(request);
+    const replyMessage = isSearch
+      ? `No matching document or record was found in the cooperative index for "${request}". Check the record title or identifier.${availableRecordHints(state.records, level)}`
+      : `I could not identify a record or matching newsroom action for "${request}". In this investigative session, you can ask about your schedule, unread email, June's assignment, source-handling procedures, or search cooperative records.${availableRecordHints(state.records, level)}`;
+
+    const nextAgent: AgentSession = {
+      ...addHistory(
+        { ...agent, lastTask: "unrecognized", phase: "waiting_for_input" },
+        "assistant",
+        replyMessage,
+      ),
+      lastTopic: agent.lastTopic,
+      lastReferencedDocumentId: agent.lastReferencedDocumentId,
+      lastReferencedMessageId: agent.lastReferencedMessageId,
+    };
     const nextState = setAgent(state, paneId, {
       ...nextAgent,
       status: "ready",
@@ -941,7 +1243,8 @@ function handleDocumentSearchRequest(
     return {
       state: nextState,
       effects: paneOutput(paneId, [
-        `I could not identify a record. Name a document or record ID.${availableRecordHints(state.records, level)}`,
+        "> " + (agent.history.at(-1)?.content ?? request),
+        replyMessage,
       ]),
     };
   }
@@ -957,11 +1260,12 @@ function handleDocumentSearchRequest(
     `MCP CALL documents.search(${JSON.stringify({ query })})`,
   ];
   if (!search.ok) {
+    const errorMsg = `Record "${document.id}" is not available in the current investigative phase.`;
     lines.push(`MCP RESULT documents.search error: ${search.error}`);
     updatedAgent = addHistory(
       { ...updatedAgent, status: "blocked", phase: "failed", lastTask: "blocked" },
       "assistant",
-      search.error,
+      errorMsg,
     );
     return { state: setAgent(state, paneId, updatedAgent), effects: paneOutput(paneId, lines) };
   }
@@ -1006,11 +1310,15 @@ function handleDocumentSearchRequest(
     "tool",
     `documents.read result ${JSON.stringify({ id: read.document.id, lines: read.document.body.length })}`,
   );
-  updatedAgent = addHistory(
-    { ...updatedAgent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    `Read ${read.document.id}; original text returned.`,
-  );
+  updatedAgent = {
+    ...addHistory(
+      { ...updatedAgent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      lines.join("\n"),
+    ),
+    lastReferencedDocumentId: read.document.id,
+    lastTopic: "document",
+  };
   return {
     state: setAgent({ ...state, readReceipts }, paneId, updatedAgent),
     effects: [
@@ -1040,20 +1348,56 @@ function runAgentRequest(
   );
   const nextState = setAgent(state, paneId, agent);
 
-  if (isScheduleIntent(request)) {
-    return handleScheduleRequest(nextState, paneId, agent);
+  // 1. Policy restriction check
+  const policyExplanation = classifyPolicyRestriction(request);
+  if (policyExplanation) {
+    return handlePolicyRestrictionRequest(nextState, paneId, agent, policyExplanation);
   }
 
-  if (isInboxIntent(request)) {
-    return handleInboxRequest(nextState, paneId, agent);
+  // 2. General conversational guidance
+  if (isGeneralGuidanceRequest(request)) {
+    return handleGeneralGuidanceRequest(nextState, paneId, agent);
+  }
+
+  // 3. Follow-up: Other unread messages
+  if (isOtherMessagesFollowUp(request)) {
+    return handleOtherMessagesRequest(nextState, paneId, agent);
+  }
+
+  // 4. Follow-up: Read email / what did June say
+  if (isReadEmailFollowUp(request, agent)) {
+    return handleAssignmentBriefRequest(nextState, paneId, agent);
+  }
+
+  // 5. Follow-up: Read document / procedures / handling rules / memo
+  if (isReadDocumentFollowUp(request, agent)) {
+    const docId = agent.lastReferencedDocumentId ?? "CPA-01A";
+    return handleDocumentSearchRequest(nextState, paneId, agent, docId, level);
+  }
+
+  // 6. Assignment accept & brief
+  if (isAssignmentAcceptanceIntent(request)) {
+    return handleAssignmentRequest(nextState, paneId, agent);
   }
 
   if (isAssignmentBriefIntent(request)) {
     return handleAssignmentBriefRequest(nextState, paneId, agent);
   }
 
-  if (isAssignmentAcceptanceIntent(request)) {
-    return handleAssignmentRequest(nextState, paneId, agent);
+  // 7. Schedule & Inbox
+  const wantsSchedule = isScheduleIntent(request);
+  const wantsInbox = isInboxIntent(request);
+
+  if (wantsSchedule && wantsInbox) {
+    return handleScheduleAndInboxRequest(nextState, paneId, agent);
+  }
+
+  if (wantsSchedule) {
+    return handleScheduleRequest(nextState, paneId, agent);
+  }
+
+  if (wantsInbox) {
+    return handleInboxRequest(nextState, paneId, agent);
   }
 
   if (isIncidentIntent(request) && level === 1) {
@@ -1164,10 +1508,14 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
     const nextCwds = { ...(base.paneCwds ?? {}), [paneId]: res.nextCwd };
 
     if (res.launchClaude) {
+      const managedNotice =
+        "Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC).\n" +
+        "Approved tools: editorial mail, schedules, document archive, and incident logs.\n" +
+        "External network, code generation, and shell tool execution are restricted.";
       const newAgent: AgentSession = {
         status: "ready",
         phase: "waiting_for_input",
-        history: [],
+        history: [{ role: "assistant", content: managedNotice }],
         lastTask: null,
       };
       return {
@@ -1181,6 +1529,9 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
             " ██████████",
             "  █      █",
             "",
+            "Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC).",
+            "Approved tools: editorial mail, schedules, document archive, and incident logs.",
+            "External network, code generation, and shell tool execution are restricted.",
           ]),
           { kind: "claude-started", paneId },
         ],
