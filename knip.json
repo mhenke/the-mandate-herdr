@@ -1,6 +1,5 @@
 {
   "entry": [
-    "src/main.tsx",
     "tests/**/*.test.ts"
   ],
   "project": [
@@ -9,9 +8,6 @@
   ],
   "ignore": [
     "src/content/**"
-  ],
-  "ignoreDependencies": [
-    "@axe-core/playwright"
   ],
   "rules": {
     "exports": "off",

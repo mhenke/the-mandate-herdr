@@ -11,7 +11,7 @@ export interface MandateActions {
   readonly focusPane: (paneId: string) => void;
 }
 
-export const ActionsContext = createContext<MandateActions | null>(null);
+const ActionsContext = createContext<MandateActions | null>(null);
 
 export interface ActionsProviderProps {
   readonly actions: MandateActions;

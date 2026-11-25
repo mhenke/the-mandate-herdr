@@ -12,6 +12,10 @@ _Avoid_: News syndicate, press company, intelligence agency
 The restricted intake channel between the Cooperative's Editor of Record and stringers in the field. Delivers verified leads, editorial directives, and off-record assignments without exposing confidential source identities.
 _Avoid_: Mission inbox, ticket feed, alert notification
 
+**Newsroom log (NL-1)**:
+The cooperative's attributable publication and correction ledger maintained by the Editor of Record. Entries carry sequential entry identifiers, fictional timestamps, action references, related evidence IDs, and explicit amendment links; corrections append new entries preserving prior versions without silent rewriting. An accurate entry proves only that the cooperative recorded an action—it corroborates internal newsroom chronology, but cannot establish underlying factual truth or manufacture independent corroboration for external vendor events.
+_Avoid_: Audit trail, change log, revision history, tamper-proof ledger
+
 **Origin event**:
 The one real upstream incident a report derives from. Exactly one exists in the story; reports may share it without any of them being false.
 _Avoid_: Incident, breach, root cause
@@ -157,6 +161,10 @@ _Avoid_: Tab creation dialog, tab popup, new tab modal
 **Capture release control**:
 An accessible external host control that releases keyboard focus from the simulated terminal surface back to the browser page. Releases browser capture without consuming or redefining Herdr's own internal `Escape` key.
 _Avoid_: Escape-to-release, global escape handler, modal escape
+
+**Presentation event**:
+A theatrical playback event (such as cold open playback, pause, resume, skip, or completion) scoped strictly to media projection. It is not a Herdr ChromeEvent, fictional ProcessEvent, Action evidence, or Learning evidence; it never advances the authoritative story clock and is kept outside the gameplay journal.
+_Avoid_: Gameplay event, story trigger, terminal event, progression trigger
 
 **Retention checkpoint**:
 A level that assesses only previously taught skills with faded scaffolding. A checkpoint that introduces a new skill is a curriculum defect.

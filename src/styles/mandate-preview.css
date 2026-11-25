@@ -1214,75 +1214,35 @@
   color: var(--color-terminal-muted);
 }
 
-/* Mode bar: only the core projection, flat, bottom of the pane surface. */
+/* Mode bar: authentic single-row projection matching upstream Herdr line 40 */
 .herdr-modebar {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-focus-blue);
-  background: var(--color-terminal-chrome);
-  border-top: 1px solid var(--color-terminal-border);
-  padding: 0.35rem 0.75rem;
-}
-
-.hud-return-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-pane);
-  color: #8b949e;
-  font-family: inherit;
-  font-size: 0.6875rem;
-  padding: 0.15rem 0.45rem;
-  cursor: pointer;
-  line-height: 1.2;
-}
-
-.hud-return-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f0f6fc;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Extra mode hints are a game aid, not part of the fresh Herdr shell. */
-.herdr-bottom-bar:not([hidden]) {
   flex: none;
   height: 1.875rem;
   background: var(--color-terminal-chrome);
   border-top: 1px solid var(--color-terminal-border);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1.25rem;
   padding: 0 0.875rem;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.75rem;
-  color: var(--color-terminal-text);
   user-select: none;
 }
 
-.herdr-bottom-left {
+.herdr-modebar-title {
+  color: var(--color-focus-blue);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.herdr-modebar-hints {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-}
-
-.herdr-mode-badge {
-  background: var(--color-focus-blue);
-  color: var(--color-terminal-inverse);
-  font-weight: 700;
-  font-size: 0.6875rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 2px;
-  letter-spacing: 0.06em;
-}
-
-.herdr-mode-badge-nav {
-  background: #a6e3a1;
-  color: #181825;
-}
-
-.herdr-mode-badge-copy {
-  background: #f9e2af;
-  color: var(--color-terminal-inverse);
+  font-size: 0.75rem;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .herdr-mode-key {
@@ -1292,18 +1252,6 @@
 
 .herdr-mode-desc {
   color: var(--color-terminal-muted);
-}
-
-.herdr-mode-hint {
-  color: var(--color-terminal-muted);
-  font-style: normal;
-}
-
-.herdr-bottom-right {
-  color: var(--color-terminal-muted);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  font-weight: 500;
 }
 
 .tui-overlay {
@@ -1478,5 +1426,57 @@
 
   .terminal-boot {
     padding: 1rem;
+  }
+
+  .herdr-sidebar {
+    width: 3.25rem;
+  }
+
+  .herdr-side-head,
+  .herdr-side-new,
+  .herdr-side-grouped,
+  .herdr-agent-meta,
+  .herdr-ws-tab {
+    display: none;
+  }
+
+  .herdr-ws {
+    padding: 0.35rem 0.25rem;
+    align-items: center;
+  }
+
+  .herdr-ws-name {
+    gap: 0.15rem;
+  }
+
+  .herdr-ws-label {
+    max-width: 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.625rem;
+  }
+
+  .herdr-agent {
+    padding: 0.25rem 0.2rem;
+    justify-content: center;
+  }
+
+  .herdr-agent-name {
+    font-size: 0.625rem;
+    max-width: 2.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .herdr-modebar {
+    gap: 0.5rem;
+    padding: 0 0.5rem;
+    font-size: 0.6875rem;
+  }
+
+  .herdr-modebar-hints {
+    font-size: 0.6875rem;
   }
 }
