@@ -10,7 +10,7 @@
 //   tabs top-right of the main area, compact pane headers, bottom mode bar),
 //   no rounded dashboard card, no max-width squeeze.
 
-import { useState, type JSX, type ReactNode } from "react";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
 
 function CinemaShell({
   labelledBy,
@@ -28,6 +28,13 @@ function CinemaShell({
   );
 }
 
+export function resolveAsset(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (/^(?:[a-z]+:)?\/\//i.test(url) || url.startsWith("data:")) return url;
+  const base = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
+}
+
 function SceneShell({
   imageUrl,
   labelledBy,
@@ -37,12 +44,13 @@ function SceneShell({
   readonly labelledBy: string;
   readonly children: ReactNode;
 }): JSX.Element {
+  const resolvedImage = resolveAsset(imageUrl);
   return (
     <div className="scene">
-      {imageUrl ? (
+      {resolvedImage ? (
         <div
           className="scene-bg"
-          style={{ backgroundImage: `url("${imageUrl}")` }}
+          style={{ backgroundImage: `url("${resolvedImage}")` }}
           aria-hidden="true"
         />
       ) : (
@@ -62,7 +70,7 @@ function SceneShell({
  * the workspace via the runtime skip (no credit from playback or skip).
  * Missing/failed/stalled video and reduced-motion all fall back to the still.
  */
-export function CinematicPlayer({
+function CinematicPlayer({
   src,
   poster,
   captions,
@@ -73,36 +81,51 @@ export function CinematicPlayer({
   readonly poster: string;
   readonly captions?: string;
   readonly label: string;
-  readonly onEnded: () => void;
+  readonly onEnded?: () => void;
 }): JSX.Element {
   const [failed, setFailed] = useState(false);
-  const [stalled, setStalled] = useState(false);
+  const resolvedSrc = resolveAsset(src) ?? src;
+  const resolvedPoster = resolveAsset(poster) ?? poster;
+  const resolvedCaptions = resolveAsset(captions);
   const prefersReduced =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (failed || stalled || prefersReduced) {
-    return <img className="scene-poster" src={poster} alt="" data-fallback="still" />;
+  if (failed || prefersReduced) {
+    return <img className="scene-poster" src={resolvedPoster} alt="" data-fallback="still" />;
   }
   return (
     <video
       className="scene-video"
-      src={src}
-      poster={poster}
+      src={resolvedSrc}
+      poster={resolvedPoster}
+      autoPlay
       muted
       playsInline
       preload="metadata"
       controls
       aria-label={label}
       onError={() => setFailed(true)}
-      onStalled={() => setStalled(true)}
-      onAbort={() => setFailed(true)}
       onEnded={onEnded}
       data-fallback="video"
     >
-      {captions ? <track kind="captions" src={captions} label="English" default /> : null}
+      {resolvedCaptions ? <track kind="captions" src={resolvedCaptions} label="English" /> : null}
     </video>
   );
+}
+
+function useSceneShortcuts(handler: (key: string, e: KeyboardEvent) => boolean | void): void {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (handler(e.key.toLowerCase(), e)) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handler]);
 }
 
 export function TitleScene({
@@ -118,6 +141,17 @@ export function TitleScene({
   readonly onNew: () => void;
   readonly onContinue: () => void;
 }): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "n" || key === "enter") {
+      onNew();
+      return true;
+    }
+    if (key === "c" && canContinue) {
+      onContinue();
+      return true;
+    }
+  });
+
   return (
     <SceneShell
       imageUrl="/images/Rainy%20Night%20Avenue%20to%20the%20Capitol-1.webp"
@@ -131,11 +165,17 @@ export function TitleScene({
         the source.
       </p>
       <div className="scene-actions">
-        <button type="button" autoFocus onClick={onNew}>
+        <button type="button" autoFocus onClick={onNew} aria-keyshortcuts="N">
+          <span className="key-badge" aria-hidden="true">
+            N
+          </span>{" "}
           New investigation
         </button>
         {canContinue ? (
-          <button type="button" onClick={onContinue}>
+          <button type="button" onClick={onContinue} aria-keyshortcuts="C">
+            <span className="key-badge" aria-hidden="true">
+              C
+            </span>{" "}
             Continue investigation
           </button>
         ) : null}
@@ -165,15 +205,23 @@ export function ColdOpenScene({
   };
   readonly onSkip: () => void;
 }): JSX.Element {
-  // Cinema, not a scene card: a single dominant stage on a plain surround.
-  // The backdrop artwork is deliberately NOT the film's poster frame, so the
-  // stage reads once. No redundant heading: the film opens the episode.
-  // Video end and Skip both run the runtime skip (workspace, no credit).
+  const [videoEnded, setVideoEnded] = useState(false);
+
+  useSceneShortcuts((key) => {
+    if (key === "s" || key === " " || key === "escape" || key === "enter") {
+      onSkip();
+      return true;
+    }
+  });
+
   return (
     <CinemaShell labelledBy="coldopen-stage">
-      <p className="cinema-kicker" id="coldopen-stage">
-        {episode}
-      </p>
+      <div className="cinema-header">
+        <span className="cinema-kicker" id="coldopen-stage">
+          {episode} · Cold Open
+        </span>
+        <span className="cinema-date">November 12, 2026 // 23:47 EST</span>
+      </div>
       {cinematic ? (
         <div className="cinema-stage">
           <CinematicPlayer
@@ -181,19 +229,27 @@ export function ColdOpenScene({
             poster={cinematic.poster}
             captions={cinematic.captions}
             label="Episode one cold open film"
-            onEnded={onSkip}
+            onEnded={() => setVideoEnded(true)}
           />
         </div>
       ) : null}
       <div className="cinema-row">
-        <button type="button" className="cinema-primary" onClick={onSkip} autoFocus>
-          Skip to the workspace
+        <button
+          type="button"
+          className="cinema-primary"
+          onClick={onSkip}
+          autoFocus
+          aria-keyshortcuts="S"
+        >
+          <span className="key-badge" aria-hidden="true">
+            S
+          </span>{" "}
+          {videoEnded ? "Go to terminal" : "Skip to the workspace"}
         </button>
-        <details className="cinema-transcript">
-          <summary>Read the cold open text</summary>
-          <p>{text}</p>
-          <p className="cinema-transcript-full">{transcript}</p>
-        </details>
+      </div>
+      <div className="cinema-transcript-body" role="region" aria-label="Cold open transcript">
+        <p className="cinema-transcript-lede">{text}</p>
+        <p className="cinema-transcript-full">{transcript}</p>
       </div>
     </CinemaShell>
   );
@@ -208,6 +264,17 @@ export function EpisodeScene({
   readonly onAdvance: () => void;
   readonly onSkip: () => void;
 }): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "c" || key === "enter") {
+      onAdvance();
+      return true;
+    }
+    if (key === "s") {
+      onSkip();
+      return true;
+    }
+  });
+
   return (
     <SceneShell
       imageUrl="/images/Rainy%20Night%20Intelligence%20Workspace-3.webp"
@@ -220,10 +287,16 @@ export function EpisodeScene({
         properly.
       </p>
       <div className="scene-actions">
-        <button type="button" autoFocus onClick={onAdvance}>
+        <button type="button" autoFocus onClick={onAdvance} aria-keyshortcuts="C">
+          <span className="key-badge" aria-hidden="true">
+            C
+          </span>{" "}
           Continue
         </button>
-        <button type="button" className="scene-skip-inline" onClick={onSkip}>
+        <button type="button" className="scene-skip-inline" onClick={onSkip} aria-keyshortcuts="S">
+          <span className="key-badge" aria-hidden="true">
+            S
+          </span>{" "}
           Skip to the workspace
         </button>
       </div>
@@ -244,6 +317,17 @@ export function BriefingScene({
   readonly onOpen: () => void;
   readonly onSkip: () => void;
 }): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "o" || key === "enter") {
+      onOpen();
+      return true;
+    }
+    if (key === "s") {
+      onSkip();
+      return true;
+    }
+  });
+
   return (
     <SceneShell
       imageUrl="/images/Rainy%20Capitol%20Desk%20Investigation-5.webp"
@@ -255,10 +339,16 @@ export function BriefingScene({
       <h2 id="briefing-heading">Incoming assignment</h2>
       <p className="scene-lede">{briefing}</p>
       <div className="scene-actions">
-        <button type="button" autoFocus onClick={onOpen}>
+        <button type="button" autoFocus onClick={onOpen} aria-keyshortcuts="O">
+          <span className="key-badge" aria-hidden="true">
+            O
+          </span>{" "}
           Open the workspace
         </button>
-        <button type="button" className="scene-skip-inline" onClick={onSkip}>
+        <button type="button" className="scene-skip-inline" onClick={onSkip} aria-keyshortcuts="S">
+          <span className="key-badge" aria-hidden="true">
+            S
+          </span>{" "}
           Skip to the workspace
         </button>
       </div>
@@ -277,6 +367,13 @@ export function ResponseScene({
   readonly text: string;
   readonly onContinue: () => void;
 }): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "c" || key === "enter") {
+      onContinue();
+      return true;
+    }
+  });
+
   return (
     <SceneShell
       imageUrl="/images/Rainy%20Night%20Intelligence%20Workspace-3.webp"
@@ -286,7 +383,10 @@ export function ResponseScene({
       <h2 id="response-heading">Filed</h2>
       <p className="scene-lede">{text}</p>
       <div className="scene-actions">
-        <button type="button" autoFocus onClick={onContinue}>
+        <button type="button" autoFocus onClick={onContinue} aria-keyshortcuts="C">
+          <span className="key-badge" aria-hidden="true">
+            C
+          </span>{" "}
           Continue the investigation
         </button>
       </div>
@@ -295,6 +395,13 @@ export function ResponseScene({
 }
 
 export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "r" || key === "enter") {
+      onReturn();
+      return true;
+    }
+  });
+
   return (
     <SceneShell labelledBy="complete-heading">
       <p className="scene-kicker">End of the preview slice</p>
@@ -304,10 +411,69 @@ export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): 
         investigation.
       </p>
       <div className="scene-actions">
-        <button type="button" autoFocus onClick={onReturn}>
+        <button type="button" autoFocus onClick={onReturn} aria-keyshortcuts="R">
+          <span className="key-badge" aria-hidden="true">
+            R
+          </span>{" "}
           Return to the title screen
         </button>
       </div>
+    </SceneShell>
+  );
+}
+
+export function NotFoundScene({
+  onReturn,
+  onWorkspace,
+}: {
+  readonly onReturn: () => void;
+  readonly onWorkspace: () => void;
+}): JSX.Element {
+  useSceneShortcuts((key) => {
+    if (key === "r" || key === "enter") {
+      onReturn();
+      return true;
+    }
+    if (key === "w" || key === "o") {
+      onWorkspace();
+      return true;
+    }
+  });
+
+  return (
+    <SceneShell
+      imageUrl="/images/Redacted%20Nighttime%20Investigation%20Dossier-2.webp"
+      labelledBy="notfound-heading"
+    >
+      <p className="scene-kicker">THE COOPERATIVE · DISPATCH 404 // ROUTE UNRESOLVED</p>
+      <h1 id="notfound-heading">No record on file</h1>
+      <p className="scene-lede">
+        The requested docket or transmission route does not exist in the newsroom log. The lead was
+        either redacted, purged under Directive 47 protocol, or never filed from the desk.
+      </p>
+      <div className="scene-actions">
+        <button type="button" autoFocus onClick={onReturn} aria-keyshortcuts="R">
+          <span className="key-badge" aria-hidden="true">
+            R
+          </span>{" "}
+          Return to the desk
+        </button>
+        <button
+          type="button"
+          className="scene-skip-inline"
+          onClick={onWorkspace}
+          aria-keyshortcuts="W"
+        >
+          <span className="key-badge" aria-hidden="true">
+            W
+          </span>{" "}
+          Open the workspace
+        </button>
+      </div>
+      <p className="scene-note">
+        Newsroom log NL-1 · Capitol Press & Analyst Cooperative. Unverified dispatches are dropped
+        without trace.
+      </p>
     </SceneShell>
   );
 }

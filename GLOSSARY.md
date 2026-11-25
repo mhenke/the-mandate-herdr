@@ -44,6 +44,30 @@ _Avoid_: Legal fact, binding conclusion, verified intake
 The player's signed, retractable report. Any credentialed verifier may file one; only a two-source-corroborated filing forces review.
 _Avoid_: Investigation report, audit memo, analyst note
 
+**Stringer**:
+An independent credentialed verifier affiliated with the cooperative network who files signed verifier notes.
+_Avoid_: Reporter, freelance agent, private investigator, auditor
+
+**Simulated Claude Code session (deterministic agent CLI)**:
+A deterministic, in-terminal simulation of an automated LLM coding agent (Claude Code v1.0.12) running as a child process inside a dedicated Herdr pane. Emits bounded, reproducible log outputs, hashes, and audit extractions without connecting to external networks or requiring API credentials.
+_Avoid_: Real Claude API, backend LLM integration, chatbot widget
+
+**Token relevance matching**:
+The prompt-matching mechanism used in `src/core/applications/index.ts` where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
+_Avoid_: NLP model, fuzzy regex, vector search, semantic embedder
+
+**Bounded task assignment**:
+Directing a simulated agent with narrow, falsifiable verification questions (e.g. audit metadata, extract timestamp, calculate hash) rather than unbounded open-ended prompts, producing structured evidence suitable for cross-examination.
+_Avoid_: Prompt engineering, agent chat, freeform prompting
+
+**Source-handling protocol (Protocol CPA-01A)**:
+The governing investigative rules enforced across the Cooperative network: (01) Verify origin before relying on material, (02) Preserve attribution and the chain of custody, and (03) Assume nothing confirmed—one origin is one claim, not independent corroboration.
+_Avoid_: Editorial guidelines, newsroom rules, style guide
+
+**Cooperative (Capital Press & Analyst Cooperative)**:
+The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
+_Avoid_: Agency, newsroom, syndicate, union
+
 **Counter-provenance filing (CPF)**:
 The affirmative instrument proving common source and retracting the filer's own contribution. Subtraction alone (withdrawing a report) is never sufficient; the filing must establish the shared origin.
 _Avoid_: Retraction notice, correction ticket, appeal
@@ -114,6 +138,10 @@ _Avoid_: Event types, input origins, action sources
 Separate outcomes. A player may finish the story with external/accessible controls and earn no keyboard-transfer credit; the record states which.
 _Avoid_: Win state, game clear, level passed
 
+**False credit**:
+The accidental award of learning mastery from simulated process events, test fixtures, or external accessible controls rather than deliberate player keyboard actions.
+_Avoid_: Free pass, unearned achievement, phantom completion
+
 **Input policy**:
 The session mode governing whether simulated chrome accepts pointer interaction. Standard enforces the in-world cooperative security restriction requiring keyboard-only operations on the remote console; Accessible permits alternative pointer navigation of simulated chrome without granting keyboard-transfer mastery credit.
 _Avoid_: Mouse mode, easy mode, cheat mode, bypass
@@ -121,6 +149,10 @@ _Avoid_: Mouse mode, easy mode, cheat mode, bypass
 **Chrome event**:
 An external host activation of simulated multiplexer navigation (workspace, tab, new-tab, or pane focus) recorded with non-player provenance (`playerAction: false`). Distinguishes host-level navigation from authentic player keyboard operations.
 _Avoid_: Synthetic keystroke, simulated click, fake key
+
+**New-tab prompt**:
+The modal overlay opened by `prefix+c` when `prompt_new_tab_name` is true (the upstream Herdr default). Titled `new tab`, it pre-fills the next numerical index and commits tab creation only on `Enter`; `Escape` cancels without creating a tab. Differs from the tab rename field (`prefix+shift+t`), which modifies an already-existing tab and retains the current name on cancel or empty commit.
+_Avoid_: Tab creation dialog, tab popup, new tab modal
 
 **Capture release control**:
 An accessible external host control that releases keyboard focus from the simulated terminal surface back to the browser page. Releases browser capture without consuming or redefining Herdr's own internal `Escape` key.
@@ -131,20 +163,76 @@ A level that assesses only previously taught skills with faded scaffolding. A ch
 _Avoid_: Quiz level, test stage, boss fight
 
 **Mouse chrome / hit targets (`hits`)**:
-Clickable terminal grid regions (`hits.new_tab` in tab bar, `hits.new_workspace` and `hits.sidebar_toggle` in sidebar) active only when `mouse_capture` is enabled. In the simulated TUI, hit targets route mouse clicks (`Down(Left)`) directly to keybind actions (`NewTab`, `NewWorkspace`), exercising the exact same dispatch as keyboard chords without mutating client state independently.
+Clickable terminal grid regions active only when mouse capture is enabled. In the simulated TUI, hit targets translate pointer clicks directly to the corresponding Herdr key actions, exercising the exact same dispatch as keyboard chords without mutating state independently.
 _Avoid_: UI buttons, overlay clicks, pointer shortcuts
 
 **Mode bar**:
-The modal status strip painted at the bottom of the active pane surface during non-terminal modes (`PREFIX`, `COPY`, `RESIZE`, `NAVIGATE`). In standard `Terminal` mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
+The modal status strip painted at the bottom of the active pane surface during non-terminal modes (prefix, copy, resize, navigate). In standard terminal mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
 _Avoid_: Status bar, bottom dock, info footer
 
 **Named session vs default server session**:
-Herdr process isolation boundary: a unique named session (`herdr --session <name>`) isolates unix domain sockets and runtime state in private XDG directories. The default session shares fixed `/run/user/<uid>` state paths; running `server stop` targets the global registry and terminates the host server, whereas `session stop <name>` safely terminates only the named instance.
+The process isolation boundary separating independent Herdr instances. A named session isolates Unix domain sockets and runtime state in dedicated user directories, allowing safe termination without affecting the shared default server session.
 _Avoid_: Sandboxed session, isolated process, private server
 
 **Capture context**:
 The host state machine (ordinary page, deliberate capture, suspended) distinct from Herdr's own modes. Loading or scene changes must never silently capture input; release from capture is keyboard-reachable via the external release control, never via the Escape key, which is Herdr-owned inside the simulated TUI.
 _Avoid_: Focus trap, modal lock, input grab
+
+**Game HUD (Cooperative Mission HUD)**:
+The external mission guidance, objective tracking, and capture status surface that sits outside and directly above the simulated Herdr console. It is entirely owned by the game host and Journalist Cooperative narrative layer, distinct from the Herdr TUI multiplexer chrome.
+_Avoid_: Terminal header, TUI top bar, multiplexer banner, console HUD
+
+**Fresh Herdr session**:
+A clean multiplexer session starting with a single active tab and one un-split terminal pane in the default workspace. Does not pre-populate split panes or pre-open unearned reference documents.
+_Avoid_: Pre-split template, default layout fixture, starter panes
+
+**Single curriculum model (Herdr keyboard operations as sole curriculum)**:
+The strict pedagogical boundary governing assessment: authentic Herdr multiplexer operations (S01–S12) constitute the sole assessed curriculum for keyboard-transfer credit. Fictional Claude Code agent orchestration and newsroom document tools supply the narrative work to organize, never an assessed skill. Prompt quality, tool choice, and investigative reasoning advance the story but never grant keyboard credit.
+_Avoid_: Two-curricula model, prompt grading, agent curriculum, dual assessment
+
+**Agent state rollup (`RawAgentState` / `Working`, `Blocked`, `Idle/Done`)**:
+The three live process states projected in the Herdr spaces & agents sidebar: Working (🟢, active command execution or document search), Blocked (🟡, process suspended awaiting player intervention or confirmation, such as witness consent), and Idle/Done (⚪, task completed or terminal waiting for input, subject to client-side unviewed presentation).
+_Avoid_: Agent status bar, task stage, process badge
+
+**Client-side seen/unseen acknowledgment**:
+The rule that a completed/idle agent remains flagged with its completion indicator in the local client's sidebar until the player focuses or views that specific pane surface, matching authentic Herdr v0.9.5 per-client composition rules.
+_Avoid_: Server acknowledgment, read receipt, global seen flag
+
+**Actions context (`ActionsProvider` / `useMandateActions`)**:
+The React context boundary (`src/ui/ActionsContext.tsx`) providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components from prop-drilling without violating Standard mode's keyboard-only rule.
+_Avoid_: Global state store, redux action, UI controller
+
+**In-pane command line editing**:
+Authentic terminal line editing inside focused shell panes where printable characters, Backspace, Ctrl+U (line clear), Ctrl+C (cancel), and cursor navigation operate directly on the live prompt buffer (`$ <input>`) without duplicating prompt glyphs or emitting synthetic key names.
+_Avoid_: Form input, textbox edit, terminal textarea
+
+**Reload recovery (Development state caching)**:
+The development-only mechanism in `src/adapters/investigation-session.ts` that preserves committed state across hot reloads in `sessionStorage` via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
+_Avoid_: Save game, checkpoint save, persistent database
+
+**Purity compiler audit**:
+The automated static verification in `tests/core-purity.test.ts` using the TypeScript compiler AST (`ts.createSourceFile`) to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across `src/core/**/*.ts`.
+_Avoid_: Regex test, lint script, import scanner
+
+**Spiral learning progression (`[I]`, `[G]`, `[Ind]`, `[M]`)**:
+The four-stage progression advancing each skill through: Introduce (explicit binding prompt and safe initial trial), Guided Practice (contextual reminders and optional hints), Independent Retrieval (outcome-based goal with keybindings omitted from prompt), and Cumulative Mastery (checkpoint or final boss assessment under operational pressure).
+_Avoid_: Difficulty curve, progression ladder, skill tree
+
+**Scaffolding fading rule**:
+The strict transition rule where a skill's explicit keybinding prompt is retired after one introduction (`[I]`) and two successful uses in changed contexts (`[G]`), converting subsequent prompts to outcome-based objectives while keeping voluntary help (`prefix+?`, HUD hints) available.
+_Avoid_: Auto-hinting, difficulty scaling, dynamic difficulty
+
+**Dual clock system (Story deadline vs Boss challenge clock)**:
+The temporal structure separating the fictional statutory deadline (08:00 EST November 24, advancing exclusively on discrete story events) from the optional real-time countdown (15:00 Boss challenge clock in Episode III, pausing for help overlays, accessible mode, or capture release, and never altering evidentiary truth).
+_Avoid_: Game timer, mission countdown, speedrun timer
+
+**Herdr TUI (Simulated Console)**:
+The pure multiplexer workspace consisting strictly of: the full-height spaces & agents sidebar, the top tab bar, the split panes, and the row 40 mode bar. It has zero awareness of game objectives, scores, or external web controls.
+_Avoid_: Game screen, application UI, investigation window
+
+**Manual Cinematic Transition (Non-Automatic Gate)**:
+The transition policy where cinematic video playback pauses at its final frame upon completion (`onEnded`), requiring explicit player initiation (via S, Enter, or clicking the primary CTA) to enter the terminal workspace, preventing jarring auto-jumps.
+_Avoid_: Auto-skip, auto-advance, video timeout, cutscene auto-redirect
 
 **Logical clock**:
 Deterministic simulation time advancing only through recorded events. Browser suspension freezes it; resume never applies wall-clock catch-up.
@@ -170,9 +258,13 @@ _Avoid_: Failed attempt, strike, error
 A matrix cell that teaches part of a skill's content only (for example, the close half of the detach/reattach-versus-close skill). The matrix records the split explicitly; a later level's full introduction never backdates to the partial one.
 _Avoid_: Incomplete lesson, teaser, preview
 
-**Upstream visual baseline**:
-The 28 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `tests/e2e/__screenshots__/upstream/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
-_Avoid_: Illustrative concept art, mock screenshot, reference render
+**Herdr visual baseline**:
+The 32 screen captures generated from a real build of pinned Herdr 0.9.5 (`e8d7d97`) in `references/herdr-baselines/`. Serves as the authoritative visual contract for layout, chrome, borders, and typography.
+_Avoid_: Upstream baseline, mock screenshot, reference render, illustrative concept art
+
+**Illustrative reference**:
+Third-party and community fork screen captures (TermSplit, fork blog) in `references/illustrative/` used solely for mood orientation or contrasting layout patterns. Strictly non-authoritative.
+_Avoid_: Baseline, behavioral authority, visual authority, specification
 
 **Cold open cinematic**:
 An atmospheric, 25-second silent establishing film introducing an episode before interactive gameplay begins, built with HyperFrames and locked camera framing.

@@ -8,6 +8,7 @@
 **Player role:** Credentialed independent verifier (stringer) in a journalist/analyst cooperative network. Verifies tips, protects sources, files signed notes oversight bodies can count on.
 **Tagline (intent, not UI copy):** "Democracy is a process. Someone rewrote the procedure."
 **Episodes:** E1 THE LEAK (L1–L5: curiosity/suspicion/fear) · E2 THE CONTAINMENT (L6–L10: confidence/paranoia) · E3 THE MANDATE (L11–L15: revelation/responsibility).
+**Play and learning:** The player investigates through a pinned Herdr simulation. Herdr keyboard proficiency is the only assessed skill. Simulated Claude sessions and preconfigured newsroom tools supply documents, conversations, and work to manage.
 **Player authority:** Can verify, interview (with consent), cite, file and retract signed verifier notes. Cannot move originals, sign transfers, grant access, edit any log, or compel testimony. Standing to file a counter-provenance case comes from a public filer rule (any credentialed verifier may file; only two-source-corroborated filings force Board review) — not employment, access, or special status.
 
 ## 1. Premise (novella paragraph)
@@ -80,6 +81,8 @@ L7 re-reads the accepted receipt with new understanding — reinterpretation, no
 - **Priya Desai, Acting Chief, BCR.** Keeps the room open; holds custody strand (lodging receipts, witnessed requests).
 - **Sam Oyelaran, Night Clerk.** Witnesses log actions; an entry without his initials means it bypassed the room.
 - **Collaborators with faces:** Dana Okafor (implemented M-47-FWD-03 under written order; testifies — cost: reassignment); SOC analyst "Quill" via counsel (confirms sent-mail; cost: exposure risk the player manages); vendor technician Theo Park (confirms misfire; cost: termination proceedings, stayed if player cites records before naming him); editor June Adebayo (negotiates hold vs publish; cost: a correction notice either way).
+
+Dana leaves anonymous leads after the forwarding order takes effect. She points to places to check and sometimes guesses wrong. She neither supplies protected originals nor grants access. Keep her role as helper hidden from the player until the Episode III counsel relay. The private clue ledger sets their timing and payoff. Ellison remains the custodian of Q-118 and the lodging chain.
 
 ## 6. Underlying chronology (truth)
 

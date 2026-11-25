@@ -1,8 +1,18 @@
 {
-  "entry": ["src/main.tsx", "tests/**/*.test.ts"],
-  "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
-  "ignore": ["src/content/**", "src/adapters/**", "src/ui/**"],
-  "ignoreDependencies": ["@axe-core/playwright"],
+  "entry": [
+    "src/main.tsx",
+    "tests/**/*.test.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "tests/**/*.ts"
+  ],
+  "ignore": [
+    "src/content/**"
+  ],
+  "ignoreDependencies": [
+    "@axe-core/playwright"
+  ],
   "rules": {
     "exports": "off",
     "types": "off"

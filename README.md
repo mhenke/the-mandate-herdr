@@ -1,8 +1,8 @@
 # The Mandate: Herdr
 
-![Investigator at terminal](assets/images/01-investigator-terminal.png)
+![Investigator at terminal](references/concept-art/01-investigator-terminal.png)
 
-A keyboard-first browser political thriller set in Washington, D.C., in November 2026. Investigate a missing analyst, uncover Directive 47, and learn authentic Herdr TUI workflows.
+A keyboard-first political thriller set in Washington, D.C., in November 2026. Investigate why three reports count as independent. Learn the authentic Herdr shortcuts you need to manage the work.
 
 All institutions, characters, and conspiracy events are fictional. The working design targets fifteen interconnected levels across three episodes, with retention checkpoints at levels 5 and 10 and a cumulative mastery challenge at level 15.
 
@@ -10,28 +10,32 @@ All institutions, characters, and conspiracy events are fictional. The working d
 
 | Episode | Image |
 |---|---|
-| — | ![Terminal](assets/images/01-investigator-terminal.png) |
-| E1 THE LEAK | ![The Leak](assets/images/02-the-leak-office.png) |
-| E2 THE CONTAINMENT | ![The Containment](assets/images/03-the-containment-investigation.png) |
-| E3 THE MANDATE | ![The Mandate](assets/images/04-the-mandate-hearing.png) |
-| — | ![Atmosphere](assets/images/05-political-thriller-atmosphere.png) |
+| — | ![Terminal](references/concept-art/01-investigator-terminal.png) |
+| E1 THE LEAK | ![The Leak](references/concept-art/02-the-leak-office.png) |
+| E2 THE CONTAINMENT | ![The Containment](references/concept-art/03-the-containment-investigation.png) |
+| E3 THE MANDATE | ![The Mandate](references/concept-art/04-the-mandate-hearing.png) |
+| — | ![Atmosphere](references/concept-art/05-political-thriller-atmosphere.png) |
 
 *Concept renders for tone and setting; not in-game UI. All depicted institutions are fictional.*
 
 ## Status
 
-Research and design in progress. **Gameplay implementation is not approved.**
+Milestone 2 authorizes the L1–L3 browser slice. L4–L15 are design contracts, not playable levels.
+
+Run `pnpm install` and `pnpm dev`. Open the local URL for the landing page. Choose **New investigation** for the cold open, or visit `/workspace` to go straight to the terminal. Type `herdr` and press Enter to start Herdr.
+
+Claude Code and the newsroom document tools are fictional. The game never runs the real services or asks for credentials. Only Herdr operations earn learning credit.
 
 Repository: [mhenke/the-mandate-herdr](https://github.com/mhenke/the-mandate-herdr).
 The local checkout currently remains named `the-mandate`.
 
 ## Design documents
 
-Documents below are planned deliverables; links become available as each research and design lane finishes.
+Start with the [specification index](docs/README.md).
 
 - Research: [Herdr research](docs/HERDR_RESEARCH.md), [fidelity contracts](docs/HERDR_FIDELITY.md), [Yazi Quest analysis](docs/YAZI_QUEST_ANALYSIS.md).
 - Narrative: [story bible](docs/STORY_BIBLE.md), [story arc](docs/STORY_ARC.md), [narrative design](docs/NARRATIVE_DESIGN.md), [level specifications](docs/LEVEL.md).
-- Learning and implementation proposal: [learning design](docs/LEARNING_DESIGN.md), [architecture](docs/ARCHITECTURE.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md).
+- Design and implementation: [learning design](docs/LEARNING_DESIGN.md), [architecture](docs/ARCHITECTURE.md), [simulated document tools](docs/CLAUDE_MCP_SIMULATION.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md).
 
 ## Behavioral authority
 
@@ -39,6 +43,8 @@ Documents below are planned deliverables; links become available as each researc
 
 The game may simulate fictional terminal content and processes. It must preserve authentic surrounding Herdr bindings, layout, focus, state, and lifecycle behavior.
 
-## Review gate
+The Herdr multiplexer state machine provides 100% deterministic replay from scenario seeds and its input/process event journal. The architecture avoids overclaiming full-session bit-level event replay from sequence 0: startup terminal keystrokes typing `herdr` execute in the pre-boot terminal before attaching to the multiplexer engine, and development reload recovery restores simulated application sessions (Claude Code) and narrative progress via validated schema snapshots while replaying the Herdr multiplexer event journal.
 
-Before gameplay code, review the complete story including its ending, fifteen-level progression, evidence trail, learning matrix, fidelity risks, architecture alternatives, and acceptance tests. Documentation completion alone does not establish design quality or authorize implementation.
+## Development
+
+Follow the [agent workflow](docs/AGENT_WORKFLOW.md). The solo project works directly on `main`, with no mandatory pull request or branch protection. Run `pnpm typecheck`, `pnpm lint`, and `pnpm test`. Run `pnpm test:e2e` for the browser flow.

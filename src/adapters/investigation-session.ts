@@ -1,8 +1,12 @@
-// Browser adapter for the approved L1-L3 slice: owns the Herdr store, resets the
-// scenario on an explicit level transition, and exposes one immutable combined
-// view. Story and assessment only observe committed facts; neither owns Herdr
-// state. No persistence, no save library, no wall clock.
+// Browser adapter for the approved L1-L3 slice. Herdr owns pane and session
+// behavior. The fictional application state records commands and evidence.
+// Story and assessment observe committed transitions. No wall clock.
 
+import {
+  createApplicationState,
+  stepApplication,
+  type ApplicationState,
+} from "../core/applications";
 import {
   createScenario,
   createStore,
@@ -15,9 +19,9 @@ import {
 } from "../core/herdr";
 import {
   createAssessment,
-  declareDestination as declareAssessmentDestination,
   objectivesMet,
   observe,
+  observeHerdrLaunch,
   requestHint as requestAssessmentHint,
   type AssessmentState,
   type ObjectiveRecord,
@@ -25,18 +29,22 @@ import {
 import {
   applyStoryAction,
   initialStory,
-  L1_ASSIGNMENT_LINES,
-  L1_MEMO_LINES,
   presentationFor,
   storyConditionMet,
   type Level,
   type PresentationText,
-  type StoryActionId,
   type StoryState,
 } from "../core/narrative";
 
 export type Phase =
-  "title" | "cold-open" | "episode" | "briefing" | "workspace" | "response" | "complete";
+  | "title"
+  | "cold-open"
+  | "episode"
+  | "briefing"
+  | "workspace"
+  | "response"
+  | "complete"
+  | "not-found";
 
 export interface AssessmentProgress {
   readonly objectives: readonly ObjectiveRecord[];
@@ -48,10 +56,10 @@ export interface InvestigationSnapshot {
   readonly phase: Phase;
   readonly level: Level;
   readonly herdr: HerdrSnapshot;
+  readonly application: ApplicationState;
   readonly story: StoryState;
   readonly assessment: AssessmentProgress;
   readonly presentation: PresentationText;
-  readonly declaredDestination: string | null;
   readonly canContinue: boolean;
   readonly canAdvance: boolean;
   readonly objectivesMet: boolean;
@@ -86,8 +94,11 @@ export interface InvestigationSession {
   advancePresentation(): void;
   skipPresentation(): void;
   returnToTitle(): void;
-  /** Null outside the workspace: scene input never mutates the simulation. */
-  dispatch(event: InputEvent): JournalEntry | null;
+  goToPhase(targetPhase: Phase): boolean;
+  /** The startup prompt can consume input without producing a Herdr entry. */
+  dispatch(
+    event: InputEvent,
+  ): { readonly entry: JournalEntry | null; readonly consumed: boolean } | null;
   /**
    * Native chrome controls (workspace/tab/new-tab/pane focus): dispatched as
    * genuine ChromeEvents through the store — refused in Standard mode (the
@@ -98,9 +109,7 @@ export interface InvestigationSession {
    * for chrome). Stale ids are guarded in the core (no-op).
    */
   dispatchChrome(action: ChromeAction): boolean;
-  storyAction(action: StoryActionId): void;
   requestHint(): void;
-  declareDestination(paneId: string): void;
   /** Standard: keyboard-only simulated chrome; Accessible: alternative modality. */
   setAccessibleMode(on: boolean): void;
   /**
@@ -116,11 +125,10 @@ export interface InvestigationSession {
 interface Attempt {
   readonly level: Level;
   readonly store: HerdrStore;
+  readonly application: ApplicationState;
   readonly story: StoryState;
   readonly assessment: AssessmentState;
-  readonly declaredDestination: string | null;
 }
-
 // Development-only reload recovery: Vite full reloads during active development
 // wipe the in-memory session. A versioned snapshot of committed state is kept
 // in sessionStorage and restored on the next boot when schema and version match.
@@ -128,9 +136,9 @@ interface Attempt {
 // deferred to M3, the mechanism only replays committed facts (journal events
 // plus the already-earned story/assessment state), and it never manufactures
 // learning credit. Production builds do not save or restore.
-// v2 adds the input policy so an Accessible session is not silently
-// downgraded to Standard (or vice versa) by a reload.
-const RECOVERY_VERSION = 2;
+// v5 stores the player-origin Herdr launch skill with the Herdr event journal
+// and fictional application sessions.
+const RECOVERY_VERSION = 5;
 export const RECOVERY_STORAGE_KEY = `mandate-dev-recovery:v${RECOVERY_VERSION}`;
 
 interface RecoveryPayload {
@@ -140,14 +148,14 @@ interface RecoveryPayload {
   readonly policy: InputPolicy;
   readonly attempt: {
     readonly level: Level;
+    readonly application: ApplicationState;
     readonly story: StoryState;
     readonly assessment: AssessmentState;
-    readonly declaredDestination: string | null;
     readonly events: readonly InputEvent[];
   } | null;
 }
 
-const RECOVERY_PHASES: readonly Phase[] = [
+const RECOVERY_PHASE_SET = new Set<Phase>([
   "title",
   "cold-open",
   "episode",
@@ -155,33 +163,39 @@ const RECOVERY_PHASES: readonly Phase[] = [
   "workspace",
   "response",
   "complete",
-];
+  "not-found",
+]);
+const RECOVERY_POLICY_SET = new Set<string>(["standard", "accessible"]);
 
 function parseRecovery(json: string): RecoveryPayload | null {
-  let raw: unknown;
   try {
-    raw = JSON.parse(json);
+    const raw: unknown = JSON.parse(json);
+    if (!raw || typeof raw !== "object") return null;
+    const payload = raw as Partial<RecoveryPayload>;
+    if (payload.version !== RECOVERY_VERSION) return null;
+    if (!payload.phase || !RECOVERY_PHASE_SET.has(payload.phase)) return null;
+    if (!payload.suspendedPhase || !RECOVERY_PHASE_SET.has(payload.suspendedPhase)) return null;
+    if (!payload.policy || !RECOVERY_POLICY_SET.has(payload.policy)) return null;
+    if (payload.attempt === null) return { ...payload } as RecoveryPayload;
+    const saved = payload.attempt;
+    if (
+      !saved ||
+      ![1, 2, 3].includes(saved.level) ||
+      !saved.application ||
+      !Array.isArray(saved.events)
+    )
+      return null;
+    return payload as RecoveryPayload;
   } catch {
     return null;
   }
-  if (!raw || typeof raw !== "object") return null;
-  const payload = raw as Partial<RecoveryPayload>;
-  if (payload.version !== RECOVERY_VERSION) return null;
-  if (!payload.phase || !RECOVERY_PHASES.includes(payload.phase)) return null;
-  if (!payload.suspendedPhase || !RECOVERY_PHASES.includes(payload.suspendedPhase)) return null;
-  if (payload.policy !== "standard" && payload.policy !== "accessible") return null;
-  if (payload.attempt === null) return { ...payload } as RecoveryPayload;
-  const saved = payload.attempt;
-  if (!saved || !Array.isArray(saved.events)) return null;
-  return payload as RecoveryPayload;
 }
 
 function deepFreeze<T>(value: T): T {
-  if (value && typeof value === "object" && !Object.isFrozen(value)) {
-    Object.freeze(value);
-    for (const key of Object.keys(value)) {
-      deepFreeze((value as Record<string, unknown>)[key]);
-    }
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const child of Object.values(value)) {
+    deepFreeze(child);
   }
   return value;
 }
@@ -198,87 +212,23 @@ function idleSnapshot(level: Level): HerdrSnapshot {
   return store.snapshot();
 }
 
-/** Seed canonical L1 documents as committed process output, by pane app. */
-function seedDocuments(store: HerdrStore, level: Level): void {
-  if (level !== 1) return;
-  const tab = activeTabOf(store);
-  const docs: readonly (readonly [string, readonly string[]])[] = [
-    ["assignment", L1_ASSIGNMENT_LINES],
-    ["memo", L1_MEMO_LINES],
-  ];
-  for (const [app, lines] of docs) {
-    const pane = tab?.panes.find((p) => p.app === app);
-    if (!pane) continue;
-    for (const line of lines) {
-      store.dispatch({
-        kind: "process",
-        origin: "process",
-        process: { kind: "output", paneId: pane.id, line },
-      });
-    }
-  }
-}
-
 function newAttempt(level: Level): Attempt {
-  const store = createStore(createScenario(level));
-  // Content only: process output grants no objective or story credit.
-  seedDocuments(store, level);
   return {
     level,
-    store,
+    store: createStore(createScenario(1)),
+    application: createApplicationState(),
     story: initialStory(level),
     assessment: createAssessment(level),
-    declaredDestination: null,
   };
 }
 
-function activeTabOf(store: HerdrStore) {
-  const state = store.getState();
-  const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId);
-  return ws?.tabs.find((t) => t.id === ws.activeTabId);
-}
-
-/** The app of the pane the player is actually looking at, or null. */
-function focusedApp(store: HerdrStore): string | null {
-  const tab = activeTabOf(store);
-  return tab?.panes.find((p) => p.id === tab.focusedPaneId)?.app ?? null;
-}
-
-/** Input the assignment process actually accepted (input-destination evidence). */
-function assignmentInput(store: HerdrStore): readonly string[] {
-  return activeTabOf(store)?.panes.find((p) => p.app === "assignment")?.input ?? [];
-}
-
-function presentation(level: Level, hintsUsed: number): PresentationText {
-  const text = presentationFor(level);
-  return { ...text, hints: text.hints.slice(0, hintsUsed) };
-}
-
-/**
- * A story action needs the player to be looking at the content it claims to
- * read, and accepting the assignment needs input the assignment process
- * actually received. An external control cannot credit a memo the player never
- * opened or an assignment they never worked in.
- */
-function groundedStoryAction(action: StoryActionId, store: HerdrStore): boolean {
-  const app = focusedApp(store);
-  switch (action) {
-    case "read-memo":
-      return app === "memo";
-    case "acknowledge-assignment":
-      return app === "assignment" && assignmentInput(store).length > 0;
-    case "examine-artifact":
-      return app === "artifact" || app === "reading";
-    case "record-consent":
-      return app === "assignment" || app === "transcript";
-    case "complete-interview":
-      return app === "transcript";
-  }
-}
+const ADVANCEABLE_PHASES = new Set<Phase>(["cold-open", "episode", "briefing", "response"]);
+const ATTEMPT_START_PHASES = new Set<Phase>(["cold-open", "episode", "briefing", "workspace"]);
+const ATTEMPT_REQUISITE_PHASES = new Set<Phase>(["response", "complete"]);
 
 export function createInvestigationSession(): InvestigationSession {
-  let attempt: Attempt | null = null;
-  let phase: Phase = "title";
+  let attempt: Attempt | null = newAttempt(1);
+  let phase: Phase = "workspace";
   let suspendedPhase: Phase = "cold-open";
   let policy: InputPolicy = "standard";
   let cached: InvestigationSnapshot | null = null;
@@ -291,11 +241,13 @@ export function createInvestigationSession(): InvestigationSession {
     const assessment = current?.assessment;
     const objectives = assessment?.objectives ?? [];
     const hintsUsed = assessment?.hintsUsed ?? 0;
+    const text = presentationFor(level);
     const met = assessment ? objectivesMet(assessment) : false;
     const storyMet = storyConditionMet(story);
     return deepFreeze({
       phase,
       level,
+      application: current?.application ?? createApplicationState(),
       herdr: current?.store.snapshot() ?? idleSnapshot(level),
       story,
       assessment: {
@@ -303,14 +255,9 @@ export function createInvestigationSession(): InvestigationSession {
         hintsUsed,
         helpConsulted: assessment?.helpConsulted ?? false,
       },
-      presentation: presentation(level, hintsUsed),
-      declaredDestination: current?.declaredDestination ?? null,
+      presentation: { ...text, hints: text.hints.slice(0, hintsUsed) },
       canContinue: attempt !== null && phase === "title",
-      canAdvance:
-        phase === "cold-open" ||
-        phase === "episode" ||
-        phase === "briefing" ||
-        phase === "response",
+      canAdvance: ADVANCEABLE_PHASES.has(phase),
       objectivesMet: met,
       storyConditionMet: storyMet,
       inputPolicy: policy,
@@ -373,7 +320,13 @@ export function createInvestigationSession(): InvestigationSession {
         if (!attempt || attempt.level === 3) {
           phase = "complete";
         } else {
-          attempt = newAttempt((attempt.level + 1) as Level);
+          const level = (attempt.level + 1) as Level;
+          attempt = {
+            ...attempt,
+            level,
+            story: initialStory(level),
+            assessment: createAssessment(level),
+          };
           phase = "briefing";
         }
       } else return;
@@ -386,19 +339,174 @@ export function createInvestigationSession(): InvestigationSession {
     },
     returnToTitle() {
       if (phase === "title") return;
-      if (attempt) suspendedPhase = phase;
+      if (attempt && phase !== "not-found") suspendedPhase = phase;
       phase = "title";
       commit();
     },
+    goToPhase(targetPhase) {
+      if (targetPhase === phase) return true;
+      if (targetPhase === "title") {
+        if (attempt) suspendedPhase = phase;
+        phase = "title";
+        commit();
+        return true;
+      }
+      if (targetPhase === "not-found") {
+        phase = "not-found";
+        commit();
+        return true;
+      }
+      if (ATTEMPT_START_PHASES.has(targetPhase)) {
+        attempt ??= newAttempt(1);
+        phase = targetPhase;
+        commit();
+        return true;
+      }
+      if (ATTEMPT_REQUISITE_PHASES.has(targetPhase)) {
+        if (!attempt || (phase !== "title" && phase !== "not-found")) return false;
+        if (targetPhase !== suspendedPhase) return false;
+        phase = targetPhase;
+        commit();
+        return true;
+      }
+      return false;
+    },
     dispatch(event) {
-      // Scene and title input never reaches the simulation: no hidden state that
-      // could later be credited.
       if (!attempt || phase !== "workspace") return null;
-      const before: HerdrState = attempt.store.getState();
+      if (!attempt.application.herdrLaunched) {
+        if (
+          event.kind !== "key" ||
+          event.origin !== "player" ||
+          (event.phase !== "press" && !(event.phase === "repeat" && event.key === "backspace"))
+        ) {
+          return null;
+        }
+        const transition = stepApplication(attempt.application, {
+          kind: "key",
+          origin: "player",
+          key: event.key,
+          modifiers: event.modifiers,
+        });
+        if (transition.ignored) return null;
+        const assessment = transition.effects.some((effect) => effect.kind === "herdr-started")
+          ? observeHerdrLaunch(attempt.assessment, event.origin)
+          : attempt.assessment;
+        updateAttempt({ ...attempt, application: transition.state, assessment });
+        return { entry: null, consumed: true };
+      }
+
+      const before = attempt.store.getState();
       const entry = attempt.store.dispatch(event);
-      const after: HerdrState = attempt.store.getState();
-      updateAttempt({ ...attempt, assessment: observe(attempt.assessment, before, after, entry) });
-      return entry;
+      const after = attempt.store.getState();
+      const assessment =
+        policy === "accessible"
+          ? attempt.assessment
+          : observe(attempt.assessment, before, after, entry);
+      let application = attempt.application;
+      let story = attempt.story;
+      // Modal routes report consumption even when they do not change the layout.
+      // In terminal mode the receiving application decides for forwarded input.
+      let consumed = entry.effect !== "none" && entry.effect !== "forwarded";
+
+      if (event.kind === "key" && event.origin === "player" && entry.effect === "forwarded") {
+        const workspace = after.workspaces.find((item) => item.id === after.activeWorkspaceId);
+        const tab = workspace?.tabs.find((item) => item.id === workspace.activeTabId);
+        const paneId = tab?.focusedPaneId;
+        if (workspace && tab && paneId) {
+          const transition = stepApplication(
+            application,
+            {
+              kind: "key",
+              origin: "player",
+              key: event.key,
+              paneId,
+              modifiers: event.modifiers,
+            },
+            attempt.level,
+          );
+          application = transition.state;
+          // Escape remains reserved by the captured Herdr surface, not the host.
+          consumed = !transition.ignored || event.key === "escape";
+
+          if (event.key === "enter") {
+            const launched = transition.effects.some((effect) => effect.kind === "claude-started");
+            const researchTab =
+              workspace.id !== idleSnapshot(1).activeWorkspaceId && workspace.tabs.indexOf(tab) > 0;
+            const containsRecord = (pane: string, documentId: string) =>
+              application.readReceipts.some(
+                (receipt) => receipt.paneId === pane && receipt.documentId === documentId,
+              );
+            const agent = application.agents[paneId];
+            if (agent && !launched) {
+              attempt.store.dispatch({
+                kind: "process",
+                origin: "process",
+                process: { kind: "agentState", paneId, state: "working" },
+              });
+            }
+            for (const effect of transition.effects) {
+              if (effect.kind === "pane-output") {
+                attempt.store.dispatch({
+                  kind: "process",
+                  origin: "process",
+                  process: { kind: "output", paneId, line: effect.line },
+                });
+              } else if (effect.kind === "assignment-acknowledged" && researchTab) {
+                story = applyStoryAction(story, "acknowledge-assignment");
+              } else if (effect.kind === "document-read") {
+                let placementHint: string | undefined;
+                if (attempt.level === 1 && effect.documentId === "CPA-01A") {
+                  if (researchTab) story = applyStoryAction(story, "read-memo");
+                  else
+                    placementHint = "June: Keep the memo in a research tab in your own workspace.";
+                } else if (attempt.level === 2 && effect.documentId === "UM-1109-88") {
+                  const sourceInOtherTab = workspace.tabs.some(
+                    (other) =>
+                      other !== tab &&
+                      other.panes.some((pane) => containsRecord(pane.id, "CPA-01A")),
+                  );
+                  if (sourceInOtherTab) story = applyStoryAction(story, "examine-artifact");
+                  else placementHint = "June: Retrieve the report in a separate tab from the memo.";
+                } else if (attempt.level === 3 && effect.documentId === "PARK-INTERVIEW-11-13") {
+                  const reportInOtherPane = tab.panes.some(
+                    (pane) => pane.id !== paneId && containsRecord(pane.id, "UM-1109-88"),
+                  );
+                  if (reportInOtherPane) {
+                    story = applyStoryAction(story, "record-consent");
+                    story = applyStoryAction(story, "complete-interview");
+                  } else placementHint = "June: Open the transcript in a pane beside the report.";
+                }
+                if (placementHint) {
+                  attempt.store.dispatch({
+                    kind: "process",
+                    origin: "process",
+                    process: { kind: "output", paneId, line: placementHint },
+                  });
+                }
+              }
+            }
+            if (launched || agent) {
+              attempt.store.dispatch({
+                kind: "process",
+                origin: "process",
+                process: {
+                  kind: "agentState",
+                  paneId,
+                  state: agent?.status === "blocked" ? "blocked" : "idle",
+                },
+              });
+            }
+            attempt.store.dispatch({
+              kind: "process",
+              origin: "process",
+              process: { kind: "consumeInput", paneId },
+            });
+          }
+        }
+      }
+
+      updateAttempt({ ...attempt, application, story, assessment });
+      return { entry, consumed };
     },
     dispatchChrome(action) {
       // Standard mode is the keyboard-only session: clicks never dispatch
@@ -415,40 +523,9 @@ export function createInvestigationSession(): InvestigationSession {
       updateAttempt({ ...attempt, assessment: observe(attempt.assessment, before, after, entry) });
       return true;
     },
-    storyAction(action) {
-      // Story actions are grounded in what the player is actually looking at.
-      if (!attempt || phase !== "workspace") return;
-      if (!groundedStoryAction(action, attempt.store)) return;
-      const story = applyStoryAction(attempt.story, action);
-      if (story === attempt.story) return;
-      // The accepted assignment becomes visible in the environment itself.
-      if (action === "acknowledge-assignment") {
-        const pane = activeTabOf(attempt.store)?.panes.find((p) => p.app === "assignment");
-        if (pane) {
-          attempt.store.dispatch({
-            kind: "process",
-            origin: "process",
-            process: {
-              kind: "output",
-              paneId: pane.id,
-              line: "Assignment accepted — verify origin.",
-            },
-          });
-        }
-      }
-      updateAttempt({ ...attempt, story });
-    },
     requestHint() {
       if (!attempt || phase !== "workspace") return;
       updateAttempt({ ...attempt, assessment: requestAssessmentHint(attempt.assessment) });
-    },
-    declareDestination(paneId) {
-      if (!attempt || phase !== "workspace") return;
-      updateAttempt({
-        ...attempt,
-        declaredDestination: paneId,
-        assessment: declareAssessmentDestination(attempt.assessment, paneId),
-      });
     },
     setAccessibleMode(on) {
       const next: InputPolicy = on ? "accessible" : "standard";
@@ -467,9 +544,9 @@ export function createInvestigationSession(): InvestigationSession {
         attempt: attempt
           ? {
               level: attempt.level,
+              application: attempt.application,
               story: attempt.story,
               assessment: attempt.assessment,
-              declaredDestination: attempt.declaredDestination,
               // Seeds are journaled process events, so replaying the journal
               // from the pristine scenario reproduces the exact store state.
               events: attempt.store.journal().map((entry) => entry.event),
@@ -483,16 +560,15 @@ export function createInvestigationSession(): InvestigationSession {
       if (!payload) return false;
       attempt = payload.attempt
         ? (() => {
-            const store = createStore(createScenario(payload.attempt.level));
-            // Journal replay only: the pristine scenario, then every committed
-            // event (seeds included) — deterministic by core contract.
+            const store = createStore(createScenario(1));
+            // Replay every committed Herdr event from the initial shell.
             for (const event of payload.attempt.events) store.dispatch(event);
             return deepFreeze({
               level: payload.attempt.level,
+              application: payload.attempt.application,
               store,
               story: payload.attempt.story,
               assessment: payload.attempt.assessment,
-              declaredDestination: payload.attempt.declaredDestination,
             });
           })()
         : null;

@@ -34,7 +34,8 @@ export interface KeyEvent {
 
 export type ProcessPayload =
   | { readonly kind: "agentState"; readonly paneId: string; readonly state: RawAgentState }
-  | { readonly kind: "output"; readonly paneId: string; readonly line: string };
+  | { readonly kind: "output"; readonly paneId: string; readonly line: string }
+  | { readonly kind: "consumeInput"; readonly paneId: string };
 
 export interface ProcessEvent {
   readonly kind: "process";
@@ -135,6 +136,7 @@ export interface WorkspaceState {
   readonly activeTabId: string;
   /** Fixture declaration: the fictional app a new tab opens here. */
   readonly newTabApp: PaneApp;
+  readonly newTabOutput?: readonly string[];
 }
 
 export interface CopySearchPrompt {
@@ -171,6 +173,12 @@ export type Overlay =
       readonly kind: "rename";
       readonly target: "new-tab";
       readonly workspaceId: string;
+      readonly text: string;
+      readonly defaultName: string;
+    }
+  | {
+      readonly kind: "rename";
+      readonly target: "new-workspace";
       readonly text: string;
       readonly defaultName: string;
     }

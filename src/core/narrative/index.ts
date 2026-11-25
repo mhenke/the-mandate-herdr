@@ -92,27 +92,6 @@ export interface PresentationText {
   readonly hints: readonly string[];
 }
 
-/**
- * Canonical L1 documents the player actually reads. Kept as plain lines so the
- * adapter seeds them as committed process output; never React strings.
- * No misfire, script ID, or later-episode facts appear here.
- */
-export const L1_ASSIGNMENT_LINES: readonly string[] = [
-  "FROM: June Adebayo, The Cooperative — Desk Assignment",
-  "RE: Vendor security incident — supplied goods",
-  "Establish what is known before anyone contacts the source.",
-  "Review the source-handling rules beside this assignment before you decide.",
-  "Nothing here is independent confirmation.",
-];
-
-export const L1_MEMO_LINES: readonly string[] = [
-  "SOURCE-HANDLING RULES — COOPERATIVE DESK",
-  "1. Verify origin. Confirm where the material came from before relying on it.",
-  "2. Preserve attribution. Keep the source's exact words and the chain of custody.",
-  "3. Do not assume independent confirmation. One origin is one claim, not corroboration.",
-  "Protected source: do not burn identity.",
-];
-
 const TITLE = "The Mandate: Herdr";
 
 const COLD_OPEN =
@@ -124,19 +103,16 @@ const EPISODE = "Episode I — THE LEAK";
 
 const BRIEFING: Record<Level, string> = {
   1:
-    "Incoming assignment: verify the vendor security incident. The source-handling memo sits " +
-    "beside the assignment in one workspace — read it before you decide. Quill stays out of " +
-    "the copy; nothing here is independent confirmation yet.\n\n" +
-    "COOPERATIVE SECURITY NOTICE — this remote console is running keyboard-only for the " +
-    "secure session. Pointer operations are unavailable inside the investigation workspace; " +
-    "all navigation goes through the console's own keybindings. Accessible-investigation " +
-    "assist remains available from the console footer.",
+    "June Adebayo needs the source-handling rules checked before anyone contacts the protected source. " +
+    "The terminal is ready. Type herdr, create an investigation workspace and a research tab, then " +
+    "start Claude and retrieve CPA-01A. Read the original memo before you accept the assignment.",
   2:
-    "The cooperative shared the SOC memo as a PDF with its headers stripped. Examine the " +
-    "shared copy: banner text, window, and the origin line as it actually appears.",
+    "The cooperative received SOC Memo UM-1109-88 with its origin headers removed. Keep the shared " +
+    "copy in a second Herdr tab beside CPA-01A. Ask Claude to retrieve the record so June can decide " +
+    "what the document does and does not establish.",
   3:
-    "Theo Park has agreed to a consent interview about the load-test misfire. Record the " +
-    "consent, then take the transcript in a named tab. Script ID LT-47B is the floor.",
+    "Theo Park agreed to an interview about the load-test misfire. Keep the audit and transcript " +
+    "visible in separate Herdr panes. Ask Claude to retrieve the transcript before June reviews the case.",
 };
 
 const RESPONSE: Record<Level, string> = {
@@ -144,31 +120,33 @@ const RESPONSE: Record<Level, string> = {
     'Assignment accepted on the record. Adebayo, editor: "Stringer rates. Verify origin. ' +
     'Preserve attribution. Do not assume independent confirmation." The shared artifact is next.',
   2:
-    "Artifact examined: the banner checks out, the origin line is blank by the share's " +
-    "nature. Adebayo wants the window and the script ID before anyone places the event.",
+    "Adebayo: The shared copy gives us the banner and the five-minute window. " +
+    "It does not tell us where the report began. Theo Park has agreed to speak off the record. " +
+    "Keep his account beside this report.",
   3:
-    "Interview logged: LT-47B, a misfire, and a self-report timeline. The event is real " +
-    'and owned. Adebayo: "Now write it up — and mind what you can actually attest to."',
+    "Adebayo: Park's account matches the portal and the five-minute window. " +
+    "The scan happened. That does not make this an independent report. " +
+    "Keep LT-47B with the transcript. We will need it when we write VN-12.",
 };
 
 const HINTS: Record<Level, readonly string[]> = {
   1: [
-    "The prefix arms exactly one follow-up key; ordinary keys go straight to the focused pane.",
-    "Focus moves between panes with the prefix plus a direction key; the pane you focus receives your typing.",
-    "Help lists the active bindings. Filter it, clear the filter, then leave it.",
-    "Worked example: prefix, then the left direction key, then type into the assignment pane.",
+    "The terminal is ready. Type herdr and press Enter.",
+    "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
+    "Press Ctrl+B, then C. Name the tab research.",
+    "Type claude. Ask Claude to find CPA-01A.",
+    "Read the memo. Then tell Claude: Accept the assignment.",
   ],
   2: [
-    "A new tab opens with its own pane; the tab bar shows which tab is active.",
-    "Rename the artifact tab through the field, then switch away and back to confirm it is active.",
-    "Help stays available; consulting it is recorded, never punished.",
-    "Worked example: prefix+c, prefix+shift+t, type a name, Enter, then prefix+p and prefix+n.",
+    "Open and name a second tab for the shared report.",
+    "Switch to the source tab, then return to the report.",
+    "Ask Claude to retrieve UM-1109-88.",
   ],
   3: [
-    "A split creates a second live pane and focus lands in it.",
-    "Move focus deliberately, then declare which pane should receive your typing.",
-    "The interview belongs in a named tab, not an unnamed one.",
-    "Worked example: prefix+v, prefix+h, declare the left pane, then type.",
+    "Split the active tab so both records stay visible.",
+    "Move focus to the new pane before you type.",
+    "Name the tab for the witness record.",
+    "Ask Claude to retrieve Park's interview.",
   ],
 };
 

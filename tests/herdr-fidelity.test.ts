@@ -38,6 +38,34 @@ function paneInput(state: HerdrState, paneId: string): readonly string[] {
   }
   throw new Error(`pane ${paneId} missing`);
 }
+describe("workspace creation and process input", () => {
+  it("creates a named workspace through the pinned prefix binding", () => {
+    const s = store();
+    s.dispatch(press("b", ["ctrl"]));
+    const entry = s.dispatch(press("n", ["shift"]));
+    expect(entry.effect).toBe("prefix-resolved");
+    expect(s.getState().overlay).toMatchObject({ kind: "rename", target: "new-workspace" });
+    for (const key of "investigation") s.dispatch(press(key));
+    s.dispatch(press("enter"));
+    const state = s.getState();
+    const workspace = state.workspaces.find((item) => item.id === state.activeWorkspaceId);
+    expect(workspace?.name).toBe("investigation");
+    expect(workspace?.tabs).toHaveLength(1);
+    expect(workspace?.tabs[0]?.panes[0]?.app).toBe("shell");
+  });
+
+  it("lets a pane process consume input after a submitted command", () => {
+    const s = store();
+    const paneId = focusedPaneId(s.getState());
+    s.dispatch(press("x"));
+    s.dispatch({
+      kind: "process",
+      origin: "process",
+      process: { kind: "consumeInput", paneId },
+    });
+    expect(paneInput(s.getState(), paneId)).toEqual([]);
+  });
+});
 
 describe("FIDELITY row: prefix enter (input.rs:667-680)", () => {
   it("ctrl+b arms prefix mode and forwards nothing", () => {
@@ -53,6 +81,8 @@ describe("FIDELITY row: prefix enter (input.rs:667-680)", () => {
 describe("FIDELITY row: prefix valid action (input.rs:699-705)", () => {
   it("prefix+h resolves, returns to Terminal, and moves focus left", () => {
     const s = store(1);
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     const memo = focusedPaneId(s.getState());
     s.dispatch(press("b", ["ctrl"]));
     const entry = s.dispatch(press("h"));
@@ -187,6 +217,8 @@ describe("FIDELITY row: copy mode entry (prefix+[)", () => {
 describe("FIDELITY row: core five focus (layout.rs:369-424)", () => {
   it("focus moves only to an existing neighbor and never wraps", () => {
     const s = store(1);
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     const memo = focusedPaneId(s.getState());
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("h"));
@@ -330,6 +362,8 @@ describe("FIDELITY row: tabs (prefix+c / n / p / shift+t)", () => {
 describe("FIDELITY row: close pane stops the runtime (shell/actions.rs:115-123)", () => {
   it("prefix+x removes the pane and clears its agent status", () => {
     const s = store(1);
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     const memo = focusedPaneId(s.getState());
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("x"));
@@ -366,6 +400,8 @@ describe("FIDELITY row: close pane stops the runtime (shell/actions.rs:115-123)"
   it("closing the pane copy mode is attached to clears mode and copy state", () => {
     // state.rs:1478-1490: a vanished copy pane resets copy mode to Terminal.
     const s = store(1);
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     const memo = focusedPaneId(s.getState());
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("["));
@@ -592,6 +628,8 @@ describe("FIDELITY row: zoom (prefix+z)", () => {
 describe("L1-L3 input-destination evidence (LEVEL.md O1)", () => {
   it("L1: prefix+h then a typed character lands in the assignment process", () => {
     const s = store(1);
+    s.dispatch(press("b", ["ctrl"]));
+    s.dispatch(press("v"));
     const memo = focusedPaneId(s.getState());
     s.dispatch(press("b", ["ctrl"]));
     s.dispatch(press("h"));

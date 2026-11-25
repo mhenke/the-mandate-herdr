@@ -1,26 +1,8 @@
 // Public surface of the pure Herdr simulation core (docs/ARCHITECTURE.md).
 // No React, DOM, adapter, narrative or assessment imports.
 
-export {
-  createScenario,
-  createStore,
-  initialState,
-  replay,
-  scenario,
-  type HerdrStore,
-} from "./store";
-export {
-  collectPanes,
-  findInDirection,
-  paneCount,
-  paneIds,
-  splitRect,
-  type NavDirection,
-  type PaneInfo,
-  type Rect,
-  type SplitDirection,
-  type SplitNode,
-} from "./layout";
+export { createScenario, createStore, initialState, replay, type HerdrStore } from "./store";
+export { collectPanes, findInDirection, paneCount, paneIds, splitRect } from "./layout";
 export {
   PREFIX,
   PREFIX_BINDINGS,
@@ -28,41 +10,19 @@ export {
   helpBindingRows,
   helpRowCount,
   isPrefixKey,
-  normalizeDomKey,
   resolvePrefixBinding,
-  type HelpGroup,
-  type HelpRow,
-  type KeyCombo,
-  type NormalizedKey,
-  type PrefixAction,
 } from "./keymap";
 export type {
-  AgentState,
   ChromeEvent,
-  ChromeOrigin,
-  CopySearchPrompt,
-  CopyState,
-  Effect,
-  EventOrigin,
   HerdrSnapshot,
   HerdrState,
-  HostEvent,
   InputEvent,
   JournalEntry,
   KeyEvent,
-  KeyPhase,
-  Mode,
   Modifier,
   Overlay,
-  PaneApp,
   PaneState,
-  PaneView,
-  ProcessEvent,
-  ProcessPayload,
-  ProjectedAgentState,
-  RawAgentState,
   TabState,
   TabView,
   WorkspaceState,
-  WorkspaceView,
 } from "./types";

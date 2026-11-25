@@ -10,7 +10,7 @@
 | E2 THE CONTAINMENT (confidence/paranoia) | L6–L10 | Counting, access, pressure | Three reports were counted; mine is one; the other two share fingerprints; the analyst who asked was removed |
 | E3 THE MANDATE (revelation/responsibility) | L11–L15 | Law, proof, hearing | One root, three faces; my retraction + common-source proof kills the package |
 
-L5 checkpoint: first independent verification file (S01, S03–S06 territory: useful arrangement, comparison split, correct focus/input, provenance-backed finding — per LEARNING_DESIGN, outside this doc's scope). L10: coordination and corroboration (ambiguous status, conflicting reports). L15: cumulative — organize, compare, verify output, search/copy passage, recover detached client, complete disclosure. Final disclosure alone never passes without the skill evidence (see NARRATIVE_DESIGN).
+L5 and L10 pair new evidence with independent Herdr checkpoints. The finding and common-root proof advance the story but do not earn keyboard credit. L15 pairs the hearing with five separate Herdr results. See `LEVEL.md` for all predicates.
 
 ## Underlying truth vs level knowledge
 
@@ -41,7 +41,7 @@ E1's closing theory (L5) therefore contains only: the scan is real, the note is 
 
 ## Fifteen levels (distinct verbs; discoveries; causal links)
 
-- **L1 Take the assignment — "Stringer Rates."** (Nov 12) Accept the cooperative's verification task: confirm the SOC tip without burning Quill. Discover: assignment memo + source-handling rules. Leads to L2 (the shared artifact).
+- **L1 Take the assignment — "Stringer Rates."** (Nov 12) June needs the SOC tip checked without exposing Quill. Start at an open terminal. Launch Herdr, organize the assignment in a workspace and tab, and use simulated Claude to retrieve the original CPA-01A memo. June acknowledges acceptance. The same session carries into L2.
 - **L2 Inspect the artifact — "Supplied Goods."** (Nov 12) Examine SOC-shared PDF (headers stripped in the share, noted on its face). Discover: banner text checks out; origin line blank *by the share's nature*. Leads to L3 (can anyone place the event?).
 - **L3 Interview the technician — "Five Minutes."** (Nov 13 AM) Consent interview with Theo Park: the load-test misfire, script ID `LT-47B`, self-report timeline. Discover: the event is real and owned — the story's floor. Leads to L4 (write it up).
 - **L4 File the note — CHOICE (source protection).** (Nov 13 PM) Write and file VN-12; paraphrase vs identifying detail. Receive SUB-ACK-12 on screen (origin blank, retraction always receivable, counting review next cycle). Discover: filing is countable — not yet understood. Leads to L5 checkpoint.
@@ -56,6 +56,8 @@ E1's closing theory (L5) therefore contains only: the scan is real, the note is 
 - **L13 Meet through counsel — CHOICE (request now vs map first).** (Nov 22) Counsel-relayed Ellison index (relayed Nov 21, opened Nov 22); her leave/credential facts stated, no puzzle, no key. Interview Quill through counsel (consent, conditions vary by L4 choice). Discover: the second chain (SOC headers + interview) beside the first (C-1 comparison). Leads to L14 (write the case).
 - **L14 Draft the retraction — CHOICE (scope) + CHOICE (naming).** (Nov 23) Draft CPF-9: common-source proof + VN-12 retraction. Beck deficiency loop until the two-source rule is met (deficiencies name missing elements, never supply answers). Discover: what "affirmative proof" costs — full retraction weight vs narrow correction; signer named vs role-cited. Leads to L15.
 - **L15 File and read aloud — "Into the Record."** (Nov 24) Cumulative. Operational circumstance: the hearing convenes on a separate hearing-room client (Board convenes 10:00, Housekeeping until 10:30; filing due 08:00, late filing until 09:30 draws one untimely slip + one cure path). The player detaches from the prep workspace (everything keeps running; state restores on reattach) and reattaches at the hearing-room terminal, where mid-hearing restructuring is neither permitted nor possible — so the corpus must already be organized (organize), the R-1/R-3 comparison must be staged side-by-side (compare), the retraction text state must be verified before standing (verify output), the verbatim passage to be read must be located and copied into the reading packet (search/copy), and the session must survive the move intact (recover detached client). File CPF-9 by 08:00 story-clock (late until 09:30: untimely slip + one cure path under Housekeeping to 10:30), move, then the live finale: stand at the hearing table and read the retraction + findings into the log. The Board rejects the extraordinary package, continues standard measures, and enters referrals and costs on the record (per Bible §10). Ending card reflects all five choices. No new facts; no auto-complete on scene entry — the reading is the assessed disclosure action with its resulting state. Consistent with HERDR_RESEARCH detach semantics (detach leaves everything running; reattach restores state).
+
+Anonymous leads appear after L3 and direct the player to ordinary records channels. The helper's identity is an Episode III reveal. The leads do not supply proof or permissions. The private ledger fixes discovery order and dates.
 
 ## Revelation alternatives (tested; provisional choice settled)
 

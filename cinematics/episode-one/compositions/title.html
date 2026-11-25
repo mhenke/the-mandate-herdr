@@ -59,7 +59,7 @@
     }
     #t-mandate {
       font-size: 168px;
-      line-height: 1.0;
+      line-height: 1;
       letter-spacing: 0.08em;
       color: #eef2f6;
       text-transform: uppercase;
@@ -69,7 +69,7 @@
       font-family: var(--font-mono);
       font-size: 36px;
       font-weight: 600;
-      letter-spacing: 0.20em;
+      letter-spacing: 0.2em;
       color: #f0f4f8;
       margin-top: 28px;
       text-transform: uppercase;
@@ -103,15 +103,36 @@
       />
       <canvas id="rain" width="1920" height="1080" data-layout-ignore></canvas>
     </div>
-    <div id="t-docket" class="clip" data-start="0.4" data-duration="6.6" data-layout-allow-overlap data-hold>
+    <div
+      id="t-docket"
+      class="clip"
+      data-start="0.4"
+      data-duration="6.6"
+      data-layout-allow-overlap
+      data-hold
+    >
       <div class="doc-line" id="doc-l1">WASHINGTON,&nbsp;D.C.</div>
       <div class="doc-line" id="doc-l2">CAPITOL&nbsp;AVENUE&nbsp;//&nbsp;23:47&nbsp;EST</div>
       <div class="doc-line dim" id="doc-l3">PRECIPITATION:&nbsp;CONTINUOUS</div>
     </div>
-    <div id="t-title" class="title-block clip" data-start="1.4" data-duration="5.6" data-layout-allow-overlap data-hold>
-      <div id="t-mandate"><span class="word" id="tw1">THE</span> <span class="word" id="tw2">MANDATE</span></div>
+    <div
+      id="t-title"
+      class="title-block clip"
+      data-start="1.4"
+      data-duration="5.6"
+      data-layout-allow-overlap
+      data-hold
+    >
+      <div id="t-mandate">
+        <span class="word" id="tw1">THE</span> <span class="word" id="tw2">MANDATE</span>
+      </div>
       <div>
-        <div id="t-sub"><span class="word" id="sw1">EPISODE</span>&nbsp;<span class="word" id="sw2">ONE</span>&nbsp;<span class="word slash" id="sw3">//</span>&nbsp;<span class="word" id="sw4">THE</span>&nbsp;<span class="word" id="sw5">LEAK</span></div>
+        <div id="t-sub">
+          <span class="word" id="sw1">EPISODE</span>&nbsp;<span class="word" id="sw2">ONE</span
+          >&nbsp;<span class="word slash" id="sw3">//</span>&nbsp;<span class="word" id="sw4"
+            >THE</span
+          >&nbsp;<span class="word" id="sw5">LEAK</span>
+        </div>
       </div>
     </div>
   </div>
@@ -148,7 +169,7 @@
           y: rand() * 1080,
           len: 40 + rand() * 35,
           speed: 1100 + rand() * 400,
-          alpha: 0.12 + rand() * 0.10,
+          alpha: 0.12 + rand() * 0.1,
           drift: 35 + rand() * 30,
         });
       }
@@ -158,8 +179,8 @@
         // Background mist: subtle and quiet
         ctx.lineWidth = 0.8;
         for (const d of DROPS_BG) {
-          const y = (d.y + t * d.speed) % (1080 + 120) - 60;
-          const x = (d.x + t * d.drift) % (1920 + 100) - 50;
+          const y = ((d.y + t * d.speed) % (1080 + 120)) - 60;
+          const x = ((d.x + t * d.drift) % (1920 + 100)) - 50;
           ctx.strokeStyle = "rgba(180, 205, 225, " + d.alpha + ")";
           ctx.beginPath();
           ctx.moveTo(x, y);
@@ -169,8 +190,8 @@
         // Foreground streaks: soft and understated
         ctx.lineWidth = 1.2;
         for (const d of DROPS_FG) {
-          const y = (d.y + t * d.speed) % (1080 + 200) - 100;
-          const x = (d.x + t * d.drift) % (1920 + 120) - 60;
+          const y = ((d.y + t * d.speed) % (1080 + 200)) - 100;
+          const x = ((d.x + t * d.drift) % (1920 + 120)) - 60;
           const grad = ctx.createLinearGradient(x, y, x + d.drift * 0.04, y + d.len);
           grad.addColorStop(0, "rgba(200, 225, 245, 0)");
           grad.addColorStop(0.3, "rgba(200, 225, 245, " + d.alpha + ")");
@@ -203,12 +224,7 @@
         { opacity: 1, duration: 0.45, ease: "power2.out" },
         1.1,
       );
-      tl.fromTo(
-        "#t-sub",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: "power2.out" },
-        1.5,
-      );
+      tl.fromTo("#t-sub", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 1.5);
       // Stationary Reading Hold: from 2.0s to 6.7s (4.7s dead-still hold)
       // Clean fade to black: entire stage dims uniformly into background (no flash)
       tl.to("#root", { opacity: 0, duration: 0.28, ease: "power1.in" }, 6.72);

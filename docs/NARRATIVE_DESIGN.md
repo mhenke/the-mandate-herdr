@@ -1,6 +1,6 @@
 # NARRATIVE_DESIGN — The Mandate: Herdr (PROPOSAL, not approved)
 
-> Fictional content only. Trigger contracts describe story-state transitions inside simulated terminal content (documents, receipts, memos, interview transcripts). They do not specify Herdr bindings, layout, or components — those belong to later lanes (LEVEL.md, learning pass on verified research). Story event IDs are stable; implementation maps them later. S01–S12 curriculum references are informational (parent owns LEARNING_DESIGN.md); this doc maps story needs to practical information work, never to key sequences.
+> This document owns fictional events and their consequences. `LEVEL.md` owns the arrangements and navigation the player must achieve. `LEARNING_DESIGN.md` owns Herdr assessment. Claude Code and preconfigured newsroom MCP tools deliver story material. They never award learning credit.
 
 ## 1. Quality mechanisms borrowed from Yazi Quest (mechanism, not plot/style)
 
@@ -19,17 +19,15 @@ Explicitly NOT borrowed: AI-consciousness plot, hauntings, UI glitch overlays, t
 
 ## 2. Story event IDs and trigger contracts
 
-Naming: `SE-<level>-<slug>`. All events are **idempotent** (re-fire returns current state; no duplicate log entries — key = event ID + level ID), **re-entrant** (leaving and returning replays the content state, not the animation), and **gated** (prerequisites are EV possession / story flags, never keystrokes). Story clock advances on declared events only — never wall-time, never skill speed. A missed narrative deadline uses explicit recovery; evidence is never rewritten.
-
-Practical information-work needs per event (maps to LEARNING_DESIGN S01–S12 territory without prescribing bindings): arrange/compare views, track provenance, record interviews, file/retract notes. Exact skill predicates belong in LEVEL.md.
+Naming: `SE-<level>-<slug>`. Events are idempotent by event and level. Re-entry shows the committed content, not the animation. Story events observe facts such as document receipts, consent, and filings, never raw keys. Level completion can require both story facts and Herdr outcomes. Only declared story events advance the fictional clock.
 
 | Event ID | Level (date) | Fires when (story condition) | Effect (content state) | Re-entry / failure / optional |
 |---|---|---|---|---|
-| SE-L1-assignment | L1 (Nov 12) | Assignment memo opened | Task + source-handling rules available | Re-entry: memo persists. No fail. |
-| SE-L2-artifact | L2 (Nov 12) | Shared PDF examined | Artifact state: banner verified, origin-blank noted on face | Re-entry: annotations persist. |
-| SE-L3-interview | L3 (Nov 13 AM) | Park interview completed (consent on record) | Transcript logged; script ID `LT-47B` + self-report timeline citable; triggers Mission Outro 03 ("Five Minutes", see `docs/PRESENTATION_PLAN.md`) | Re-entry: transcript persists. Optional: follow-up question once. |
+| SE-L1-assignment | L1 (Nov 12) | Claude returns CPA-01A and June acknowledges the player's acceptance | Source-handling rules stay in the research transcript. The assignment proceeds. | No preloaded memo or cinematic gate. |
+| SE-L2-artifact | L2 (Nov 12) | Claude returns the shared PDF | Original text records the missing origin header. June directs the player toward Park. | Keep the L1 agent, workspace, and records. |
+| SE-L3-interview | L3 (Nov 13 AM) | Claude returns Park's transcript with consent recorded | Transcript identifies `LT-47B`, the misfire, and the timing. June introduces the future VN-12 decision. | Keep both records and the consent transcript. Skipping presentation grants nothing. |
 | SE-L4-filing | L4 (Nov 13) | VN-12 submitted | Note filed; SUB-ACK-12 issued to player file same night (blank origin + retraction always receivable + counting review next cycle) | Choice: paraphrase vs detail (recorded in NL-1). Failure: incomplete basis → clerk return, re-file same night. |
-| SE-L5-retention1 | L5 (Nov 14 AM) | Finding submitted on fresh set; INT-RECEIPT-12 (= DR-2) arrives in morning paperwork | Accepted receipt adds counting line ("independent pending verification" — not yet understood); rubric pass/fail (uses only revealed authorities); triggers Episode I Finale ("The Third Count") | Failure: deficiency slip naming missing element; evidence preserved; retry. No plot lock. |
+| SE-L5-retention1 | L5 (Nov 14 AM) | Finding submitted on fresh set; INT-RECEIPT-12 (= DR-2) arrives in morning paperwork | Accepted receipt adds “independent pending verification”; triggers Episode I Finale (“The Third Count”) when the board is ready | Evidence persists on retry. The separate Herdr checkpoint does not score the finding. |
 | SE-L6-finding | L6 (Nov 16) | F-47-E3 opened; leave/personnel order posts as new paperwork; Q-118 content readable via mirror | Finding + vote date known; R-1/R-3/R-2 listed; Ellison "asked and was removed" lands here | Re-entry: finding persists. |
 | SE-L7-reread | L7 (Nov 17) | VN-12 matched to R-2 via accepted receipt (INT-RECEIPT-12) | Re-read annotation on accepted receipt; counterfactual stated by Beck line | Optional re-read anytime. |
 | SE-L8-trace | L8 (Nov 18–19) | R-3 path traced to OCC forward | Forwarding record + hours-narrowing memo (dated 11/19) available | Choice: briefing vs independent (standing weight recorded). |
@@ -40,7 +38,7 @@ Practical information-work needs per event (maps to LEARNING_DESIGN S01–S12 te
 | SE-L13-counsel | L13 (Nov 22) | Counsel relay opened | Ellison index + leave/credential facts; Quill interview (conditions vary by L4) | Choice: immediate request vs map-first (chain weight recorded). No puzzle, no key. |
 | SE-L14-draft | L14 (Nov 23) | CPF-9 draft submitted | Beck deficiency loop until two-source rule met (missing elements named, answers never given) | Choice: retraction scope; choice: naming. Complete on curable draft meeting the rule — not on perfection. |
 | SE-L15-filing | L15 (Nov 24, 08:00) | CPF-9 filed by 08:00 story-clock | Filed stamp; hearing-room move unlocks. Late → Beck "untimely" slip with one explicit recovery (never rewritten evidence, never hard-lock). | The move: detach from prep workspace (everything keeps running; state restores on reattach) → reattach at hearing-room terminal. Corpus must already be organized/geometr­y-set because mid-hearing restructuring is not permitted. Skill-subtask evidence recorded per learning pass; filing alone never passes. |
-| SE-L15-reading | L15 (Nov 24, 10:00) | Hearing reached AND filing complete AND required skill evidence present | Live finale: retraction + findings read into the log (assessed disclosure with resulting state); Board orders; ending card; triggers Episode III Finale & Game Ending ("The Record"). Verbatim passage located + copied into reading packet beforehand (search/copy); retraction text state verified before standing (verify output) | Once; idempotent replay. Ending card reflects all five choices. Scene entry alone completes nothing. |
+| SE-L15-reading | L15 (Nov 24, 10:00) | Hearing reached, filing complete, and required Herdr arrangements committed | The player reads the retraction and findings into the log. The Board's orders trigger “The Record” and the ending card. | Accessible controls can provide the arrangement without keyboard credit. Disclosure is story evidence only. |
 
 Global rules: no event writes twice into the log; leaving mid-level preserves EV possession; deficiency slips never reveal answers; optional disclosures (marginalia, re-reads, follow-ups) never gate progress.
 
@@ -109,7 +107,7 @@ OPCI — DEFICIENCY SLIP — CPF-9 DRAFT, returned 02:14
 | L14 (Nov 23) | draft retraction (CHOICE 5a scope + 5b naming) | CPF-9 meeting two-source rule | L9–L13 states | L15 |
 | L15 (Nov 24) | file + read aloud (cumulative) | Board rejection of package; standard measures continue; referrals + costs on record | CPF-9 + skill evidence | — |
 
-No level requires keystroke data; all story gates are EV-possession + filing-quality states. Skill predicates and receipt/config/hearing dates feed LEVEL.md; exact timestamps live in STORY_BIBLE §6.
+Plot progress can depend on records and filings. The keyboard record depends only on committed Herdr operations. Exact dates live in `STORY_BIBLE.md` §6.
 
 ## Clue audit (ADR-0003)
 
@@ -124,6 +122,8 @@ No level requires keystroke data; all story gates are EV-possession + filing-qua
 | IQ-1 normalization note | L10 (Nov 20, released Nov 17) | L11 (Cole §5 context) | Surge-week triage, good-faith | Optional only — never required; §5 duty still un-triggered by design, not by proof |
 | C-1 originals | L12 (Nov 21–22) | L14 (two-source rule) | Selective curation | Completeness + declared gaps + cross-walk with SM-1 headers |
 
+The author-only clue ledger tracks optional anonymous leads and the Episode III identity reveal. Keep it outside the runtime. The helper never substitutes for a receipt, witness, or custody record.
+
 ## 6. Revision audit (explicit; no self-approval)
 
 - **Counterfactual (remove player):** R-1 + R-3 = two reports; IG-E3-02 needs three; no finding, no vote — but the profile stays armed and Q-118 stays buried. Player is both cause and only cure (only the author retracts; only retraction + proof meets the rule). Material, not decorative.
@@ -133,5 +133,3 @@ No level requires keystroke data; all story gates are EV-possession + filing-qua
 - **Evidence alternatives preserved:** hostile-probe reading (ruled out: script config + self-report); independent-third-observation reading (kept live until L10 disproves for *these* reports — same root *could* be re-observed, these markers prove it wasn't); selective-curation reading of C-1 (answered: completeness + declared gaps); good-faith-acceleration motive (preserved as motive, demolished as exoneration).
 - **Choices/endings:** five choice points, six recorded decisions (L4, L8, L9, L13, L14-scope, L14-naming — L14 holds two recorded decisions, one choice point with two dimensions; no hidden sixth). All Endings reject the package + continue standard measures; they differ in credit cost, corroboration weight, collaborator outcomes, and ending-card lines. No content locked; failures procedural with explicit recovery.
 - **Checks actually run:** lexicon sweep (no hack/breach-cyber/decrypt/backdoor/mole/rigged outside avoidance lines); title/episode-name consistency across all three docs; ID stability (every ID in ARC tables exists in BIBLE §7 and NARRATIVE_DESIGN §5; no orphan references — verified by cross-read); chronology walk (receipt order R-1 Nov 10 → R-3 Nov 13 → R-2 Nov 14 matches finding Nov 14; no 72-hour apparatus remains); Yazi refs pinned to commit above with no copied dialogue.
-- **Story-verb vs S01–S12 matrix (noted, not fixed — LEVEL.md lane):** story verbs name information-work actions, not Herdr operations, so no verb contradicts a matrix cell. Two watch-items for LEVEL.md: (a) L15's "file + read aloud" verb must not collapse its five skill demands (organize, compare, verify output, search/copy, detach-reattach) into one observable — the hearing-room move is designed to force them apart, but the level contract must score them as separate subtasks; (b) L5/L10 retention verbs ("compile finding," "prove common root") must map onto their checkpoint skill sets (L5: S01, S03–S06; L10: S07–S10 + retrieval) without adding new interface skills — current story text adds none. No changes made here; flagging for reconciliation.
-- **Remaining weaknesses (same five as STORY_ARC, for LEVEL.md pass):** copy-artifact weight, Cole corroboration depth (RESOLVED-optional via IQ-1 — examinable L10, never scored), publish-path correction staging, Vane monotony, E2 interview texture. Plus: LEARNING_DESIGN reconciliation (skill predicates per level) is parent's lane — this doc maps story needs only.

@@ -13,11 +13,14 @@ import {
   splitNode,
   type NavDirection,
   type Rect,
+  type SplitDirection,
   type SplitNode,
 } from "./layout";
-import { helpBindingRows, isPrefixKey, resolvePrefixBinding, type PrefixAction } from "./keymap";
+import { helpRowCount, isPrefixKey, resolvePrefixBinding, type PrefixAction } from "./keymap";
 import type {
   AgentState,
+  ChromeEvent,
+  CopyState,
   Effect,
   HerdrSnapshot,
   HerdrState,
@@ -26,6 +29,7 @@ import type {
   KeyEvent,
   Mode,
   Modifier,
+  Overlay,
   PaneApp,
   PaneState,
   PaneView,
@@ -34,7 +38,6 @@ import type {
   TabView,
   WorkspaceState,
   WorkspaceView,
-  ChromeEvent,
 } from "./types";
 
 const TERMINAL_AREA: Rect = { x: 0, y: 0, width: 120, height: 40 };
@@ -59,14 +62,25 @@ interface WorkspaceSeed {
   readonly name: string;
   readonly tabs: readonly TabSeed[];
   readonly newTabApp: PaneApp;
+  readonly newTabOutput?: readonly string[];
 }
+
+const DEFAULT_APP_OUTPUT: Partial<Record<PaneApp, readonly string[]>> = {
+  transcript: [
+    "WITNESS TRANSCRIPT // THEO PARK (VENDOR NOC TECHNICIAN)",
+    "STATUS: Consent pending · off-record",
+    "PARK: 'Load-test script LT-47B misfired against demo portal VP-1109.'",
+    "PARK: 'Execution window was 21:47 to 21:52 EST. Five minutes total.'",
+    "CORROBORATION: Window and portal match Claude Code audit reference.",
+  ],
+};
 
 function seedPane(id: string, seed: PaneSeed): PaneState {
   return {
     id,
     app: seed.app,
     title: seed.title,
-    output: seed.output ?? [],
+    output: seed.output ?? DEFAULT_APP_OUTPUT[seed.app] ?? [],
     input: [],
     agent: { raw: "unknown", seq: 0, acknowledgedSeq: 0, completedSeq: 0 },
   };
@@ -123,6 +137,7 @@ function buildState(seeds: readonly WorkspaceSeed[]): HerdrState {
       tabs,
       activeTabId: firstTab.id,
       newTabApp: seed.newTabApp,
+      newTabOutput: seed.newTabOutput,
     });
     nextWorkspaceId += 1;
   }
@@ -147,24 +162,20 @@ function buildState(seeds: readonly WorkspaceSeed[]): HerdrState {
 }
 
 /**
- * L1-L3 starting states (docs/LEVEL.md). Fictional content is minimal and
- * sourced from the level contracts: L1 assignment + memo panes, L2 reading tab,
- * L3 one pane split into assignment beside a transcript draft.
+ * L1 starts in Herdr's default shell workspace. Players create the story
+ * workspace and research tab through Herdr's keyboard bindings.
  */
 export function createScenario(level: 1 | 2 | 3): HerdrState {
   if (level === 1) {
     return buildState([
       {
-        name: "cooperative",
+        name: "the-mandate",
         newTabApp: "shell",
         tabs: [
           {
-            name: "assignment",
-            splitApp: "memo",
-            panes: [
-              { app: "assignment", title: "Assignment", output: ["SOC tip: supplied goods"] },
-              { app: "memo", title: "Memo", output: ["source-handling rules"] },
-            ],
+            name: "1",
+            splitApp: "shell",
+            panes: [{ app: "shell", title: "shell" }],
           },
         ],
       },
@@ -175,11 +186,34 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
       {
         name: "cooperative",
         newTabApp: "artifact",
+        newTabOutput: [
+          "Claude Code v1.0.12 (simulated session)",
+          "$ claude review artifacts/um-1109-88.pdf --extract-metadata",
+          "ATTACHMENT: UM-1109-88 / BANNER CAPTURE",
+          "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
+          "TARGET: Vendor Demonstration Portal (VP-1109)",
+          "WINDOW: 2026-11-09 21:47 - 21:52 EST",
+          "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+          "BOUNDED AUDIT: Banner and window verified; root origin unverified.",
+          "ATTRIBUTION: Remote banner verification of supplied artifact only.",
+        ],
         tabs: [
           {
             name: "reading",
             splitApp: "artifact",
-            panes: [{ app: "reading", title: "Reading", output: ["UM-1109-88 (shared PDF)"] }],
+            panes: [
+              {
+                app: "reading",
+                title: "Reading",
+                output: [
+                  "COOPERATIVE INTAKE — READING QUEUE",
+                  "ITEM: SOC Memo UM-1109-88 (Shared Copy)",
+                  "SOURCE: Campus SOC via Quill transfer",
+                  "NOTE ON FACE: Headers stripped per external sharing policy.",
+                  "Open a dedicated artifact tab to launch simulated Claude Code audit.",
+                ],
+              },
+            ],
           },
         ],
       },
@@ -191,9 +225,22 @@ export function createScenario(level: 1 | 2 | 3): HerdrState {
       newTabApp: "shell",
       tabs: [
         {
-          name: "interview",
+          name: "1",
           splitApp: "transcript",
-          panes: [{ app: "assignment", title: "Assignment", output: ["Park consent interview"] }],
+          panes: [
+            {
+              app: "assignment",
+              title: "Audit Reference",
+              output: [
+                "AUDIT REFERENCE // UM-1109-88 REVIEW (Claude Code)",
+                "TARGET: Vendor Demonstration Portal (VP-1109)",
+                "WINDOW: 2026-11-09 21:47 - 21:52 EST",
+                "BANNER: 'MAINTENANCE ADVISORY: DIAGNOSTIC SCRIPT EXECUTION IN PROGRESS'",
+                "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
+                "NOTE: Split pane (Ctrl+B - or Ctrl+B V) to compare witness testimony.",
+              ],
+            },
+          ],
         },
       ],
     },
@@ -337,6 +384,46 @@ function actionName(action: PrefixAction): string {
   return action.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 }
 
+function closeTabFromWorkspace(state: HerdrState, ws: WorkspaceState, tabId: string): HerdrState {
+  const idx = ws.tabs.findIndex((t) => t.id === tabId);
+  const tabs = ws.tabs.filter((t) => t.id !== tabId);
+  let active = idx;
+  if (active >= tabs.length) active = tabs.length - 1;
+  else if (idx <= active && active > 0) active -= 1;
+  const target = tabs[active];
+  if (!target) return state;
+  return withWorkspace(state, { ...ws, tabs, activeTabId: target.id });
+}
+
+function findTargetInDirection(
+  tab: TabState,
+  terminalArea: Rect,
+  direction: NavDirection,
+): string | null {
+  const panes = collectPanes(tab.root, terminalArea);
+  const source = panes.find((p) => p.id === tab.focusedPaneId);
+  if (!source) return null;
+  return findInDirection(source, direction, panes);
+}
+
+function actionNavDirection(action: PrefixAction): NavDirection {
+  switch (action) {
+    case "focusLeft":
+    case "swapLeft":
+      return "left";
+    case "focusRight":
+    case "swapRight":
+      return "right";
+    case "focusUp":
+    case "swapUp":
+      return "up";
+    case "focusDown":
+    case "swapDown":
+    default:
+      return "down";
+  }
+}
+
 // --- actions ----------------------------------------------------------------
 
 /** Immediate tab creation: the commit path of the new-tab prompt
@@ -354,7 +441,13 @@ function createNewTabState(state: HerdrState, label: string | null): HerdrState 
     prevFocusId: null,
     zoomedPaneId: null,
     splitApp: ws.newTabApp,
-    panes: [seedPane(paneId, { app: ws.newTabApp, title: name })],
+    panes: [
+      seedPane(paneId, {
+        app: ws.newTabApp,
+        title: name,
+        output: ws.newTabOutput ? [...ws.newTabOutput] : undefined,
+      }),
+    ],
   };
   return {
     ...withWorkspace(state, { ...ws, tabs: [...ws.tabs, tab], activeTabId: id }),
@@ -363,198 +456,186 @@ function createNewTabState(state: HerdrState, label: string | null): HerdrState 
   };
 }
 
-function applyAction(state: HerdrState, action: PrefixAction, index?: number): HerdrState {
+function promptNewTab(state: HerdrState): HerdrState {
+  const ws = activeWorkspace(state);
+  const defaultName = String(ws.tabs.length + 1);
+  return {
+    ...state,
+    overlay: {
+      kind: "rename",
+      target: "new-tab",
+      workspaceId: ws.id,
+      text: defaultName,
+      defaultName,
+    },
+  };
+}
+
+function createNewWorkspaceState(state: HerdrState, name: string): HerdrState {
+  const id = `w${state.nextWorkspaceId}`;
+  const tabId = `t${state.nextTabId}`;
+  const paneId = `p${state.nextPaneId}`;
+  const tab: TabState = {
+    id: tabId,
+    name: "1",
+    root: paneNode(paneId),
+    focusedPaneId: paneId,
+    prevFocusId: null,
+    zoomedPaneId: null,
+    splitApp: "shell",
+    panes: [seedPane(paneId, { app: "shell", title: "shell" })],
+  };
+  const workspace: WorkspaceState = {
+    id,
+    name,
+    tabs: [tab],
+    activeTabId: tabId,
+    newTabApp: "shell",
+  };
+  return {
+    ...state,
+    workspaces: [...state.workspaces, workspace],
+    activeWorkspaceId: id,
+    nextWorkspaceId: state.nextWorkspaceId + 1,
+    nextTabId: state.nextTabId + 1,
+    nextPaneId: state.nextPaneId + 1,
+  };
+}
+
+function promptNewWorkspace(state: HerdrState): HerdrState {
+  const defaultName = `workspace ${state.nextWorkspaceId}`;
+  return {
+    ...state,
+    overlay: { kind: "rename", target: "new-workspace", text: defaultName, defaultName },
+  };
+}
+
+function cycleTab(state: HerdrState, delta: number): HerdrState {
+  const ws = activeWorkspace(state);
+  const current = ws.tabs.findIndex((t) => t.id === ws.activeTabId);
+  const next = (current + delta + ws.tabs.length) % ws.tabs.length;
+  const target = ws.tabs[next];
+  return target ? withWorkspace(state, { ...ws, activeTabId: target.id }) : state;
+}
+
+function switchTab(state: HerdrState, index?: number): HerdrState {
+  const ws = activeWorkspace(state);
+  const target = index === undefined ? undefined : ws.tabs[index];
+  return target ? withWorkspace(state, { ...ws, activeTabId: target.id }) : state;
+}
+
+function applyTabAction(state: HerdrState, action: PrefixAction, index?: number): HerdrState {
+  if (action === "newTab") return promptNewTab(state);
+  if (action === "nextTab") return cycleTab(state, 1);
+  if (action === "previousTab") return cycleTab(state, -1);
+  if (action === "switchTab") return switchTab(state, index);
+  if (action === "renameTab") {
+    const tab = activeTab(state);
+    return { ...state, overlay: { kind: "rename", target: "tab", id: tab.id, text: tab.name } };
+  }
+  if (action === "closeTab") {
+    const ws = activeWorkspace(state);
+    return ws.tabs.length <= 1 ? state : closeTabFromWorkspace(state, ws, ws.activeTabId);
+  }
+  return state;
+}
+
+function pickReflowFocus(tab: TabState, ids: readonly string[], pos: number): string | undefined {
+  const prev = tab.prevFocusId;
+  if (prev && prev !== tab.focusedPaneId && ids.includes(prev)) {
+    return prev;
+  }
+  return pos + 1 < ids.length ? ids[pos + 1] : ids[pos - 1];
+}
+
+function applyClosePane(state: HerdrState): HerdrState {
+  const ws = activeWorkspace(state);
+  const tab = activeTab(state);
+  const singlePane = paneCount(tab.root) <= 1;
+  const singleTab = ws.tabs.length <= 1;
+  if (singlePane && singleTab) {
+    return {
+      ...state,
+      overlay: { kind: "confirmClose", tabId: tab.id, paneId: tab.focusedPaneId },
+    };
+  }
+  if (singlePane) {
+    return closeTabFromWorkspace(state, ws, tab.id);
+  }
+  const ids = paneIds(tab.root);
+  const pos = ids.indexOf(tab.focusedPaneId);
+  const newFocus = pickReflowFocus(tab, ids, pos);
+  const root = removePane(tab.root, tab.focusedPaneId);
+  if (!root || !newFocus) return state;
+  const next: TabState = {
+    ...tab,
+    root,
+    panes: tab.panes.filter((p) => p.id !== tab.focusedPaneId),
+    focusedPaneId: newFocus,
+    prevFocusId: null,
+    zoomedPaneId: tab.zoomedPaneId === tab.focusedPaneId ? null : tab.zoomedPaneId,
+  };
+  return withTab(state, acknowledge(next, newFocus));
+}
+
+function applySplitPane(state: HerdrState, tab: TabState, direction: SplitDirection): HerdrState {
+  const newId = `p${state.nextPaneId}`;
+  const root = replacePaneNode(
+    tab.root,
+    tab.focusedPaneId,
+    splitNode(tab.focusedPaneId, direction, newId, 0.5),
+  );
+  const pane = seedPane(newId, { app: tab.splitApp, title: tab.splitApp });
+  const next: TabState = {
+    ...tab,
+    root,
+    panes: [...tab.panes, pane],
+    prevFocusId: tab.focusedPaneId,
+    focusedPaneId: newId,
+  };
+  return { ...withTab(state, acknowledge(next, newId)), nextPaneId: state.nextPaneId + 1 };
+}
+
+const FOCUS_ACTIONS = new Set<PrefixAction>(["focusLeft", "focusDown", "focusUp", "focusRight"]);
+const SWAP_ACTIONS = new Set<PrefixAction>(["swapLeft", "swapDown", "swapUp", "swapRight"]);
+
+function applySwapPane(state: HerdrState, tab: TabState, action: PrefixAction): HerdrState {
+  const target = findTargetInDirection(tab, state.terminalArea, actionNavDirection(action));
+  if (!target) return state;
+  const swap = (node: SplitNode): SplitNode => {
+    if (node.kind === "pane") {
+      if (node.id === tab.focusedPaneId) return paneNode(target);
+      if (node.id === target) return paneNode(tab.focusedPaneId);
+      return node;
+    }
+    return { ...node, first: swap(node.first), second: swap(node.second) };
+  };
+  return withTab(state, { ...tab, root: swap(tab.root) });
+}
+
+function applyPaneAction(state: HerdrState, action: PrefixAction): HerdrState {
+  const tab = activeTab(state);
+  if (action === "splitRight") return applySplitPane(state, tab, "horizontal");
+  if (action === "splitDown") return applySplitPane(state, tab, "vertical");
+  if (FOCUS_ACTIONS.has(action)) {
+    const target = findTargetInDirection(tab, state.terminalArea, actionNavDirection(action));
+    return target ? focusPane(state, target) : state;
+  }
+  if (SWAP_ACTIONS.has(action)) return applySwapPane(state, tab, action);
+  if (action === "closePane") return applyClosePane(state);
+  if (action === "zoom") {
+    return withTab(state, {
+      ...tab,
+      zoomedPaneId: tab.zoomedPaneId === tab.focusedPaneId ? null : tab.focusedPaneId,
+    });
+  }
+  return state;
+}
+
+function applyModeAction(state: HerdrState, action: PrefixAction): HerdrState {
   switch (action) {
-    // Tabs row (FIDELITY): upstream default prompt_new_tab_name=true
-    // (config/model.rs:1214) routes NewTab through a "new tab" rename overlay
-    // (actions.rs:135-139, overlay_input.rs:386-408) instead of creating
-    // immediately; the tab is created on Enter and not created on Escape.
-    case "newTab": {
-      const ws = activeWorkspace(state);
-      const defaultName = String(ws.tabs.length + 1);
-      return {
-        ...state,
-        overlay: {
-          kind: "rename",
-          target: "new-tab",
-          workspaceId: ws.id,
-          text: defaultName,
-          defaultName,
-        },
-      };
-    }
-    case "nextTab":
-    case "previousTab": {
-      const ws = activeWorkspace(state);
-      const current = ws.tabs.findIndex((t) => t.id === ws.activeTabId);
-      const delta = action === "previousTab" ? -1 : 1;
-      const next = (current + delta + ws.tabs.length) % ws.tabs.length;
-      const target = ws.tabs[next];
-      if (!target) return state;
-      return withWorkspace(state, { ...ws, activeTabId: target.id });
-    }
-    case "switchTab": {
-      const ws = activeWorkspace(state);
-      const target = index === undefined ? undefined : ws.tabs[index];
-      if (!target) return state;
-      return withWorkspace(state, { ...ws, activeTabId: target.id });
-    }
-    case "renameTab": {
-      const tab = activeTab(state);
-      return {
-        ...state,
-        overlay: { kind: "rename", target: "tab", id: tab.id, text: tab.name },
-      };
-    }
-    case "closeTab": {
-      // workspace.rs:575-589: a last tab is refused; otherwise the active index
-      // moves to the previous tab, or to the new last tab when the closed one
-      // was last. ASSUMPTION (FIDELITY Unresolved #4): the client-side reflow
-      // after a close is not traced; this mirrors the server rule.
-      const ws = activeWorkspace(state);
-      if (ws.tabs.length <= 1) return state;
-      const idx = ws.tabs.findIndex((t) => t.id === ws.activeTabId);
-      const tabs = ws.tabs.filter((t) => t.id !== ws.activeTabId);
-      let active = idx;
-      if (active >= tabs.length) active = tabs.length - 1;
-      else if (idx <= active && active > 0) active -= 1;
-      const target = tabs[active];
-      if (!target) return state;
-      return withWorkspace(state, { ...ws, tabs, activeTabId: target.id });
-    }
-    // Core five split row: split tree updates, focus lands in the new pane.
-    case "splitRight":
-    case "splitDown": {
-      const tab = activeTab(state);
-      const direction = action === "splitRight" ? "horizontal" : "vertical";
-      const newId = `p${state.nextPaneId}`;
-      const root = replacePaneNode(
-        tab.root,
-        tab.focusedPaneId,
-        splitNode(tab.focusedPaneId, direction, newId, 0.5),
-      );
-      const pane = seedPane(newId, { app: tab.splitApp, title: tab.splitApp });
-      const next: TabState = {
-        ...tab,
-        root,
-        panes: [...tab.panes, pane],
-        prevFocusId: tab.focusedPaneId,
-        focusedPaneId: newId,
-      };
-      return { ...withTab(state, acknowledge(next, newId)), nextPaneId: state.nextPaneId + 1 };
-    }
-    // Core five focus row: directional overlap, no wrap, no focus loss.
-    case "focusLeft":
-    case "focusDown":
-    case "focusUp":
-    case "focusRight": {
-      const tab = activeTab(state);
-      const direction: NavDirection =
-        action === "focusLeft"
-          ? "left"
-          : action === "focusRight"
-            ? "right"
-            : action === "focusUp"
-              ? "up"
-              : "down";
-      const panes = collectPanes(tab.root, state.terminalArea);
-      const source = panes.find((p) => p.id === tab.focusedPaneId);
-      if (!source) return state;
-      const target = findInDirection(source, direction, panes);
-      if (!target) return state;
-      return focusPane(state, target);
-    }
-    case "swapLeft":
-    case "swapDown":
-    case "swapUp":
-    case "swapRight": {
-      const tab = activeTab(state);
-      const direction: NavDirection =
-        action === "swapLeft"
-          ? "left"
-          : action === "swapRight"
-            ? "right"
-            : action === "swapUp"
-              ? "up"
-              : "down";
-      const panes = collectPanes(tab.root, state.terminalArea);
-      const source = panes.find((p) => p.id === tab.focusedPaneId);
-      if (!source) return state;
-      const target = findInDirection(source, direction, panes);
-      if (!target) return state;
-      const swap = (node: SplitNode): SplitNode => {
-        if (node.kind === "pane") {
-          if (node.id === tab.focusedPaneId) return paneNode(target);
-          if (node.id === target) return paneNode(tab.focusedPaneId);
-          return node;
-        }
-        return { ...node, first: swap(node.first), second: swap(node.second) };
-      };
-      return withTab(state, { ...tab, root: swap(tab.root) });
-    }
-    // Close-pane row: removes the pane and stops that terminal's runtime
-    // synchronously (shell/actions.rs:115-123 -> api/panes.rs:1967-2032 ->
-    // actions.rs:628-645 -> runtime.rs:30-41). Model: pane removal + agent
-    // status cleared with it; never "keeps running".
-    case "closePane": {
-      const ws = activeWorkspace(state);
-      const tab = activeTab(state);
-      const otherPaneInTab = paneCount(tab.root) > 1;
-      const otherTabInWorkspace = ws.tabs.length > 1;
-      // Confirmation gate (overlay_input.rs:1030-1061): confirm_close && no
-      // other pane in this tab && no other tab in the workspace.
-      if (!otherPaneInTab && !otherTabInWorkspace) {
-        return {
-          ...state,
-          overlay: { kind: "confirmClose", tabId: tab.id, paneId: tab.focusedPaneId },
-        };
-      }
-      // Only pane in a tab that has siblings: the tab closes
-      // (workspace.rs:1118-1130).
-      if (!otherPaneInTab) {
-        const idx = ws.tabs.findIndex((t) => t.id === tab.id);
-        const tabs = ws.tabs.filter((t) => t.id !== tab.id);
-        let active = idx;
-        if (active >= tabs.length) active = tabs.length - 1;
-        else if (idx <= active && active > 0) active -= 1;
-        const target = tabs[active];
-        if (!target) return state;
-        return withWorkspace(state, { ...ws, tabs, activeTabId: target.id });
-      }
-      const ids = paneIds(tab.root);
-      const pos = ids.indexOf(tab.focusedPaneId);
-      const ordered = pos + 1 < ids.length ? ids[pos + 1] : ids[pos - 1];
-      // ASSUMPTION (FIDELITY Unresolved #4): focus reflow after a close is not
-      // traced; this mirrors layout.rs:224-252 (prev focus, else neighbour).
-      const newFocus =
-        tab.prevFocusId && tab.prevFocusId !== tab.focusedPaneId && ids.includes(tab.prevFocusId)
-          ? tab.prevFocusId
-          : ordered;
-      const root = removePane(tab.root, tab.focusedPaneId);
-      if (!root || !newFocus) return state;
-      const next: TabState = {
-        ...tab,
-        root,
-        panes: tab.panes.filter((p) => p.id !== tab.focusedPaneId),
-        focusedPaneId: newFocus,
-        prevFocusId: null,
-        zoomedPaneId: tab.zoomedPaneId === tab.focusedPaneId ? null : tab.zoomedPaneId,
-      };
-      // Copy teardown is not patched here: reconcileCopy runs at the frame
-      // boundary for every pane/tab/workspace/focus change (state.rs:1478-1503).
-      return withTab(state, acknowledge(next, newFocus));
-    }
-    // Zoom row: toggles focused pane zoom; pill state matches.
-    case "zoom": {
-      const tab = activeTab(state);
-      return withTab(state, {
-        ...tab,
-        zoomedPaneId: tab.zoomedPaneId === tab.focusedPaneId ? null : tab.focusedPaneId,
-      });
-    }
     case "resizeMode":
       return setMode(state, "resize");
-    // Sidebar row: toggles client-local chrome only.
     case "toggleSidebar":
       return { ...state, sidebarVisible: !state.sidebarVisible };
     case "help":
@@ -562,15 +643,14 @@ function applyAction(state: HerdrState, action: PrefixAction, index?: number): H
         ...state,
         overlay: { kind: "help", query: "", searchFocused: false, scroll: 0 },
       };
-    // Workspace navigation row: navigate mode opens.
+    case "newWorkspace":
+      return promptNewWorkspace(state);
     case "workspacePicker": {
       const index = state.workspaces.findIndex((w) => w.id === state.activeWorkspaceId);
       return { ...setMode(state, "navigate"), navigateSelection: Math.max(0, index) };
     }
-    // Detach row: client Detach flag only; session state preserved.
     case "detach":
       return { ...state, attached: false };
-    // Copy-mode row: prefix+[ enters copy mode for the focused pane.
     case "copyMode": {
       const tab = activeTab(state);
       return {
@@ -587,22 +667,50 @@ function applyAction(state: HerdrState, action: PrefixAction, index?: number): H
         },
       };
     }
-    // Real defaults outside the L1-L3 slice: resolved and consumed, no
-    // modelled transition (they must never read as an invalid follow-up).
-    case "settings":
-    case "editScrollback":
-    case "openNotificationTarget":
-    case "renamePane":
-    case "reloadConfig":
-    case "newWorktree":
-    case "cyclePaneNext":
-    case "cyclePanePrevious":
-    case "goto":
-    case "newWorkspace":
-    case "renameWorkspace":
-    case "closeWorkspace":
+    default:
       return state;
   }
+}
+
+const TAB_ACTIONS = new Set<PrefixAction>([
+  "newTab",
+  "nextTab",
+  "previousTab",
+  "switchTab",
+  "renameTab",
+  "closeTab",
+]);
+
+const PANE_ACTIONS = new Set<PrefixAction>([
+  "splitRight",
+  "splitDown",
+  "focusLeft",
+  "focusDown",
+  "focusUp",
+  "focusRight",
+  "swapLeft",
+  "swapDown",
+  "swapUp",
+  "swapRight",
+  "closePane",
+  "zoom",
+]);
+
+const MODE_ACTIONS = new Set<PrefixAction>([
+  "resizeMode",
+  "toggleSidebar",
+  "help",
+  "workspacePicker",
+  "detach",
+  "copyMode",
+  "newWorkspace",
+]);
+
+function applyAction(state: HerdrState, action: PrefixAction, index?: number): HerdrState {
+  if (TAB_ACTIONS.has(action)) return applyTabAction(state, action, index);
+  if (PANE_ACTIONS.has(action)) return applyPaneAction(state, action);
+  if (MODE_ACTIONS.has(action)) return applyModeAction(state, action);
+  return state;
 }
 
 // --- key routing ------------------------------------------------------------
@@ -613,13 +721,44 @@ interface Routed {
   readonly action: string | null;
 }
 
-/**
- * Chrome controls (src/client/shell/mouse.rs, endpoint_navigation.rs):
- * workspace and tab selection commit, new-tab runs the shared NewTab action,
- * and pane focus uses PaneFocus. Any modeled overlay is outside the chrome
- * surface: a first chrome click dismisses it and does nothing else.
- * Drag, reorder, grouping, scroll, and context menus are out of scope.
- */
+function routeChromeSelectWorkspace(
+  state: HerdrState,
+  workspaceId: string,
+  action: string,
+): Routed {
+  if (!state.workspaces.some((workspace) => workspace.id === workspaceId)) {
+    return { state, effect: "none", action };
+  }
+  return {
+    state: { ...state, activeWorkspaceId: workspaceId },
+    effect: "action",
+    action,
+  };
+}
+
+function routeChromeSelectTab(state: HerdrState, tabId: string, action: string): Routed {
+  const ws = activeWorkspace(state);
+  if (!ws.tabs.some((tab) => tab.id === tabId)) {
+    return { state, effect: "none", action };
+  }
+  return {
+    state: withWorkspace(state, { ...ws, activeTabId: tabId }),
+    effect: "action",
+    action,
+  };
+}
+
+function routeChromeFocusPane(state: HerdrState, paneId: string, action: string): Routed {
+  const tab = activeTab(state);
+  if (!tab.panes.some((pane) => pane.id === paneId)) {
+    return { state, effect: "none", action };
+  }
+  const next = focusPane(state, paneId);
+  return next === state
+    ? { state, effect: "none", action }
+    : { state: next, effect: "action", action };
+}
+
 function routeChrome(state: HerdrState, event: ChromeEvent): Routed {
   if (!state.attached) return { state, effect: "none", action: event.action };
   if (state.overlay) {
@@ -630,81 +769,68 @@ function routeChrome(state: HerdrState, event: ChromeEvent): Routed {
     };
   }
   switch (event.action) {
-    case "select-workspace": {
-      if (!state.workspaces.some((workspace) => workspace.id === event.workspaceId)) {
-        return { state, effect: "none", action: event.action };
-      }
-      return {
-        state: { ...state, activeWorkspaceId: event.workspaceId },
-        effect: "action",
-        action: event.action,
-      };
-    }
-    case "select-tab": {
-      const ws = activeWorkspace(state);
-      if (!ws.tabs.some((tab) => tab.id === event.tabId)) {
-        return { state, effect: "none", action: event.action };
-      }
-      return {
-        state: withWorkspace(state, { ...ws, activeTabId: event.tabId }),
-        effect: "action",
-        action: event.action,
-      };
-    }
+    case "select-workspace":
+      return routeChromeSelectWorkspace(state, event.workspaceId, event.action);
+    case "select-tab":
+      return routeChromeSelectTab(state, event.tabId, event.action);
     case "new-tab": {
       const next = applyAction(state, "newTab");
       return next === state
         ? { state, effect: "none", action: event.action }
         : { state: next, effect: "action", action: event.action };
     }
-    case "focus-pane": {
-      const tab = activeTab(state);
-      if (!tab.panes.some((pane) => pane.id === event.paneId)) {
-        return { state, effect: "none", action: event.action };
+    case "focus-pane":
+      return routeChromeFocusPane(state, event.paneId, event.action);
+  }
+}
+
+function routeModeKey(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
+  switch (state.mode) {
+    case "prefix":
+      return routePrefixFollowUp(state, key, mods);
+    case "navigate":
+      return routeNavigateKey(state, key, mods);
+    case "resize":
+      return routeResizeKey(state, key);
+    case "copy":
+      return routeCopyKey(state, key, mods);
+    default:
+      if (isPrefixKey(key, mods)) {
+        return { state: setMode(state, "prefix"), effect: "prefix-armed", action: "prefix" };
       }
-      const next = focusPane(state, event.paneId);
-      return next === state
-        ? { state, effect: "none", action: event.action }
-        : { state: next, effect: "action", action: event.action };
-    }
+      return { state: forwardKey(state, key, mods), effect: "forwarded", action: "forwarded" };
   }
 }
 
 function routeKey(state: HerdrState, event: KeyEvent): Routed {
-  // Detached client: no key reaches the session and nothing mutates (M1).
-  if (!state.attached) return { state, effect: "none", action: null };
-  // Input trust boundary: an empty key is not a key. Upstream drops modifier
-  // reports before routing (input.rs:637-639); an empty normalized key has no
-  // binding and must never be forwarded or recorded as player evidence.
-  if (event.key.length === 0) return { state, effect: "none", action: null };
-  if (event.phase !== "press") {
-    // Repeat classification while still in Prefix mode is unresolved
-    // (FIDELITY Unresolved #2, lease.rs:130 vs :152); repeats are inert so a
-    // held key can never double-fire.
+  if (!state.attached || event.key.length === 0 || event.phase === "release") {
     return { state, effect: "none", action: null };
   }
-  const key = event.key;
-  const mods = event.modifiers;
-
-  if (state.overlay) return routeOverlayKey(state, key, mods);
-  if (state.mode === "prefix") return routePrefixFollowUp(state, key, mods);
-  if (state.mode === "navigate") return routeNavigateKey(state, key, mods);
-  if (state.mode === "resize") return routeResizeKey(state, key);
-  if (state.mode === "copy") return routeCopyKey(state, key, mods);
-
-  // Terminal mode (input.rs:667-680): direct bindings first (none in the
-  // default keymap), then the prefix arms one action key.
-  if (isPrefixKey(key, mods)) {
-    return { state: setMode(state, "prefix"), effect: "prefix-armed", action: "prefix" };
+  const { key, modifiers: mods } = event;
+  if (event.phase === "repeat") {
+    const previous = state.journal.at(-1);
+    // Repeat an edit only if the preceding Backspace reached the pane.
+    if (
+      !state.overlay &&
+      state.mode === "terminal" &&
+      key === "backspace" &&
+      mods.length === 0 &&
+      previous?.effect === "forwarded" &&
+      previous.event.kind === "key" &&
+      previous.event.key === key &&
+      previous.event.origin === event.origin &&
+      previous.event.modifiers.length === 0
+    ) {
+      return routeModeKey(state, key, mods);
+    }
+    return { state, effect: "none", action: null };
   }
-  // Everything else is forwarded to the focused pane, including Esc and Ctrl+[.
-  return { state: forwardKey(state, key, mods), effect: "forwarded", action: "forwarded" };
+  if (state.overlay) return routeOverlayKey(state, key, mods);
+  return routeModeKey(state, key, mods);
 }
 
 function routePrefixFollowUp(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
   const back = returnMode(state);
-  // Second prefix (input.rs:689-693): exits prefix mode and forwards the prefix
-  // key to the focused pane unchanged, modifiers included.
   if (isPrefixKey(key, mods)) {
     return {
       state: forwardKey(setMode(state, back), key, mods),
@@ -712,11 +838,9 @@ function routePrefixFollowUp(state: HerdrState, key: string, mods: readonly Modi
       action: "prefix-forwarded",
     };
   }
-  // Escape (input.rs:694-697): exits prefix mode, no action.
   if (key === "escape") {
     return { state: setMode(state, back), effect: "prefix-cancelled", action: "prefix-cancelled" };
   }
-  // Valid action (input.rs:699-705).
   const binding = resolvePrefixBinding(key, mods);
   if (binding) {
     return {
@@ -725,22 +849,15 @@ function routePrefixFollowUp(state: HerdrState, key: string, mods: readonly Modi
       action: actionName(binding.action),
     };
   }
-  // Invalid follow-up (input.rs:707-709): consumed, no action, nothing forwarded.
   return { state: setMode(state, back), effect: "prefix-consumed", action: "invalid-consumed" };
 }
 
+function isNavigateCancel(key: string, mods: readonly Modifier[]): boolean {
+  return key === "escape" || (key === "[" && mods.includes("ctrl")) || isPrefixKey(key, mods);
+}
+
 function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
-  // Esc / Ctrl+[ exit (input.rs:754, :925).
-  if (key === "escape" || (key === "[" && mods.includes("ctrl"))) {
-    return {
-      state: setMode(state, returnMode(state)),
-      effect: "mode-changed",
-      action: "navigate-cancel",
-    };
-  }
-  // Prefix inside navigate mode cancels navigate (input.rs:754 -> cancel_navigate
-  // -> copy_or_terminal_mode, :930-934). It does NOT arm prefix mode.
-  if (isPrefixKey(key, mods)) {
+  if (isNavigateCancel(key, mods)) {
     return {
       state: setMode(state, returnMode(state)),
       effect: "mode-changed",
@@ -748,7 +865,6 @@ function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifie
     };
   }
   if (key === "up" || key === "down") {
-    // Desktop workspace list wraps (workspace_navigation.rs:143-158, rem_euclid).
     const delta = key === "up" ? -1 : 1;
     const count = state.workspaces.length;
     const next = (state.navigateSelection + delta + count) % count;
@@ -771,8 +887,6 @@ function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifie
 }
 
 function routeResizeKey(state: HerdrState, key: string): Routed {
-  // Resize mode entry/exit is verified (input.rs:1043-1050); resize geometry is
-  // not modelled in the L1-L3 slice.
   if (key === "escape" || key === "enter") {
     return {
       state: setMode(state, returnMode(state)),
@@ -783,150 +897,349 @@ function routeResizeKey(state: HerdrState, key: string): Routed {
   return { state, effect: "none", action: null };
 }
 
-function routeCopyKey(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
-  const copy = state.copy;
-  if (!copy)
-    return { state: setMode(state, "terminal"), effect: "mode-changed", action: "copy-exit" };
-
-  // Search prompt (copy_mode.rs:268-310).
-  if (copy.searchPrompt) {
-    if (key === "escape") {
-      return {
-        state: { ...state, copy: { ...copy, searchPrompt: null } },
-        effect: "mode-changed",
-        action: "copy-search-cancel",
-      };
-    }
-    if (key === "enter") {
-      return {
-        state: {
-          ...state,
-          copy: {
-            ...copy,
-            searchPrompt: null,
-            searchQuery: copy.searchPrompt.query,
-            searchMatches: copy.searchPrompt.query ? 1 : 0,
-            searchCurrent: copy.searchPrompt.query ? 0 : null,
-          },
-        },
-        effect: "action",
-        action: "copy-search",
-      };
-    }
-    if (key === "backspace") {
-      return {
-        state: {
-          ...state,
-          copy: {
-            ...copy,
-            searchPrompt: { ...copy.searchPrompt, query: copy.searchPrompt.query.slice(0, -1) },
-          },
-        },
-        effect: "action",
-        action: "copy-search-edit",
-      };
-    }
-    if (PRINTABLE.test(key) && mods.length === 0) {
-      return {
-        state: {
-          ...state,
-          copy: {
-            ...copy,
-            searchPrompt: { ...copy.searchPrompt, query: copy.searchPrompt.query + key },
-          },
-        },
-        effect: "action",
-        action: "copy-search-edit",
-      };
-    }
-    return { state, effect: "none", action: null };
-  }
-
-  // Prefix keeps its meaning in copy mode (input.rs:721-730).
-  if (isPrefixKey(key, mods)) {
-    return { state: setMode(state, "prefix"), effect: "prefix-armed", action: "prefix" };
-  }
-
-  // Esc clears an active selection/search first, else exits (copy_mode.rs:104-140).
+function routeCopySearchPromptKey(
+  state: HerdrState,
+  copy: CopyState,
+  key: string,
+  mods: readonly Modifier[],
+): Routed {
+  const prompt = copy.searchPrompt;
+  if (!prompt) return { state, effect: "none", action: null };
   if (key === "escape") {
-    if (copy.selection || copy.searchQuery || copy.searchMatches > 0) {
-      return {
-        state: {
-          ...state,
-          copy: {
-            ...copy,
-            selection: false,
-            searchQuery: "",
-            searchMatches: 0,
-            searchCurrent: null,
-          },
+    return {
+      state: { ...state, copy: { ...copy, searchPrompt: null } },
+      effect: "mode-changed",
+      action: "copy-search-cancel",
+    };
+  }
+  if (key === "enter") {
+    return {
+      state: {
+        ...state,
+        copy: {
+          ...copy,
+          searchPrompt: null,
+          searchQuery: prompt.query,
+          searchMatches: prompt.query ? 1 : 0,
+          searchCurrent: prompt.query ? 0 : null,
         },
-        effect: "action",
-        action: "copy-clear",
-      };
-    }
-    return {
-      state: { ...setMode(state, "terminal"), copy: null },
-      effect: "mode-changed",
-      action: "copy-exit",
-    };
-  }
-  // Copy/exit (copy_mode.rs:200-215).
-  if (key === "q") {
-    return {
-      state: { ...setMode(state, "terminal"), copy: null },
-      effect: "mode-changed",
-      action: "copy-exit",
-    };
-  }
-  if (key === "y" || key === "enter") {
-    return {
-      state: { ...setMode(state, "terminal"), copy: null },
+      },
       effect: "action",
-      action: "copy-yank",
+      action: "copy-search",
     };
   }
-  if (key === "v" || key === " ") {
+  if (key === "backspace") {
+    return {
+      state: {
+        ...state,
+        copy: {
+          ...copy,
+          searchPrompt: { ...prompt, query: prompt.query.slice(0, -1) },
+        },
+      },
+      effect: "action",
+      action: "copy-search-edit",
+    };
+  }
+  if (PRINTABLE.test(key) && mods.length === 0) {
+    return {
+      state: {
+        ...state,
+        copy: {
+          ...copy,
+          searchPrompt: { ...prompt, query: prompt.query + key },
+        },
+      },
+      effect: "action",
+      action: "copy-search-edit",
+    };
+  }
+  return { state, effect: "none", action: null };
+}
+
+function exitCopyMode(state: HerdrState): Routed {
+  return {
+    state: { ...setMode(state, "terminal"), copy: null },
+    effect: "mode-changed",
+    action: "copy-exit",
+  };
+}
+
+function routeCopySearchRepeat(state: HerdrState, copy: CopyState, key: string): Routed {
+  if (copy.searchMatches === 0) return { state, effect: "none", action: null };
+  const delta = key === "n" ? 1 : -1;
+  const current = copy.searchCurrent ?? 0;
+  const next = (current + delta + copy.searchMatches) % copy.searchMatches;
+  return {
+    state: { ...state, copy: { ...copy, searchCurrent: next } },
+    effect: "action",
+    action: "copy-search-repeat",
+  };
+}
+
+function routeCopyMove(state: HerdrState, copy: CopyState, key: string): Routed {
+  const cursor = { ...copy.cursor };
+  if (key === "h") cursor.col = Math.max(0, cursor.col - 1);
+  if (key === "l") cursor.col += 1;
+  if (key === "k") cursor.row = Math.max(0, cursor.row - 1);
+  if (key === "j") cursor.row += 1;
+  return {
+    state: { ...state, copy: { ...copy, cursor } },
+    effect: "action",
+    action: "copy-move",
+  };
+}
+
+function routeCopyEscape(state: HerdrState, copy: CopyState): Routed {
+  if (copy.selection || copy.searchQuery || copy.searchMatches > 0) {
+    return {
+      state: {
+        ...state,
+        copy: {
+          ...copy,
+          selection: false,
+          searchQuery: "",
+          searchMatches: 0,
+          searchCurrent: null,
+        },
+      },
+      effect: "action",
+      action: "copy-clear",
+    };
+  }
+  return exitCopyMode(state);
+}
+
+function routeCopyYank(state: HerdrState): Routed {
+  return {
+    state: { ...setMode(state, "terminal"), copy: null },
+    effect: "action",
+    action: "copy-yank",
+  };
+}
+
+function routeCopySearchOpen(state: HerdrState, copy: CopyState, key: string): Routed {
+  return {
+    state: {
+      ...state,
+      copy: {
+        ...copy,
+        searchPrompt: { direction: key === "/" ? "forward" : "backward", query: "" },
+      },
+    },
+    effect: "action",
+    action: "copy-search-open",
+  };
+}
+
+const COPY_MOVE_KEYS = new Set(["h", "j", "k", "l"]);
+const COPY_REPEAT_KEYS = new Set(["n", "N"]);
+const COPY_SEARCH_OPEN_KEYS = new Set(["/", "?"]);
+const COPY_SELECT_KEYS = new Set(["v", " "]);
+const COPY_YANK_KEYS = new Set(["y", "enter"]);
+
+function routeCopyCommand(state: HerdrState, copy: CopyState, key: string): Routed {
+  if (key === "q") return exitCopyMode(state);
+  if (COPY_YANK_KEYS.has(key)) return routeCopyYank(state);
+  if (COPY_SELECT_KEYS.has(key)) {
     return {
       state: { ...state, copy: { ...copy, selection: true } },
       effect: "action",
       action: "copy-select",
     };
   }
-  if (key === "/" || key === "?") {
+  if (COPY_SEARCH_OPEN_KEYS.has(key)) return routeCopySearchOpen(state, copy, key);
+  if (COPY_REPEAT_KEYS.has(key)) return routeCopySearchRepeat(state, copy, key);
+  if (COPY_MOVE_KEYS.has(key)) return routeCopyMove(state, copy, key);
+  return { state, effect: "none", action: null };
+}
+
+function routeCopyKey(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
+  const copy = state.copy;
+  if (!copy) {
+    return { state: setMode(state, "terminal"), effect: "mode-changed", action: "copy-exit" };
+  }
+  if (copy.searchPrompt) return routeCopySearchPromptKey(state, copy, key, mods);
+  if (isPrefixKey(key, mods)) {
+    return { state: setMode(state, "prefix"), effect: "prefix-armed", action: "prefix" };
+  }
+  if (key === "escape") return routeCopyEscape(state, copy);
+  return routeCopyCommand(state, copy, key);
+}
+
+function routeHelpSearchKey(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "help" }>,
+  key: string,
+  mods: readonly Modifier[],
+): Routed {
+  if (key === "escape") {
+    return {
+      state: { ...state, overlay: { ...overlay, searchFocused: false, query: "", scroll: 0 } },
+      effect: "mode-changed",
+      action: "help-filter-cancel",
+    };
+  }
+  if (key === "enter") {
+    return { state: { ...state, overlay: null }, effect: "mode-changed", action: "help-close" };
+  }
+  if (key === "backspace") {
+    return {
+      state: { ...state, overlay: { ...overlay, query: overlay.query.slice(0, -1) } },
+      effect: "action",
+      action: "help-filter-edit",
+    };
+  }
+  if (key === "u" && mods.includes("ctrl")) {
+    return {
+      state: { ...state, overlay: { ...overlay, query: "" } },
+      effect: "action",
+      action: "help-filter-clear",
+    };
+  }
+  if (PRINTABLE.test(key) && mods.length === 0) {
+    return {
+      state: { ...state, overlay: { ...overlay, query: overlay.query + key } },
+      effect: "action",
+      action: "help-filter-edit",
+    };
+  }
+  return { state, effect: "none", action: null };
+}
+
+const HELP_CLOSE_KEYS = new Set(["escape", "enter", "?"]);
+const HELP_SCROLL_KEYS = new Set(["up", "k", "down", "j"]);
+
+function routeHelpOverlayKey(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "help" }>,
+  key: string,
+  mods: readonly Modifier[],
+): Routed {
+  if (overlay.searchFocused) {
+    return routeHelpSearchKey(state, overlay, key, mods);
+  }
+  if (HELP_CLOSE_KEYS.has(key)) {
+    return { state: { ...state, overlay: null }, effect: "mode-changed", action: "help-close" };
+  }
+  if (key === "/") {
+    return {
+      state: { ...state, overlay: { ...overlay, searchFocused: true, scroll: 0 } },
+      effect: "action",
+      action: "help-filter-open",
+    };
+  }
+  if (HELP_SCROLL_KEYS.has(key)) {
+    const delta = key === "up" || key === "k" ? -1 : 1;
+    const rows = helpRowCount();
+    const scroll = Math.min(rows, Math.max(0, overlay.scroll + delta));
+    return {
+      state: { ...state, overlay: { ...overlay, scroll } },
+      effect: "action",
+      action: "help-scroll",
+    };
+  }
+  return { state, effect: "none", action: null };
+}
+
+function commitNewTabOverlay(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "rename"; target: "new-tab" }>,
+): Routed {
+  const trimmed = overlay.text.trim();
+  const label = trimmed.length > 0 && trimmed !== overlay.defaultName ? trimmed : null;
+  const ws = state.workspaces.find((w) => w.id === overlay.workspaceId);
+  if (!ws) {
+    return { state: { ...state, overlay: null }, effect: "none", action: "rename-cancel" };
+  }
+  return {
+    state: createNewTabState({ ...state, overlay: null }, label),
+    effect: "action",
+    action: "rename-commit",
+  };
+}
+
+function commitNewWorkspaceOverlay(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "rename"; target: "new-workspace" }>,
+): Routed {
+  const name = overlay.text.trim();
+  if (name.length === 0) {
+    return { state: { ...state, overlay: null }, effect: "none", action: "rename-empty" };
+  }
+  return {
+    state: createNewWorkspaceState({ ...state, overlay: null }, name),
+    effect: "action",
+    action: "workspace-create",
+  };
+}
+function commitRenameOverlay(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "rename"; target: "tab" | "workspace" }>,
+): Routed {
+  const trimmed = overlay.text.trim();
+  if (trimmed.length === 0) {
+    return { state: { ...state, overlay: null }, effect: "none", action: "rename-empty" };
+  }
+  if (overlay.target === "tab") {
+    const tab = activeTab(state);
+    return {
+      state: withTab({ ...state, overlay: null }, { ...tab, name: trimmed }),
+      effect: "action",
+      action: "rename-commit",
+    };
+  }
+  const ws = activeWorkspace(state);
+  return {
+    state: withWorkspace({ ...state, overlay: null }, { ...ws, name: trimmed }),
+    effect: "action",
+    action: "rename-commit",
+  };
+}
+
+function routeRenameOverlayKey(
+  state: HerdrState,
+  overlay: Extract<Overlay, { kind: "rename" }>,
+  key: string,
+  mods: readonly Modifier[],
+): Routed {
+  if (key === "escape") {
+    return {
+      state: { ...state, overlay: null },
+      effect: "mode-changed",
+      action: "rename-cancel",
+    };
+  }
+  if (key === "enter") {
+    if (overlay.target === "new-tab") return commitNewTabOverlay(state, overlay);
+    if (overlay.target === "new-workspace") return commitNewWorkspaceOverlay(state, overlay);
+    return commitRenameOverlay(state, overlay);
+  }
+  if (key === "backspace") {
+    return {
+      state: { ...state, overlay: { ...overlay, text: overlay.text.slice(0, -1) } },
+      effect: "action",
+      action: "rename-edit",
+    };
+  }
+  if (key === "u" && mods.includes("ctrl")) {
+    return {
+      state: { ...state, overlay: { ...overlay, text: "" } },
+      effect: "action",
+      action: "rename-clear",
+    };
+  }
+  if (PRINTABLE.test(key) && mods.length === 0) {
+    const replaceDefault =
+      (overlay.target === "new-tab" || overlay.target === "new-workspace") &&
+      overlay.text === overlay.defaultName;
     return {
       state: {
         ...state,
-        copy: {
-          ...copy,
-          searchPrompt: { direction: key === "/" ? "forward" : "backward", query: "" },
-        },
+        overlay: { ...overlay, text: replaceDefault ? key : overlay.text + key },
       },
       effect: "action",
-      action: "copy-search-open",
-    };
-  }
-  if (key === "n" || key === "N") {
-    if (copy.searchMatches === 0) return { state, effect: "none", action: null };
-    const delta = key === "n" ? 1 : -1;
-    const current = copy.searchCurrent ?? 0;
-    const next = (current + delta + copy.searchMatches) % copy.searchMatches;
-    return {
-      state: { ...state, copy: { ...copy, searchCurrent: next } },
-      effect: "action",
-      action: "copy-search-repeat",
-    };
-  }
-  if (key === "h" || key === "j" || key === "k" || key === "l") {
-    const cursor = { ...copy.cursor };
-    if (key === "h") cursor.col = Math.max(0, cursor.col - 1);
-    if (key === "l") cursor.col += 1;
-    if (key === "k") cursor.row = Math.max(0, cursor.row - 1);
-    if (key === "j") cursor.row += 1;
-    return {
-      state: { ...state, copy: { ...copy, cursor } },
-      effect: "action",
-      action: "copy-move",
+      action: "rename-edit",
     };
   }
   return { state, effect: "none", action: null };
@@ -937,148 +1250,11 @@ function routeOverlayKey(state: HerdrState, key: string, mods: readonly Modifier
   if (!overlay) return { state, effect: "none", action: null };
 
   if (overlay.kind === "help") {
-    // Help row: `/` filters, Backspace edits, ctrl+u clears, Esc/Enter/? close.
-    if (overlay.searchFocused) {
-      if (key === "escape") {
-        return {
-          state: { ...state, overlay: { ...overlay, searchFocused: false, query: "", scroll: 0 } },
-          effect: "mode-changed",
-          action: "help-filter-cancel",
-        };
-      }
-      if (key === "enter") {
-        return { state: { ...state, overlay: null }, effect: "mode-changed", action: "help-close" };
-      }
-      if (key === "backspace") {
-        return {
-          state: { ...state, overlay: { ...overlay, query: overlay.query.slice(0, -1) } },
-          effect: "action",
-          action: "help-filter-edit",
-        };
-      }
-      if (key === "u" && mods.includes("ctrl")) {
-        return {
-          state: { ...state, overlay: { ...overlay, query: "" } },
-          effect: "action",
-          action: "help-filter-clear",
-        };
-      }
-      if (PRINTABLE.test(key) && mods.length === 0) {
-        return {
-          state: { ...state, overlay: { ...overlay, query: overlay.query + key } },
-          effect: "action",
-          action: "help-filter-edit",
-        };
-      }
-      return { state, effect: "none", action: null };
-    }
-    if (key === "escape" || key === "enter" || key === "?") {
-      return { state: { ...state, overlay: null }, effect: "mode-changed", action: "help-close" };
-    }
-    if (key === "/") {
-      return {
-        state: { ...state, overlay: { ...overlay, searchFocused: true, scroll: 0 } },
-        effect: "action",
-        action: "help-filter-open",
-      };
-    }
-    if (key === "up" || key === "k" || key === "down" || key === "j") {
-      const delta = key === "up" || key === "k" ? -1 : 1;
-      const rows = helpBindingRows().reduce((total, group) => total + group.rows.length, 0);
-      const scroll = Math.min(rows, Math.max(0, overlay.scroll + delta));
-      return {
-        state: { ...state, overlay: { ...overlay, scroll } },
-        effect: "action",
-        action: "help-scroll",
-      };
-    }
-    return { state, effect: "none", action: null };
+    return routeHelpOverlayKey(state, overlay, key, mods);
   }
-
   if (overlay.kind === "rename") {
-    // Field editing (FIDELITY Field editing row): printable text, Backspace, Enter/Esc.
-    if (key === "escape") {
-      return {
-        state: { ...state, overlay: null },
-        effect: "mode-changed",
-        action: "rename-cancel",
-      };
-    }
-    if (key === "enter") {
-      if (overlay.target === "new-tab") {
-        // overlay_input.rs:967-979: label is kept only when non-empty and
-        // different from the pre-filled default; otherwise the tab is created
-        // with its auto name (empty input still creates, unlike rename).
-        const trimmed = overlay.text.trim();
-        const label = trimmed.length > 0 && trimmed !== overlay.defaultName ? trimmed : null;
-        const ws = state.workspaces.find((w) => w.id === overlay.workspaceId);
-        if (!ws) {
-          return {
-            state: { ...state, overlay: null },
-            effect: "none",
-            action: "rename-cancel",
-          };
-        }
-        return {
-          state: createNewTabState({ ...state, overlay: null }, label),
-          effect: "action",
-          action: "rename-commit",
-        };
-      }
-      // overlay_input.rs:939-996: the field is trimmed, the overlay always
-      // closes, and an empty-after-trim name emits no rename (the old name
-      // stands). This is not the L2 "field stays open" recovery: upstream
-      // closes the overlay either way.
-      const trimmed = overlay.text.trim();
-      if (trimmed.length === 0) {
-        return {
-          state: { ...state, overlay: null },
-          effect: "none",
-          action: "rename-empty",
-        };
-      }
-      if (overlay.target === "tab") {
-        const tab = activeTab(state);
-        return {
-          state: withTab({ ...state, overlay: null }, { ...tab, name: trimmed }),
-          effect: "action",
-          action: "rename-commit",
-        };
-      }
-      const ws = activeWorkspace(state);
-      return {
-        state: withWorkspace({ ...state, overlay: null }, { ...ws, name: trimmed }),
-        effect: "action",
-        action: "rename-commit",
-      };
-    }
-    if (key === "backspace") {
-      return {
-        state: { ...state, overlay: { ...overlay, text: overlay.text.slice(0, -1) } },
-        effect: "action",
-        action: "rename-edit",
-      };
-    }
-    // Field editing row: Ctrl+U clears to the start of the field.
-    if (key === "u" && mods.includes("ctrl")) {
-      return {
-        state: { ...state, overlay: { ...overlay, text: "" } },
-        effect: "action",
-        action: "rename-clear",
-      };
-    }
-    if (PRINTABLE.test(key) && mods.length === 0) {
-      return {
-        state: { ...state, overlay: { ...overlay, text: overlay.text + key } },
-        effect: "action",
-        action: "rename-edit",
-      };
-    }
-    return { state, effect: "none", action: null };
+    return routeRenameOverlayKey(state, overlay, key, mods);
   }
-
-  // confirmClose: Esc cancels (overlay_input.rs:1060-1070). The accept path is
-  // unresolved (FIDELITY Unresolved #5) and is deliberately not implemented.
   if (key === "escape") {
     return {
       state: { ...setMode(state, "navigate"), overlay: null },
@@ -1093,9 +1269,6 @@ function routeOverlayKey(state: HerdrState, key: string, mods: readonly Modifier
 
 function routeHost(state: HerdrState, event: Extract<InputEvent, { kind: "host" }>): Routed {
   if (event.host === "blur") {
-    // Decided hold policy (FIDELITY Unresolved #2 RESOLVED): blur voids a
-    // pending prefix. The attempt is voided, never failed, and re-triable.
-    // Blur does not dismiss overlays (input.rs:328-336 only releases leases).
     if (state.mode === "prefix") {
       return {
         state: setMode(state, returnMode(state)),
@@ -1106,13 +1279,9 @@ function routeHost(state: HerdrState, event: Extract<InputEvent, { kind: "host" 
     return { state, effect: "none", action: null };
   }
   if (event.host === "reattach") {
-    // Detach row: reattach restores layout and running state. Regaining focus
-    // acknowledges the visible surface (input.rs:320-326, OuterFocusGained ->
-    // acknowledge_active_surface_agents).
     const attached = { ...state, attached: true };
     return { state: composeSurface(attached), effect: "mode-changed", action: "reattach" };
   }
-  // "focus" and "intercepted": the host consumed the key, so nothing arrives.
   return { state, effect: "none", action: null };
 }
 
@@ -1123,6 +1292,16 @@ function routeProcess(state: HerdrState, event: Extract<InputEvent, { kind: "pro
   const tab = activeTab(state);
   const pane = tab.panes.find((p) => p.id === payload.paneId);
   if (!pane) return { state, effect: "none", action: null };
+  if (payload.kind === "consumeInput") {
+    return {
+      state: withTab(
+        state,
+        updatePane(tab, pane.id, (p) => ({ ...p, input: [] })),
+      ),
+      effect: "action",
+      action: "process-input-consumed",
+    };
+  }
   if (payload.kind === "output") {
     return {
       state: withTab(
@@ -1156,6 +1335,7 @@ function routeProcess(state: HerdrState, event: Extract<InputEvent, { kind: "pro
 
 const KEY_ORIGINS = new Set(["player", "script", "fixture", "host"]);
 const PROCESS_ORIGINS = new Set(["process", "script", "fixture"]);
+const CHROME_ORIGINS = new Set(["player", "script", "fixture"]);
 
 function assertProvenance(event: InputEvent): void {
   if (event.kind === "key" && !KEY_ORIGINS.has(event.origin)) {
@@ -1164,16 +1344,11 @@ function assertProvenance(event: InputEvent): void {
   if (event.kind === "process" && !PROCESS_ORIGINS.has(event.origin)) {
     throw new RangeError(`process event cannot originate from "${event.origin}"`);
   }
+  if (event.kind === "chrome" && !CHROME_ORIGINS.has(event.origin)) {
+    throw new RangeError(`chrome event cannot originate from "${event.origin}"`);
+  }
   if (event.kind === "host" && event.origin !== "host") {
     throw new RangeError(`host event cannot originate from "${event.origin}"`);
-  }
-  if (
-    event.kind === "chrome" &&
-    event.origin !== "player" &&
-    event.origin !== "script" &&
-    event.origin !== "fixture"
-  ) {
-    throw new RangeError(`chrome event cannot originate from "${event.origin}"`);
   }
 }
 
@@ -1198,7 +1373,9 @@ function copyEvent(event: InputEvent): InputEvent {
   if (event.kind === "host") {
     return event.modifiers ? { ...event, modifiers: [...event.modifiers] } : { ...event };
   }
-  if (event.kind === "chrome") return { ...event };
+  if (event.kind === "chrome") {
+    return { ...event };
+  }
   return { ...event, process: { ...event.process } };
 }
 
@@ -1270,6 +1447,51 @@ function toSnapshot(state: HerdrState): HerdrSnapshot {
   };
 }
 
+interface DispatchResult {
+  readonly nextState: HerdrState;
+  readonly entry: JournalEntry;
+  readonly changed: boolean;
+}
+
+function stepStore(state: HerdrState, event: InputEvent): DispatchResult {
+  assertProvenance(event);
+  const copy = copyEvent(event);
+  // Frame boundary: composed panes acknowledge their done badges. A
+  // detached client renders no surface, so nothing is composed.
+  const composed = state.attached ? composeSurface(state) : state;
+  const routed =
+    copy.kind === "key"
+      ? routeKey(composed, copy)
+      : copy.kind === "process"
+        ? routeProcess(composed, copy)
+        : copy.kind === "chrome"
+          ? routeChrome(composed, copy)
+          : routeHost(composed, copy);
+  // Frame boundary: reconcile copy state against the committed hierarchy so
+  // every pane/tab/workspace/focus change is covered by one rule
+  // (state.rs:1478-1503).
+  const reconciled = reconcileCopy(routed.state);
+  // Deep-freeze the new entry: the copied event, its modifiers array and
+  // its process payload are all reachable through journal()/the return
+  // value. The caller's own event object is never frozen.
+  const entry: JournalEntry = deepFreeze({
+    seq: state.journal.length,
+    event: copy,
+    playerAction: state.attached && isPlayerAction(copy),
+    effect: routed.effect,
+    action: routed.action,
+  });
+  // Shallow-freeze the new array; entries are already deep-frozen.
+  const journal = Object.freeze([...state.journal, entry]);
+  // Freeze the new state graph incrementally: already-frozen sub-objects
+  // short-circuit, so this only walks what this dispatch created.
+  const nextState = deepFreeze({ ...reconciled, journal });
+  // Compare against the pre-dispatch state so a composition-only change
+  // (a cleared done badge) still rebuilds the view model.
+  const changed = reconciled !== state;
+  return { nextState, entry, changed };
+}
+
 export function createStore(initial: HerdrState): HerdrStore {
   // Boundary ownership (M5): copy the caller's initial state so neither side
   // can mutate the other's data, then freeze the copy. Transitions never
@@ -1280,42 +1502,8 @@ export function createStore(initial: HerdrState): HerdrStore {
 
   return {
     dispatch(event: InputEvent): JournalEntry {
-      assertProvenance(event);
-      const copy = copyEvent(event);
-      // Frame boundary: composed panes acknowledge their done badges. A
-      // detached client renders no surface, so nothing is composed.
-      const composed = state.attached ? composeSurface(state) : state;
-      const routed =
-        copy.kind === "key"
-          ? routeKey(composed, copy)
-          : copy.kind === "process"
-            ? routeProcess(composed, copy)
-            : copy.kind === "chrome"
-              ? routeChrome(composed, copy)
-              : routeHost(composed, copy);
-      // Frame boundary: reconcile copy state against the committed hierarchy so
-      // every pane/tab/workspace/focus change is covered by one rule
-      // (state.rs:1478-1503).
-      const reconciled = reconcileCopy(routed.state);
-      // Deep-freeze the new entry: the copied event, its modifiers array and
-      // its process payload are all reachable through journal()/the return
-      // value. The caller's own event object is never frozen.
-      const entry: JournalEntry = deepFreeze({
-        seq: state.journal.length,
-        event: copy,
-        playerAction: state.attached && isPlayerAction(copy),
-        effect: routed.effect,
-        action: routed.action,
-      });
-      // Shallow-freeze the new array; entries are already deep-frozen.
-      const journal = Object.freeze([...state.journal, entry]);
-      // Freeze the new state graph incrementally: already-frozen sub-objects
-      // short-circuit, so this only walks what this dispatch created.
-      const next = deepFreeze({ ...reconciled, journal });
-      // Compare against the pre-dispatch state so a composition-only change
-      // (a cleared done badge) still rebuilds the view model.
-      const changed = reconciled !== state;
-      state = next;
+      const { nextState, entry, changed } = stepStore(state, event);
+      state = nextState;
       // Rebuild the view model only when observable state changed (M7). The
       // journal is a separate accessor, so inert events keep snapshot identity.
       if (changed) {
@@ -1353,6 +1541,3 @@ export function replay(initial: HerdrState, events: readonly InputEvent[]): Herd
 export function initialState(): HerdrState {
   return createScenario(1);
 }
-
-export { createScenario as scenario };
-export type { RawAgentState, ProjectedAgentState, PaneApp, Overlay } from "./types";

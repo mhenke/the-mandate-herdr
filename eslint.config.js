@@ -15,7 +15,7 @@ const coreOnly = (label, forbidden) => [
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "feasibility/**", ".playwright-mcp/**"],
+    ignores: ["dist/**", "node_modules/**", "references/feasibility/**", ".playwright-mcp/**"],
   },
   ...tseslint.configs.recommended.map((config) => ({ ...config, files: ["**/*.{ts,tsx}"] })),
   {
@@ -51,7 +51,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/core/narrative/**/*.{ts,tsx}", "src/core/assessment/**/*.{ts,tsx}"],
+    files: [
+      "src/core/narrative/**/*.{ts,tsx}",
+      "src/core/assessment/**/*.{ts,tsx}",
+      "src/core/applications/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-restricted-imports": coreOnly("Core observation modules", [
         "react",
