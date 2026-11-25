@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T20:05:00Z | Mode: DELTA
+> Generated: 2026-11-25T17:08:00Z | Mode: DELTA
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -41,9 +41,9 @@
 Hexagonal / Clean Architecture with strict architectural boundaries:
 - **Pure Core (`src/core/*`)**: Zero external dependencies (no React, no DOM, no browser globals). Pure functional state transitions over immutable models.
   - `src/core/herdr`: Deterministic simulation of the pinned upstream Herdr multiplexer (workspaces, tabs, panes, process tree, overlays, keymaps).
-  - `src/core/applications`: Pure deterministic in-terminal agent simulation (simulated Claude Code v1.0.12, child process command loop, line-editing engine with cursor management, document vault, read receipts, and agent states per ADR 0007).
-  - `src/core/narrative`: Story state machines, canon episodes, briefings, in-world assignments, and narrative progression triggers.
-  - `src/core/assessment`: Learning objective evaluators, evidence provenance tracking, and mastery verification.
+  - `src/core/applications`: Pure deterministic in-terminal simulation (`index.ts` and `screen.ts`): persistent simulated shell (`pwd`, `ls`, `cd`, `cat`, `clear`, `herdr`, `claude`), simulated Claude Code v2.0.24 under the Cooperative Managed Environment (one-time launch notice, brief context-sensitive limitation replies, per-pane conversational memory for follow-ups, token relevance document vault, read receipts, line-editing engine), and pure `TerminalScreenModel` span data (ADR 0007).
+  - `src/core/narrative`: Story state machines for Episode I (L1–L5: opening desk triage, SOC comparison, Theo Park consent interview, VN-12 filing & Quill choice, Retention Checkpoint 1 / Episode I finale), canon episodes, briefings, and narrative progression triggers.
+  - `src/core/assessment`: Learning objective evaluators (L1–L5), evidence provenance tracking, and mastery verification.
 - **Adapters (`src/adapters/*`)**: Mediate between the pure simulation cores and the host browser runtime.
   - `investigation-session.ts`: Glues story, assessment, applications, and herdr cores into a unified session. Enforces `InputPolicy` ("standard" | "accessible"), coordinates transitions, and provides dev reload recovery v4.
   - `herdr-browser.ts`: Translates physical browser KeyboardEvents into canonical Herdr `InputEvent`s without losing modifier states.
@@ -51,24 +51,25 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - **UI / Presentation (`src/ui/*`, `src/App.tsx`)**:
   - React components render read-only projections of committed session snapshots.
   - `ActionsContext.tsx`: `ActionsProvider` and `useMandateActions()` eliminate prop-drilling across `App.tsx` and deeply nested preview components (`MandatePreview`, `ActiveTabView`, `WorkspaceItem`, `TabButton`).
-  - `GameHud.tsx`: Cleanly separated Journalist Cooperative Mission HUD displaying current level objectives, keyboard shortcut guidance, and capture controls above the terminal.
-  - `MandatePreview.tsx`: Authentic OneDark terminal projection matching pinned Herdr baselines, single `$ ` prompt line editing, and mode bar integration.
+  - `GameHud.tsx`: Cleanly separated Journalist Cooperative Mission HUD displaying current level objectives (L1–L5), keyboard shortcut guidance, and capture controls above the terminal.
+  - `MandatePreview.tsx`: Authentic OneDark terminal projection matching pinned Herdr baselines, single `$ ` prompt line editing, mode bar integration, and `<TerminalScreen />` delegation for active Claude Code panes.
+  - `TerminalScreen.tsx` / `TerminalScreen.css`: Dumb read-only React renderer for `TerminalScreenModel` (coral pixel mascot, banner, user blocks, bullets, horizontal rules, inverted cursor, footer).
   - UI components emit user actions via typed actions; zero direct mutation of core simulation or narrative state.
 
 ## Folder Structure
 - `src/core/herdr/`: Pure deterministic Herdr simulation engine (types, store, keymaps, layouts).
-- `src/core/applications/`: Pure deterministic in-terminal agent CLI simulation engine (Claude Code v1.0.12, document vault, read receipts, line-editing).
-- `src/core/narrative/`: Story canon, script runners, and level progression rules.
+- `src/core/applications/`: Pure deterministic in-terminal shell & Claude Code simulation engine (`index.ts`) and pure screen model (`screen.ts`).
+- `src/core/narrative/`: Story canon, script runners, and level progression rules (Episode I L1–L5).
 - `src/core/assessment/`: Objective evaluators, provenance verification, retention gates.
 - `src/adapters/`: Browser adapters, keyboard decoders, session orchestrators, recovery persistence.
-- `src/ui/`: React presentation components (MandatePreview, ActionsContext, scenes, hooks).
+- `src/ui/`: React presentation components (`MandatePreview`, `TerminalScreen`, `GameHud`, `ActionsContext`, `scenes`, hooks).
 - `src/styles/`: Application styles, typography tokens, layout CSS.
 - `docs/`: Story bible, design contracts, architectural decision records (ADRs), research baselines.
 - `docs/adr/`: Architecture Decision Records (0001 through 0007).
-- `tests/`: Vitest test suites (purity, determinism, fidelity, copy reconciliation, fast-check properties).
-- `tests/e2e/`: Playwright end-to-end suites (visual parity, smoke journeys, axe accessibility, keyboard policy).
+- `tests/`: Vitest test suites (25 files: purity, determinism, fidelity, copy reconciliation, L1–L5 journeys, fast-check properties).
+- `tests/e2e/`: Playwright end-to-end suites (8 spec files: full Episode I L1–L5 journey, visual parity, smoke journeys, axe accessibility, keyboard policy).
 - `public/`: Static assets (cinematic MP4, VTT captions, posters, transcripts).
-- `scripts/`: Upstream baseline capture scripts and validation utilities.
+- `scripts/`: Upstream baseline capture scripts, validation utilities, and `watch-ci.sh` (`pnpm ci:watch`).
 
 ## Code Style Conventions
 - **Naming**: camelCase for functions, variables, and instances; PascalCase for types, interfaces, and React components; UPPER_SNAKE_CASE for constants.
@@ -99,13 +100,13 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 21 Vitest test files (**198 unit, property, and fidelity tests passing**).
-  - 7 Playwright test files (**26 E2E, accessibility, navigation, visual, and keyboard policy tests passing**).
-- Test patterns:
-  - Core purity tests (bare Node process invocation).
-  - Fast-check generative property tests for navigation, keymaps, layouts, session recovery, assessment provenance, determinism, and chrome routing.
+  - 25 Vitest test files (**223 unit, integration, property, and fidelity tests passing**).
+  - 8 Playwright test files (**27 E2E, accessibility, navigation, visual, and keyboard policy tests passing**).
+- Test patterns used:
+  - Core purity tests (bare Node process invocation + TypeScript AST audit).
+  - Fast-check generative property tests across 9 files (74 property tests): applications/Claude Code, navigation, keymaps, layouts, session recovery, assessment provenance, determinism, and chrome routing.
   - Axe accessibility floor verification.
-  - End-to-end journey tests with synthetic CDP keystrokes and pointer refusal assertions.
+  - End-to-end Episode I journey tests (L1–L5) with synthetic CDP keystrokes and pointer refusal assertions.
   - Browser history and popstate navigation tests across scenes.
   - Visual parity assertions against upstream Herdr baselines.
 
@@ -114,20 +115,21 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `src/main.tsx`: React DOM client root mounting `App` in `React.StrictMode`.
 - `src/App.tsx`: Top-level scene router, session lifecycle, recovery listener, and keyboard capture coordinator.
 - `src/ui/ActionsContext.tsx`: Context provider for UI actions decoupling pointer chrome from prop chains.
+- `src/ui/TerminalScreen.tsx`: Read-only renderer for `TerminalScreenModel` Claude Code sessions.
+- `scripts/watch-ci.sh`: Post-push GitHub Actions CI watcher (`pnpm ci:watch`).
 - `vite.config.ts`: Vite build and development configuration.
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- `src/ui/ActionsContext.tsx`: Context boundary and hook eliminating prop-drilling across the preview component tree.
-- `tests/actions-context.test.ts`: Unit test suite verifying `ActionsContext` provider and consumer behavior.
-- `src/App.tsx`: Bound actions to `ActionsProvider`; simplified component tree.
-- `src/ui/MandatePreview.tsx`: Eliminated drilled callbacks; refactored `ActiveTabView`, `WorkspaceItem`, and `TabButton` to consume `useMandateActions()`; enforced single `$ ` prompt without duplicate markers.
-- `src/core/applications/index.ts`: In-pane command line editing engine (`applyLineEdit`, `insertAtCursor`, backspace, cursor positioning), token relevance matching, fallback suggestions, and paste support.
-- `tests/fictional-applications.test.ts`: Added unit tests for line editing, mid-line cursor insertion/deletion, token relevance matching, and paste.
-- `tests/e2e/keyboard-policy.spec.ts`: Re-anchored prompt editing expectations to authentic `$ ` prompt and validated single-prompt launch.
-- `docs/ARCHITECTURE.md`: Documented `ActionsContext` UI boundary and calibrated replay determinism vs snapshot recovery contracts.
-- `README.md`: Calibrated behavioral authority and replay determinism statements.
-- `GLOSSARY.md`: Sharpened domain model (Token relevance matching, Reload recovery, Purity compiler audit, Actions context, In-pane command editing).
+- `src/core/applications/index.ts`: Added persistent simulated shell, Cooperative Managed Environment (one-time launch notice, brief context-sensitive restriction replies), conversational follow-up tracking (`lastReferencedMessageId`, `lastReferencedDocumentId`, `lastTopic`), deduplicated reply wiring (`replyWithAgentLines`), and decomposed routing/launch helpers (`routeFollowUpAndPolicy`, `routeNewsroomDeskRequest`, `routeLevelWorkflowRequest`, `launchClaudeInPane`, `submitShellPane`).
+- `src/core/applications/screen.ts`: Added pure `TerminalScreenModel` builder (`buildClaudeScreenModel`, `buildClaudeBanner`, `screenToPlainLines`) with coral pixel mascot and bounded cursor rendering.
+- `src/ui/TerminalScreen.tsx` & `src/ui/TerminalScreen.css`: Added dumb React renderer for simulated Claude Code panes.
+- `src/ui/GameHud.tsx` & `src/ui/MandatePreview.tsx`: Updated L1–L5 mission HUD (default Herdr workspace start, no premature `CPA-01A` ID) and integrated `<TerminalScreen />`.
+- `src/core/narrative/index.ts`, `src/core/assessment/index.ts`, `src/adapters/investigation-session.ts`: Completed Episode I Batch 1 (L4 "Filed 19:05" & L5 "Fit to File") and L1–L4 terminal-first gameplay alignment.
+- `tests/applications-properties.test.ts`: Added 8 `fast-check` property tests for simulated Claude Code, managed environment, line editing, pane isolation, and screen model.
+- `tests/fictional-applications.test.ts`, `tests/investigation-l1.test.ts`, `tests/investigation-l4.test.ts`, `tests/investigation-l5.test.ts`, `tests/specification-boundaries.test.ts`, `tests/e2e/episode-1-journey.spec.ts`: Added coverage for Managed Environment behavior, conversational follow-ups, and full L1–L5 Episode I progression.
+- `scripts/watch-ci.sh`, `package.json`, `AGENTS.md`: Added `pnpm ci:watch` post-push CI monitoring workflow.
+- `GLOSSARY.md` & `docs/README.md`: Added **Cooperative Managed Environment**, refreshed **Simulated Claude Code session**, and indexed ADR-0007.
 
 ## Last Scanned
-2026-11-24T20:10:00Z
+2026-11-25T17:08:00Z

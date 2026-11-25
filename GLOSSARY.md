@@ -1,6 +1,6 @@
 # Glossary — The Mandate: Herdr
 
-Single project context. Two language groups share this file because both are load-bearing across the design docs; split with `GLOSSARY-MAP.md` if either grows its own dialect. Terms are canonical proposals (the design itself is not yet approved). Specific instance data (IDs, dates, characters) lives in `docs/STORY_BIBLE.md`, not here.
+Single project context. Two language groups share this file because both are load-bearing across the design docs; split with `GLOSSARY-MAP.md` if either grows its own dialect. Specific instance data (IDs, dates, characters) lives in `docs/STORY_BIBLE.md`, not here.
 
 ## Investigation domain (fiction)
 
@@ -52,9 +52,13 @@ _Avoid_: Investigation report, audit memo, analyst note
 An independent credentialed verifier affiliated with the cooperative network who files signed verifier notes.
 _Avoid_: Reporter, freelance agent, private investigator, auditor
 
-**Simulated Claude Code session (deterministic agent CLI)**:
-A deterministic, in-terminal simulation of an automated LLM coding agent (Claude Code v1.0.12) running as a child process inside a dedicated Herdr pane. Emits bounded, reproducible log outputs, hashes, and audit extractions without connecting to external networks or requiring API credentials.
-_Avoid_: Real Claude API, backend LLM integration, chatbot widget
+**Simulated Claude Code session**:
+A deterministic, offline newsroom assistant running inside a Herdr pane with pane-local conversational context over preconfigured newsroom tools (editorial mail, schedule, cooperative document archive, and incident records). Supplies authentic investigative work to organize across tabs and panes without becoming a second assessed curriculum.
+_Avoid_: Real Claude API, backend LLM integration, chatbot widget, scripted objective runner
+
+**Cooperative Managed Environment**:
+The newspaper IT-governed profile that limits simulated Claude Code after an earlier data-handling incident, allowing approved newsroom research tools while disabling software development, package installation, arbitrary shell execution, filesystem modification, and external network access. Provides an in-world boundary for the simulation's scope without tying that prior IT incident to Directive 47 or restricting Herdr multiplexer operations.
+_Avoid_: Sandbox mode, restricted AI, security minigame, locked-down chatbot
 
 **Token relevance matching**:
 The prompt-matching mechanism where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
