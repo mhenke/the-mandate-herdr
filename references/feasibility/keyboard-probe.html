@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herdr keyboard feasibility probe</title>
+<style>
+  :root { color-scheme: dark light; }
+  body { font: 15px/1.45 system-ui, sans-serif; margin: 0; padding: 1.5rem; max-width: 1100px; }
+  h1 { font-size: 1.35rem; margin: 0 0 .75rem; }
+  h2 { font-size: 1.05rem; margin: 1.5rem 0 .5rem; }
+  code, pre, table, textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .warn { border: 2px solid #b45309; background: #451a03; color: #fde68a; padding: .9rem 1rem; border-radius: 6px; }
+  .warn strong { color: #fbbf24; }
+  .controls { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; margin: 1rem 0; }
+  button { font: inherit; padding: .35rem .8rem; cursor: pointer; }
+  #status { font-variant-numeric: tabular-nums; }
+  .fieldlabel { display: block; margin: .5rem 0 .25rem; }
+  input[type=text] { font: inherit; padding: .35rem .5rem; width: min(28rem, 100%); }
+  ol.checklist { padding-left: 1.4rem; }
+  ol.checklist li { margin: .45rem 0; padding: .35rem .5rem; border-left: 3px solid transparent; }
+  ol.checklist li.active { border-left-color: #38bdf8; background: rgba(56,189,248,.12); }
+  .hint { color: #9ca3af; font-size: .88em; }
+  .seq { color: #9ca3af; font-variant-numeric: tabular-nums; }
+  .logwrap { overflow-x: auto; border: 1px solid #4b5563; max-height: 55vh; }
+  table { border-collapse: collapse; font-size: 12px; width: 100%; }
+  th, td { border-bottom: 1px solid #374151; padding: 2px 6px; text-align: left; white-space: nowrap; }
+  th { position: sticky; top: 0; background: #1f2937; color: #e5e7eb; z-index: 1; }
+  tr.mark td { background: rgba(56,189,248,.18); font-weight: 600; }
+  tr.cancelled td.dp { color: #fbbf24; }
+  .legend { color: #9ca3af; font-size: .85rem; }
+  #fallback { margin-top: 1rem; }
+  #fallback textarea { width: 100%; height: 16rem; }
+  #selftest { white-space: pre-wrap; background: #111827; color: #d1d5db; padding: .75rem; border-radius: 6px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<h1>Herdr keyboard feasibility probe</h1>
+
+<div class="warn">
+  <strong>Browser-level shortcuts may never reach this page.</strong>
+  Ctrl+W, Ctrl+T, Ctrl+N, Ctrl+Tab, Alt+Tab, Cmd+Q and similar are handled by the browser or OS
+  before any page listener runs. Their absence from the log <em>is the signal</em>: record the chord
+  as intercepted and note what actually happened.<br>
+  <strong>Test in a disposable window.</strong> Expect Ctrl+W to close this tab. Do not worry about
+  losing state; that is one of the results. This page cannot test browser-chrome interception, only
+  what a page-level <code>keydown</code> listener receives.
+</div>
+
+<h2>Environment</h2>
+<div id="env" class="legend"></div>
+
+<h2>Capture</h2>
+<div class="controls">
+  <button id="toggleCapture" type="button">Start capture</button>
+  <label><input id="cancelToggle" type="checkbox"> Cancel observed events (preventDefault on non-composing keydown)</label>
+  <label><input id="persistToggle" type="checkbox"> Persist log in localStorage (survives Ctrl+W tab loss)</label>
+  <button id="clearBtn" type="button">Clear log and labels</button>
+  <button id="copyBtn" type="button">Copy summary</button>
+  <span id="status">idle</span>
+</div>
+<p class="legend">Cancel toggle = page-level <code>preventDefault()</code>. When on, <code>defaultPrevented</code>
+reads <code>true</code> for non-composing keydowns. It cannot stop browser chrome. Capture listens in the
+window capture phase and also records <code>beforeinput</code> from the page text field.</p>
+
+<label class="fieldlabel" for="testField">Page text field (use it for the typing and Ctrl+W-in-field tests):</label>
+<input id="testField" type="text" placeholder="focus here, then run the field-based tests">
+
+<h2>Guided checklist</h2>
+<p class="legend">Press <em>run now</em> immediately before each test; it inserts a marker row in the log and
+highlights the item. Then label what happened: delivered (page saw a usable event),
+intercepted (browser/OS consumed it), partial (some keys arrived, some did not).</p>
+<ol class="checklist" id="checklist"></ol>
+
+<h2>Event log</h2>
+<div class="legend">key column shows <code>key</code> normally, <code>inputType</code> for <code>beforeinput</code>;
+code column shows <code>code</code>, or the input data for <code>beforeinput</code> (quoted). t = ms since capture start.</div>
+<div class="logwrap">
+  <table>
+    <thead>
+      <tr>
+        <th>seq</th><th>type</th><th>key / inputType</th><th>code / data</th>
+        <th>ctrl</th><th>alt</th><th>shift</th><th>meta</th>
+        <th>location</th><th>repeat</th><th>isComposing</th><th>defaultPrevented</th><th>t ms</th>
+      </tr>
+    </thead>
+    <tbody id="log"></tbody>
+  </table>
+</div>
+
+<div id="fallback" hidden>
+  <p>Clipboard write failed. The summary below is selected; press Ctrl+C / Cmd+C to copy it.</p>
+  <textarea id="summaryOut" readonly></textarea>
+</div>
+
+<pre id="selftest" hidden></pre>
+
+<script>
+(function () {
+  'use strict';
+
+  var CHORDS = [
+    { id: 'ctrl-b',        label: 'Ctrl+B alone',                          hint: 'press and release; page should receive it' },
+    { id: 'ctrl-b-w',      label: 'Ctrl+B then w (sequential)',            hint: 'release between keys; prefix semantics' },
+    { id: 'ctrl-w',        label: 'Ctrl+W plain',                          hint: 'may close the tab; record as intercepted' },
+    { id: 'ctrl-w-field',  label: 'Ctrl+W with focus in page text field',  hint: 'focus the field above first' },
+    { id: 'ctrl-b-keys',   label: 'Ctrl+B then c/v/x/z/g/b/1/n/p/q + h/j/k/l', hint: 'one prefix command at a time; h/j/k/l are pane focus' },
+    { id: 'esc',           label: 'Esc',                                   hint: 'plain Escape' },
+    { id: 'ctrl-bracket',  label: 'Ctrl+[',                                hint: 'some browsers route this to UI or OS' },
+    { id: 'emacs',         label: 'Ctrl+A / E / K / Y in text field',      hint: 'focus field; A start, E end, K kill, Y yank' },
+    { id: 'tab',           label: 'Tab',                                   hint: 'focus movement, not text' },
+    { id: 'altgr',         label: 'AltGr sequence (e.g. AltGr+E, AltGr+Q)', hint: 'try to produce @ or €; record what arrives' },
+    { id: 'ime',           label: 'IME / composition attempt',             hint: 'if an IME is installed; includes beforeinput' },
+    { id: 'prefix-help',   label: 'Ctrl+B then ? (help)',                  hint: 'often Shift+/; note whether Shift survives the prefix' },
+    { id: 'prefix-shift-n', label: 'Ctrl+B then Shift+N',                  hint: 'capital N; record whether Shift is still set' },
+    { id: 'prefix-shift-t', label: 'Ctrl+B then Shift+T',                  hint: 'capital T' },
+    { id: 'prefix-minus',  label: 'Ctrl+B then -',                         hint: 'minus/hyphen key' },
+    { id: 'prefix-hjkl',   label: 'Ctrl+B then h/j/k/l (pane focus)',      hint: 'one direction at a time' },
+    { id: 'prefix-copy-mode', label: 'Ctrl+B then [ (copy-mode entry)',    hint: 'sequential prefix then bracket; distinct from Ctrl+[ alone (#7)' },
+    { id: 'enter',         label: 'Enter (plain)',                         hint: 'plain Enter, no prefix' }
+  ];
+  var RESULTS = ['untested', 'delivered', 'intercepted', 'partial'];
+  var STORE_KEY = 'herdr-keyboard-probe-v1';
+  var PERSIST_KEY = 'herdr-keyboard-probe-persist';
+  var MAX_ROWS = 5000, MAX_DOM_ROWS = 2000;
+
+  var state = {
+    capturing: false,
+    cancel: false,
+    persist: false,
+    seq: 0,
+    t0: 0,
+    active: null,
+    labels: {},
+    markers: {},
+    rows: []
+  };
+
+  function $(sel) { return document.querySelector(sel); }
+  function el(tag, text, cls) {
+    var n = document.createElement(tag);
+    if (text != null) n.textContent = text;
+    if (cls) n.className = cls;
+    return n;
+  }
+
+  // ---- environment -------------------------------------------------------
+  var env = $('#env');
+  env.textContent = 'User agent: ' + navigator.userAgent +
+    '\nPlatform: ' + (navigator.platform || 'unknown') +
+    '  Language: ' + navigator.language +
+    '  Max touch points: ' + navigator.maxTouchPoints;
+  env.style.whiteSpace = 'pre-wrap';
+
+  // ---- checklist ---------------------------------------------------------
+  var list = $('#checklist');
+  CHORDS.forEach(function (c, i) {
+    var li = el('li');
+    li.id = 'item-' + c.id;
+    li.appendChild(el('span', (i + 1) + '. ' + c.label + ' '));
+    li.appendChild(el('span', c.hint, 'hint'));
+
+    var run = el('button', 'run now');
+    run.type = 'button';
+    run.addEventListener('click', function () { markChord(c.id); });
+
+    var select = el('select');
+    select.setAttribute('aria-label', 'result for ' + c.label);
+    RESULTS.forEach(function (r) {
+      var o = el('option', r);
+      o.value = r;
+      select.appendChild(o);
+    });
+    select.addEventListener('change', function () {
+      state.labels[c.id] = select.value;
+      persistNow();
+    });
+    select.dataset.chord = c.id;
+
+    var seq = el('span', '', 'seq');
+    li.appendChild(document.createTextNode(' '));
+    li.appendChild(run);
+    li.appendChild(document.createTextNode(' '));
+    li.appendChild(select);
+    li.appendChild(document.createTextNode(' '));
+    li.appendChild(seq);
+    li._select = select;
+    li._seq = seq;
+    list.appendChild(li);
+  });
+
+  function itemNode(id) { return document.getElementById('item-' + id); }
+
+  function markChord(id) {
+    var markerSeq = ++state.seq;
+    var t = state.capturing ? performance.now() - state.t0 : 0;
+    var row = {
+      seq: markerSeq, type: 'mark', key: labelOf(id), code: '', ctrl: null, alt: null,
+      shift: null, meta: null, location: '', repeat: '', isComposing: '', defaultPrevented: '',
+      t: t
+    };
+    state.rows.push(row);
+    state.markers[id] = markerSeq;
+    appendRow(row, true);
+    state.active = id;
+    Array.prototype.forEach.call(list.children, function (li) {
+      li.classList.toggle('active', li.id === 'item-' + id);
+    });
+    if (itemNode(id)) {
+      itemNode(id)._seq.textContent = 'section @seq ' + markerSeq;
+      itemNode(id)._select.focus();
+    }
+    updateStatus();
+    persistNow();
+  }
+
+  function labelOf(id) {
+    for (var i = 0; i < CHORDS.length; i++) if (CHORDS[i].id === id) return CHORDS[i].label;
+    return id;
+  }
+
+  // ---- logging -----------------------------------------------------------
+  var tbody = $('#log');
+
+  function appendRow(r, isMarker) {
+    var tr = el('tr', null, isMarker ? 'mark' : null);
+    var cells = [
+      r.seq, r.type, r.key, r.code,
+      bool(r.ctrl), bool(r.alt), bool(r.shift), bool(r.meta),
+      r.location, r.repeat, r.isComposing, r.defaultPrevented, r.t.toFixed(1)
+    ];
+    cells.forEach(function (v, idx) {
+      var td = el('td', String(v));
+      if (idx === 11 && r.defaultPrevented === true) td.className = 'dp';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+    while (tbody.children.length > MAX_DOM_ROWS) tbody.removeChild(tbody.firstChild);
+    var wrap = tbody.parentElement.parentElement;
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function bool(v) { return v == null ? '' : (v ? 'yes' : 'no'); }
+
+  function record(e, type) {
+    if (!state.capturing) return;
+    if (!state.t0) state.t0 = performance.now();
+    var row = {
+      seq: ++state.seq,
+      type: type,
+      key: type === 'beforeinput' ? (e.inputType || '') : (e.key == null ? '' : e.key),
+      code: type === 'beforeinput' ? JSON.stringify(e.data == null ? '' : e.data) : (e.code || ''),
+      ctrl: !!e.ctrlKey,
+      alt: !!e.altKey,
+      shift: !!e.shiftKey,
+      meta: !!e.metaKey,
+      location: e.location == null ? '' : e.location,
+      repeat: !!e.repeat,
+      isComposing: !!e.isComposing,
+      defaultPrevented: !!e.defaultPrevented,
+      t: performance.now() - state.t0
+    };
+    state.rows.push(row);
+    if (state.rows.length > MAX_ROWS) state.rows.splice(0, state.rows.length - MAX_ROWS);
+    appendRow(row, false);
+    updateStatus();
+    if (state.seq % 20 === 0) persistNow();
+  }
+
+  function onKeyDown(e) {
+    if (!state.capturing) return;
+    if (state.cancel && !e.isComposing) e.preventDefault();
+    record(e, 'keydown');
+  }
+  function onKeyUp(e) { record(e, 'keyup'); }
+  function onBeforeInput(e) { record(e, 'beforeinput'); }
+
+  // Capture phase at window: page-level listeners see the event even if a
+  // child handler stops propagation later. Does not bypass browser chrome.
+  window.addEventListener('keydown', onKeyDown, true);
+  window.addEventListener('keyup', onKeyUp, true);
+  document.addEventListener('beforeinput', onBeforeInput, true);
+
+  // ---- controls ----------------------------------------------------------
+  var toggleBtn = $('#toggleCapture');
+  var cancelBox = $('#cancelToggle');
+  var persistBox = $('#persistToggle');
+  var status = $('#status');
+
+  function updateStatus() {
+    if (!state.capturing) {
+      status.textContent = 'idle — capture stopped (' + state.rows.length + ' rows)';
+    } else {
+      status.textContent = 'capturing — ' + state.rows.length + ' rows' +
+        (state.cancel ? ', page-cancelling non-composing keydown' : ', passive');
+    }
+    toggleBtn.textContent = state.capturing ? 'Stop capture' : 'Start capture';
+  }
+
+  toggleBtn.addEventListener('click', function () {
+    state.capturing = !state.capturing;
+    if (state.capturing) {
+      state.t0 = performance.now();
+      $('#testField').focus();
+    }
+    updateStatus();
+  });
+
+  cancelBox.addEventListener('change', function () {
+    state.cancel = cancelBox.checked;
+    updateStatus();
+  });
+
+  persistBox.addEventListener('change', function () {
+    state.persist = persistBox.checked;
+    try {
+      if (state.persist) {
+        localStorage.setItem(PERSIST_KEY, '1');
+        persistNow();
+      } else {
+        localStorage.removeItem(PERSIST_KEY);
+        localStorage.removeItem(STORE_KEY);
+      }
+    } catch (err) { /* storage unavailable: probe still works without persistence */ }
+  });
+
+  $('#clearBtn').addEventListener('click', function () {
+    state.rows = [];
+    state.labels = {};
+    state.markers = {};
+    state.seq = 0;
+    state.active = null;
+    tbody.textContent = '';
+    Array.prototype.forEach.call(list.children, function (li) {
+      li.classList.remove('active');
+      li._select.value = 'untested';
+      li._seq.textContent = '';
+    });
+    persistNow();
+    updateStatus();
+  });
+
+  // ---- persistence -------------------------------------------------------
+  function persistNow() {
+    if (!state.persist) return;
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        rows: state.rows.slice(-MAX_ROWS),
+        labels: state.labels,
+        markers: state.markers,
+        seq: state.seq
+      }));
+    } catch (err) { /* quota or disabled storage: ignore */ }
+  }
+
+  window.addEventListener('pagehide', persistNow);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') persistNow();
+  });
+
+  function restore() {
+    var enabled = false;
+    try { enabled = localStorage.getItem(PERSIST_KEY) === '1'; } catch (err) {}
+    if (!enabled) return;
+    persistBox.checked = true;
+    state.persist = true;
+    try {
+      var data = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+      if (!data || !Array.isArray(data.rows)) return;
+      state.rows = data.rows.slice(-MAX_ROWS);
+      state.labels = data.labels || {};
+      state.markers = data.markers || {};
+      state.seq = data.seq || 0;
+      state.rows.slice(-MAX_DOM_ROWS).forEach(function (r) { appendRow(r, r.type === 'mark'); });
+      Array.prototype.forEach.call(list.children, function (li) {
+        var id = li.id.replace('item-', '');
+        if (state.labels[id]) li._select.value = state.labels[id];
+        if (state.markers[id]) li._seq.textContent = 'section @seq ' + state.markers[id];
+      });
+    } catch (err) { /* corrupt store: start clean */ }
+  }
+  restore();
+  updateStatus();
+
+  // ---- summary -----------------------------------------------------------
+  function esc(v) { return String(v == null ? '' : v).replace(/\|/g, '\\|'); }
+
+  function buildSummary() {
+    var counts = {};
+    state.rows.forEach(function (r) { counts[r.type] = (counts[r.type] || 0) + 1; });
+    var out = [
+      '# Herdr keyboard probe results',
+      '',
+      '- User agent: ' + navigator.userAgent,
+      '- Platform: ' + (navigator.platform || 'unknown'),
+      '- Language: ' + navigator.language,
+      '- Page-cancelled non-composing keydown: ' + (state.cancel ? 'on' : 'off'),
+      '- Rows captured: ' + state.rows.length,
+      '- Event types: ' + Object.keys(counts).map(function (k) { return k + '=' + counts[k]; }).join(', '),
+      '- Exported: ' + new Date().toISOString(),
+      '',
+      '| # | Test | Result |',
+      '| --- | --- | --- |'
+    ];
+    CHORDS.forEach(function (c, i) {
+      out.push('| ' + (i + 1) + ' | ' + esc(c.label) + ' | ' + esc(state.labels[c.id] || 'untested') + ' |');
+    });
+    return out.join('\n') + '\n';
+  }
+
+  $('#copyBtn').addEventListener('click', function () {
+    var text = buildSummary();
+    var ta = $('#summaryOut');
+    ta.value = text;
+    var done = function (ok) {
+      if (ok) {
+        status.textContent = 'summary copied to clipboard (' + CHORDS.length + ' rows)';
+        return;
+      }
+      $('#fallback').hidden = false;
+      ta.focus();
+      ta.select();
+      status.textContent = 'clipboard unavailable — summary selected in the textarea, press Ctrl+C';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else {
+      done(false);
+    }
+  });
+
+  // ---- built-in self-check (#selftest) -----------------------------------
+  function selfTest() {
+    var out = [];
+    function ok(name, cond) { out.push((cond ? 'PASS ' : 'FAIL ') + name); }
+
+    ok('checklist has 18 items', CHORDS.length === 18);
+    ok('checklist order',
+      CHORDS.map(function (c) { return c.id; }).join(',') ===
+      'ctrl-b,ctrl-b-w,ctrl-w,ctrl-w-field,ctrl-b-keys,esc,ctrl-bracket,emacs,tab,altgr,ime,' +
+      'prefix-help,prefix-shift-n,prefix-shift-t,prefix-minus,prefix-hjkl,prefix-copy-mode,enter');
+
+    var prevLabel = state.labels.esc;
+    state.labels.esc = 'partial';
+    var summary = buildSummary();
+    ok('summary table header', summary.indexOf('| # | Test | Result |') !== -1);
+    ok('summary row count', summary.split('\n').filter(function (l) { return /^\| \d+ \|/.test(l); }).length === CHORDS.length);
+    ok('summary includes label', /\| Esc \| partial \|/.test(summary));
+    if (prevLabel === undefined) delete state.labels.esc; else state.labels.esc = prevLabel;
+    ok('summary label restore', (state.labels.esc === undefined) === (prevLabel === undefined));
+
+    var rowsBefore = state.rows.length;
+    state.capturing = true;
+    state.t0 = performance.now();
+    state.cancel = false;
+    window.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'B', code: 'KeyB', ctrlKey: true, bubbles: true, cancelable: true
+    }));
+    var last = state.rows[state.rows.length - 1];
+    ok('synthetic keydown logged', state.rows.length === rowsBefore + 1 && last.key === 'B' && last.ctrl === true);
+    ok('passive defaultPrevented false', last.defaultPrevented === false);
+
+    state.cancel = true;
+    var notCancelled = window.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'w', code: 'KeyW', ctrlKey: true, bubbles: true, cancelable: true
+    }));
+    var cancelledRow = state.rows[state.rows.length - 1];
+    ok('cancel toggle calls preventDefault', notCancelled === false && cancelledRow.defaultPrevented === true);
+
+    state.cancel = false;
+    state.capturing = false;
+    // remove synthetic rows so the log stays honest
+    state.rows.length = rowsBefore;
+    while (tbody.children.length > rowsBefore) tbody.removeChild(tbody.lastChild);
+    updateStatus();
+
+    var pre = $('#selftest');
+    pre.hidden = false;
+    pre.textContent = 'Self-check (synthetic events are non-certifying; they only prove this page logs):\n' + out.join('\n');
+    document.title = out.some(function (l) { return l.indexOf('FAIL') === 0; })
+      ? 'SELFTEST FAIL — Herdr keyboard probe'
+      : 'SELFTEST PASS — Herdr keyboard probe';
+  }
+
+  if (location.hash === '#selftest') selfTest();
+})();
+</script>
+</body>
+</html>

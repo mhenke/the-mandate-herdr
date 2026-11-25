@@ -19,6 +19,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "audit:changed": "knip && fallow audit --base origin/main",
+    "graphify:update": "graphify update .",
+    "graphify:report": "graphify cluster-only .",
     "mutation": "stryker run"
   },
   "dependencies": {

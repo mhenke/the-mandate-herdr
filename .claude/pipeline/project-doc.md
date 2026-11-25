@@ -109,7 +109,10 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- N/A (FULL scan)
+- `GLOSSARY.md` (Domain modeling: added canonical entries for "The Cooperative" and "Desk Feed / Secure Dispatch")
+- `cinematics/episode-one/compositions/briefing.html` (Harmonized Scene 2 with Scene 1 patterns: `#head` banner in `#t-sub` style, message card in `#t-docket` style with left amber bar, mono typography, amber slashes, non-wrapping routing lines, window rain clipping)
+- `public/cinematics/episode-one/cold-open.mp4` (Re-rendered 1080p 30fps cinematic cold open)
+- `public/cinematics/episode-one/cold-open-poster.png` (Updated poster capture)
 
 ## Last Scanned
-2026-11-24T10:16:30Z
+2026-11-24T19:30:00Z

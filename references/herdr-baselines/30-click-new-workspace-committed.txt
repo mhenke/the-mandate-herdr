@@ -1,0 +1,40 @@
+ spaces                  │   1      +
+                         │$ ^[
+ ● the-mandate           │
+   main                  │
+ · Reference             │
+   main                  │
+ ○ Confirmation          │
+ · Scratch               │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+ new               ● menu│
+─────────────────────────│
+ agents           grouped│
+                         │
+ ○ the-mandate · 1       │
+   claude                │
+ ● the-mandate · 1       │
+   codex                 │
+ ○ Confirmation · Agents │
+   omp                   │
+ ○ Confirmation · Agents │
+   opencode              │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                        «│

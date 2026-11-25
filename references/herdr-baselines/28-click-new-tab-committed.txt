@@ -1,0 +1,40 @@
+ spaces                  │   1       Interview     Terminal    +
+                         │$
+ ● the-mandate           │
+   main                  │
+ · Reference             │
+   main                  │
+ ○ Confirmation          │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+ new               ● menu│
+─────────────────────────│
+ agents           grouped│
+                         │
+ ○ the-mandate · 1       │
+   claude                │
+ ● the-mandate · 1       │
+   codex                 │
+ ○ Confirmation · Agents │
+   omp                   │
+ ○ Confirmation · Agents │
+   opencode              │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                         │
+                        «│ NAVIGATE  esc back  ↑/↓ workspace  tab pane  ? keybinds

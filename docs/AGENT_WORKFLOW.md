@@ -76,7 +76,7 @@ Parallel agents must follow **one task, one branch, one worktree**: worktrees cr
 
 ## Exploration tools
 
-Graphify (local, `graphify-out/` or the repo wrapper) accelerates exploration and boundary review. Its output is an exploration aid, never an architectural authority — source code and the project contracts decide disputes. Generated graph data stays out of commits.
+Graphify (local, `graphify-out/`) accelerates exploration and boundary review. The root repository maintains the baseline index in `graphify-out/`; each active worktree symlinks it (`ln -s ../../graphify-out .worktrees/<lane>/graphify-out`). Query before searching: run `graphify query`, `graphify path`, or `graphify explain` before grepping or reading files for codebase understanding. Its output is an exploration aid, never an architectural authority — source code and the project contracts decide disputes. Generated graph data stays out of commits.
 
 ## Screenshots and visual regression
 
