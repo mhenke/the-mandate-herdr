@@ -745,24 +745,44 @@ function classifyPolicyRestriction(request: string): string | null {
   return null;
 }
 
+interface AgentContextUpdate {
+  readonly lastReferencedMessageId?: string;
+  readonly lastReferencedDocumentId?: string;
+  readonly lastTopic?: AgentTopic;
+}
+
+function replyWithAgentLines(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  replyLines: readonly string[],
+  fallbackPrompt: string,
+  context: AgentContextUpdate = {},
+): ApplicationTransition {
+  const nextAgent: AgentSession = {
+    ...addHistory(
+      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+      "assistant",
+      replyLines.join("\n"),
+    ),
+    ...context,
+  };
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? fallbackPrompt),
+      ...replyLines,
+    ]),
+  };
+}
+
 function handlePolicyRestrictionRequest(
   state: ApplicationState,
   paneId: string,
   agent: AgentSession,
   explanation: string,
 ): ApplicationTransition {
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    explanation,
-  );
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "restricted request"),
-      explanation,
-    ]),
-  };
+  return replyWithAgentLines(state, paneId, agent, [explanation], "restricted request");
 }
 
 function isGeneralGuidanceRequest(request: string): boolean {
@@ -788,18 +808,7 @@ function handleGeneralGuidanceRequest(
     "",
     "Where would you like to start?",
   ];
-  const nextAgent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    guidance.join("\n"),
-  );
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "guidance"),
-      ...guidance,
-    ]),
-  };
+  return replyWithAgentLines(state, paneId, agent, guidance, "guidance");
 }
 
 function isOtherMessagesFollowUp(request: string): boolean {
@@ -822,23 +831,19 @@ function handleOtherMessagesRequest(
     "",
     "MSG-1112-01 from June Adebayo is the only pending priority item today. Your archived folders and newsroom distribution lists are current.",
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "other messages", {
     lastReferencedMessageId: "MSG-1112-01",
     lastTopic: "inbox",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "other messages"),
-      ...replyLines,
-    ]),
-  };
+  });
 }
+
+const EMAIL_FOLLOWUP_PHRASES = new Set([
+  "read it",
+  "open it",
+  "read message",
+  "open email",
+  "read the email",
+]);
 
 function isReadEmailFollowUp(request: string, agent: AgentSession): boolean {
   const norm = normalize(request);
@@ -849,43 +854,32 @@ function isReadEmailFollowUp(request: string, agent: AgentSession): boolean {
   ) {
     return true;
   }
-  if (
-    (norm === "read it" ||
-      norm === "open it" ||
-      norm === "read message" ||
-      norm === "open email" ||
-      norm === "read the email") &&
-    agent.lastTopic === "inbox"
-  ) {
-    return true;
-  }
-  return false;
+  return agent.lastTopic === "inbox" && EMAIL_FOLLOWUP_PHRASES.has(norm);
 }
+
+const DOCUMENT_FOLLOWUP_PHRASES = new Set([
+  "show me that document",
+  "show that document",
+  "open that document",
+  "read that document",
+  "pull up that document",
+  "show the document",
+  "open the document",
+  "read the document",
+  "pull up the document",
+]);
+
+const GENERIC_FOLLOWUP_PRONOUNS = new Set(["read it", "open it", "show it"]);
 
 function isReadDocumentFollowUp(request: string, agent: AgentSession): boolean {
   const norm = normalize(request);
-  if (
-    norm === "show me that document" ||
-    norm === "show that document" ||
-    norm === "open that document" ||
-    norm === "read that document" ||
-    norm === "pull up that document" ||
-    norm === "show the document" ||
-    norm === "open the document" ||
-    norm === "read the document" ||
-    norm === "pull up the document"
-  ) {
-    return true;
-  }
-  if (
-    (norm === "read it" || norm === "open it" || norm === "show it") &&
-    (agent.lastTopic === "assignment" ||
-      agent.lastTopic === "document" ||
-      agent.lastReferencedDocumentId !== undefined)
-  ) {
-    return true;
-  }
-  return false;
+  if (DOCUMENT_FOLLOWUP_PHRASES.has(norm)) return true;
+  if (!GENERIC_FOLLOWUP_PRONOUNS.has(norm)) return false;
+  return (
+    agent.lastTopic === "assignment" ||
+    agent.lastTopic === "document" ||
+    agent.lastReferencedDocumentId !== undefined
+  );
 }
 
 function handleScheduleRequest(
@@ -904,22 +898,10 @@ function handleScheduleRequest(
     "",
     "June Adebayo flagged an urgent confidential lead in your inbox regarding a vendor incident.",
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "schedule", {
     lastReferencedMessageId: "MSG-1112-01",
     lastTopic: "schedule",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "schedule"),
-      ...replyLines,
-    ]),
-  };
+  });
 }
 
 function handleInboxRequest(
@@ -937,19 +919,10 @@ function handleInboxRequest(
     "",
     "June notes that an anxious source reached out regarding an oversight records incident, and asks that we review our source-handling rules (CPA-01A) before making contact.",
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "inbox", {
     lastReferencedMessageId: "MSG-1112-01",
     lastTopic: "inbox",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, ["> " + (agent.history.at(-1)?.content ?? "inbox"), ...replyLines]),
-  };
+  });
 }
 
 function handleScheduleAndInboxRequest(
@@ -975,22 +948,10 @@ function handleScheduleAndInboxRequest(
     "",
     "June flagged an urgent priority lead regarding a vendor incident, and asked that we review our source-handling procedures before making contact.",
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "schedule and inbox", {
     lastReferencedMessageId: "MSG-1112-01",
     lastTopic: "inbox",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "schedule and inbox"),
-      ...replyLines,
-    ]),
-  };
+  });
 }
 
 function handleAssignmentBriefRequest(
@@ -1015,23 +976,11 @@ function handleAssignmentBriefRequest(
     "  2. Confirm your acceptance of the handling terms.",
     '  3. Keep your working notes in a separate tab so we maintain a clean audit trail."',
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "assignment", {
     lastReferencedMessageId: "MSG-1112-01",
     lastReferencedDocumentId: "CPA-01A",
     lastTopic: "assignment",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "assignment"),
-      ...replyLines,
-    ]),
-  };
+  });
 }
 
 function handleAssignmentRequest(
@@ -1097,22 +1046,10 @@ function handleIncidentOverviewRequest(
     "",
     "June Adebayo is supervising this inquiry. Ensure CPA-01A rules are observed before direct source interaction.",
   ];
-  const nextAgent: AgentSession = {
-    ...addHistory(
-      { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-      "assistant",
-      replyLines.join("\n"),
-    ),
+  return replyWithAgentLines(state, paneId, agent, replyLines, "incident overview", {
     lastTopic: "intake",
     lastReferencedDocumentId: "CPA-01A",
-  };
-  return {
-    state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "incident overview"),
-      ...replyLines,
-    ]),
-  };
+  });
 }
 
 function handleVn12FilingRequest(
@@ -1325,6 +1262,78 @@ function handleDocumentSearchRequest(
   };
 }
 
+function routeFollowUpAndPolicy(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  request: string,
+  level: number,
+): ApplicationTransition | null {
+  const policyExplanation = classifyPolicyRestriction(request);
+  if (policyExplanation) {
+    return handlePolicyRestrictionRequest(state, paneId, agent, policyExplanation);
+  }
+  if (isGeneralGuidanceRequest(request)) {
+    return handleGeneralGuidanceRequest(state, paneId, agent);
+  }
+  if (isOtherMessagesFollowUp(request)) {
+    return handleOtherMessagesRequest(state, paneId, agent);
+  }
+  if (isReadEmailFollowUp(request, agent)) {
+    return handleAssignmentBriefRequest(state, paneId, agent);
+  }
+  if (isReadDocumentFollowUp(request, agent)) {
+    const docId = agent.lastReferencedDocumentId ?? "CPA-01A";
+    return handleDocumentSearchRequest(state, paneId, agent, docId, level);
+  }
+  return null;
+}
+
+function routeNewsroomDeskRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  request: string,
+  level: number,
+): ApplicationTransition | null {
+  if (isAssignmentAcceptanceIntent(request)) {
+    return handleAssignmentRequest(state, paneId, agent);
+  }
+  if (isAssignmentBriefIntent(request)) {
+    return handleAssignmentBriefRequest(state, paneId, agent);
+  }
+  const wantsSchedule = isScheduleIntent(request);
+  const wantsInbox = isInboxIntent(request);
+  if (wantsSchedule && wantsInbox) {
+    return handleScheduleAndInboxRequest(state, paneId, agent);
+  }
+  if (wantsSchedule) return handleScheduleRequest(state, paneId, agent);
+  if (wantsInbox) return handleInboxRequest(state, paneId, agent);
+  if (isIncidentIntent(request) && level === 1) {
+    return handleIncidentOverviewRequest(state, paneId, agent);
+  }
+  return null;
+}
+
+function routeLevelWorkflowRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  request: string,
+  level: number,
+): ApplicationTransition | null {
+  if (level === 4) {
+    const vn12Intent = isVn12FilingIntent(request);
+    if (vn12Intent.filing) {
+      return handleVn12FilingRequest(state, paneId, agent, vn12Intent.choice);
+    }
+  }
+  if (level === 5 && isFindingSubmissionIntent(request)) {
+    return handleFindingSubmissionRequest(state, paneId, agent);
+  }
+  return null;
+}
+
 function runAgentRequest(
   state: ApplicationState,
   paneId: string,
@@ -1344,75 +1353,12 @@ function runAgentRequest(
     request,
   );
   const nextState = setAgent(state, paneId, agent);
-
-  // 1. Policy restriction check
-  const policyExplanation = classifyPolicyRestriction(request);
-  if (policyExplanation) {
-    return handlePolicyRestrictionRequest(nextState, paneId, agent, policyExplanation);
-  }
-
-  // 2. General conversational guidance
-  if (isGeneralGuidanceRequest(request)) {
-    return handleGeneralGuidanceRequest(nextState, paneId, agent);
-  }
-
-  // 3. Follow-up: Other unread messages
-  if (isOtherMessagesFollowUp(request)) {
-    return handleOtherMessagesRequest(nextState, paneId, agent);
-  }
-
-  // 4. Follow-up: Read email / what did June say
-  if (isReadEmailFollowUp(request, agent)) {
-    return handleAssignmentBriefRequest(nextState, paneId, agent);
-  }
-
-  // 5. Follow-up: Read document / procedures / handling rules / memo
-  if (isReadDocumentFollowUp(request, agent)) {
-    const docId = agent.lastReferencedDocumentId ?? "CPA-01A";
-    return handleDocumentSearchRequest(nextState, paneId, agent, docId, level);
-  }
-
-  // 6. Assignment accept & brief
-  if (isAssignmentAcceptanceIntent(request)) {
-    return handleAssignmentRequest(nextState, paneId, agent);
-  }
-
-  if (isAssignmentBriefIntent(request)) {
-    return handleAssignmentBriefRequest(nextState, paneId, agent);
-  }
-
-  // 7. Schedule & Inbox
-  const wantsSchedule = isScheduleIntent(request);
-  const wantsInbox = isInboxIntent(request);
-
-  if (wantsSchedule && wantsInbox) {
-    return handleScheduleAndInboxRequest(nextState, paneId, agent);
-  }
-
-  if (wantsSchedule) {
-    return handleScheduleRequest(nextState, paneId, agent);
-  }
-
-  if (wantsInbox) {
-    return handleInboxRequest(nextState, paneId, agent);
-  }
-
-  if (isIncidentIntent(request) && level === 1) {
-    return handleIncidentOverviewRequest(nextState, paneId, agent);
-  }
-
-  if (level === 4) {
-    const vn12Intent = isVn12FilingIntent(request);
-    if (vn12Intent.filing) {
-      return handleVn12FilingRequest(nextState, paneId, agent, vn12Intent.choice);
-    }
-  }
-
-  if (level === 5 && isFindingSubmissionIntent(request)) {
-    return handleFindingSubmissionRequest(nextState, paneId, agent);
-  }
-
-  return handleDocumentSearchRequest(nextState, paneId, agent, request, level);
+  return (
+    routeFollowUpAndPolicy(nextState, paneId, agent, request, level) ??
+    routeNewsroomDeskRequest(nextState, paneId, agent, request, level) ??
+    routeLevelWorkflowRequest(nextState, paneId, agent, request, level) ??
+    handleDocumentSearchRequest(nextState, paneId, agent, request, level)
+  );
 }
 
 function submitTerminal(state: ApplicationState): ApplicationTransition {
@@ -1489,6 +1435,71 @@ function submitTerminal(state: ApplicationState): ApplicationTransition {
   };
 }
 
+const MANAGED_NOTICE_LINES = [
+  "Cooperative Managed Environment · Newsroom research profile active.",
+  "Approved tools: editorial mail, schedule, cooperative archives, and incident records.",
+  "Code execution, package installs, arbitrary shell tools, and external network access are disabled.",
+] as const;
+
+function launchClaudeInPane(
+  base: ApplicationState,
+  paneId: string,
+  echoed: string,
+  nextCwd: string,
+  nextCwds: Readonly<Record<string, string>>,
+): ApplicationTransition {
+  const showNotice = !base.managedNoticeShown;
+  const newAgent: AgentSession = {
+    status: "ready",
+    phase: "waiting_for_input",
+    history: showNotice ? [{ role: "assistant", content: MANAGED_NOTICE_LINES.join("\n") }] : [],
+    lastTask: null,
+  };
+  return {
+    state: {
+      ...setAgent(base, paneId, newAgent),
+      paneCwds: nextCwds,
+      managedNoticeShown: true,
+    },
+    effects: [
+      ...paneOutput(paneId, [
+        echoed,
+        "  █ █  █ █    Claude Code v2.0.24",
+        " ██████████   Sonnet 4.5 · Newsroom License",
+        " ██ █  █ ██   " + displayCwd(nextCwd),
+        " ██████████",
+        "  █      █",
+        ...(showNotice ? ["", ...MANAGED_NOTICE_LINES] : []),
+      ]),
+      { kind: "claude-started", paneId },
+    ],
+  };
+}
+
+function submitShellPane(
+  base: ApplicationState,
+  paneId: string,
+  line: string,
+  cwd: string,
+  echoed: string,
+): ApplicationTransition {
+  const res = executeShellCommand(line, cwd);
+  const nextCwds = { ...(base.paneCwds ?? {}), [paneId]: res.nextCwd };
+  if (res.launchClaude) {
+    return launchClaudeInPane(base, paneId, echoed, res.nextCwd, nextCwds);
+  }
+  if (res.clear) {
+    return {
+      state: { ...base, paneCwds: nextCwds },
+      effects: [{ kind: "pane-clear", paneId }],
+    };
+  }
+  return {
+    state: { ...base, paneCwds: nextCwds },
+    effects: paneOutput(paneId, [echoed, ...res.lines]),
+  };
+}
+
 function submitPane(state: ApplicationState, paneId: string, level: number): ApplicationTransition {
   const line = state.paneInputs[paneId] ?? "";
   const cwd = state.paneCwds?.[paneId] ?? DEFAULT_CWD;
@@ -1499,58 +1510,8 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
     paneCursors: { ...state.paneCursors, [paneId]: 0 },
   };
 
-  const agent = base.agents[paneId];
-  if (!agent) {
-    const res = executeShellCommand(line, cwd);
-    const nextCwds = { ...(base.paneCwds ?? {}), [paneId]: res.nextCwd };
-
-    if (res.launchClaude) {
-      const showNotice = !base.managedNoticeShown;
-      const noticeLines = showNotice
-        ? [
-            "Cooperative Managed Environment · Newsroom research profile active.",
-            "Approved tools: editorial mail, schedule, cooperative archives, and incident records.",
-            "Code execution, package installs, arbitrary shell tools, and external network access are disabled.",
-          ]
-        : [];
-      const newAgent: AgentSession = {
-        status: "ready",
-        phase: "waiting_for_input",
-        history: showNotice ? [{ role: "assistant", content: noticeLines.join("\n") }] : [],
-        lastTask: null,
-      };
-      return {
-        state: {
-          ...setAgent(base, paneId, newAgent),
-          paneCwds: nextCwds,
-          managedNoticeShown: true,
-        },
-        effects: [
-          ...paneOutput(paneId, [
-            echoed,
-            "  █ █  █ █    Claude Code v2.0.24",
-            " ██████████   Sonnet 4.5 · Newsroom License",
-            " ██ █  █ ██   " + displayCwd(res.nextCwd),
-            " ██████████",
-            "  █      █",
-            ...(showNotice ? ["", ...noticeLines] : []),
-          ]),
-          { kind: "claude-started", paneId },
-        ],
-      };
-    }
-
-    if (res.clear) {
-      return {
-        state: { ...base, paneCwds: nextCwds },
-        effects: [{ kind: "pane-clear", paneId }],
-      };
-    }
-
-    return {
-      state: { ...base, paneCwds: nextCwds },
-      effects: paneOutput(paneId, [echoed, ...res.lines]),
-    };
+  if (!base.agents[paneId]) {
+    return submitShellPane(base, paneId, line, cwd, echoed);
   }
 
   const trimmed = line.trim().toLowerCase();
