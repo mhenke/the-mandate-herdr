@@ -57,7 +57,7 @@ A deterministic, in-terminal simulation of an automated LLM coding agent (Claude
 _Avoid_: Real Claude API, backend LLM integration, chatbot widget
 
 **Token relevance matching**:
-The prompt-matching mechanism used in `src/core/applications/index.ts` where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
+The prompt-matching mechanism where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
 _Avoid_: NLP model, fuzzy regex, vector search, semantic embedder
 
 **Bounded task assignment**:
@@ -71,10 +71,6 @@ _Avoid_: Editorial guidelines, newsroom rules, style guide
 **Off-record consent gate**:
 The procedural requirement where an investigative witness interview (such as Theo Park's account of misfire `LT-47B` in L3) cannot be unsealed or admitted into evidence until off-record consent terms are explicitly confirmed, triggering an authentic `blocked` state in the running process.
 _Avoid_: Interview unlock, dialogue choice, Q&A prompt
-
-**Cooperative (Capital Press & Analyst Cooperative)**:
-The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
-_Avoid_: Agency, newsroom, syndicate, union
 
 **Counter-provenance filing (CPF)**:
 The affirmative instrument proving common source and retracting the filer's own contribution. Subtraction alone (withdrawing a report) is never sufficient; the filing must establish the shared origin.
@@ -215,7 +211,7 @@ The rule that a completed/idle agent remains flagged with its completion indicat
 _Avoid_: Server acknowledgment, read receipt, global seen flag
 
 **Actions context (`ActionsProvider` / `useMandateActions`)**:
-The React context boundary (`src/ui/ActionsContext.tsx`) providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components from prop-drilling without violating Standard mode's keyboard-only rule.
+The presentation boundary providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components without violating Standard mode's keyboard-only rule.
 _Avoid_: Global state store, redux action, UI controller
 
 **In-pane command line editing**:
@@ -223,11 +219,11 @@ Authentic terminal line editing inside focused shell panes where printable chara
 _Avoid_: Form input, textbox edit, terminal textarea
 
 **Reload recovery (Development state caching)**:
-The development-only mechanism in `src/adapters/investigation-session.ts` that preserves committed state across hot reloads in `sessionStorage` via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
+The development mechanism that preserves committed state across hot reloads via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
 _Avoid_: Save game, checkpoint save, persistent database
 
 **Purity compiler audit**:
-The automated static verification in `tests/core-purity.test.ts` using the TypeScript compiler AST (`ts.createSourceFile`) to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across `src/core/**/*.ts`.
+The automated static verification using compiler AST analysis to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across pure core simulation modules.
 _Avoid_: Regex test, lint script, import scanner
 
 **Spiral learning progression (`[I]`, `[G]`, `[Ind]`, `[M]`)**:
