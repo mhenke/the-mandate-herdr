@@ -30,9 +30,7 @@ test("hint request records assistance without breaking the journey", async ({ pa
 
   await page.getByText(/Hints/).first().click();
   await page.getByRole("button", { name: "Request a hint" }).click();
-  await expect(
-    page.getByText(/Type herdr and press Enter/),
-  ).toBeVisible();
+  await expect(page.getByText(/Type herdr and press Enter/)).toBeVisible();
 });
 
 test("Tab leaves the surface so the release control stays reachable", async ({ page }) => {

@@ -323,20 +323,28 @@ describe("fictional document tools and Claude Code", () => {
   });
 });
 
-describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () => {
-  it("displays concise managed-environment notice when Claude first launches", () => {
+describe("Cooperative Managed Claude Code Environment", () => {
+  it("displays concise managed-environment notice once on first launch, not on subsequent launches", () => {
     let state = createApplicationState();
     state = typeLine(state, "herdr").state;
     const launched = typeLine(state, "claude", "p1");
-    const output = launched.effects
-      .map((e) => (e.kind === "pane-output" ? e.line : ""))
-      .join("\n");
-    expect(output).toContain("Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC)");
-    expect(output).toContain("Approved tools: editorial mail, schedules, document archive, and incident logs.");
-    expect(output).toContain("External network, code generation, and shell tool execution are restricted.");
+    const output = launched.effects.map((e) => (e.kind === "pane-output" ? e.line : "")).join("\n");
+    expect(output).toContain("Cooperative Managed Environment");
+    expect(output).toContain("Approved tools: editorial mail, schedule, cooperative archives");
+    expect(output).toContain("Code execution, package installs, arbitrary shell tools");
 
     const agent = launched.state.agents.p1;
-    expect(agent?.history[0]?.content).toContain("Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC)");
+    expect(agent?.history[0]?.content).toContain("Cooperative Managed Environment");
+    expect(launched.state.managedNoticeShown).toBe(true);
+
+    // Second Claude launch in another pane does not repeat the managed-environment notice
+    const secondLaunch = typeLine(launched.state, "claude", "p2");
+    const secondOutput = secondLaunch.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(secondOutput).toContain("Claude Code");
+    expect(secondOutput).not.toContain("Cooperative Managed Environment");
+    expect(secondLaunch.state.agents.p2?.history).toHaveLength(0);
   });
 
   it("answers compound schedule and email inquiries conversationally", () => {
@@ -348,9 +356,7 @@ describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () =
       "what do i have going on today? also do i have any outstanding email?",
       "p1",
     );
-    const output = res.effects
-      .map((e) => (e.kind === "pane-output" ? e.line : ""))
-      .join("\n");
+    const output = res.effects.map((e) => (e.kind === "pane-output" ? e.line : "")).join("\n");
     expect(output).toContain("[tool: newsroom_schedule.get_today()]");
     expect(output).toContain("[tool: newsroom_mail.list_inbox()]");
     expect(output).toContain("Priority lead triage with June Adebayo");
@@ -396,10 +402,12 @@ describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () =
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
     expect(otherOutput).toContain("There are no other unread messages in your newsroom inbox");
-    expect(otherOutput).toContain("MSG-1112-01 from June Adebayo is the only pending priority item today");
+    expect(otherOutput).toContain(
+      "MSG-1112-01 from June Adebayo is the only pending priority item today",
+    );
   });
 
-  it("explains policy limitations naturally for restricted requests", () => {
+  it("gives brief, context-sensitive explanations for restricted requests without repeating the launch notice", () => {
     let state = createApplicationState();
     state = typeLine(state, "herdr").state;
     state = typeLine(state, "claude", "p1").state;
@@ -409,38 +417,37 @@ describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () =
     const devOutput = devRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(devOutput).toContain("cannot execute software development or code generation tasks");
-    expect(devOutput).toContain("Policy ENF-24-SEC");
-    expect(devOutput).toContain("I can discuss or analyze software and technical concepts");
+    expect(devOutput).toContain("development tools are disabled");
+    expect(devOutput).toContain("discuss a proposed application");
+    expect(devOutput).not.toContain("Cooperative Managed Environment");
 
     // Package installation
     const pkgRes = typeLine(state, "npm install axios", "p1");
     const pkgOutput = pkgRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(pkgOutput).toContain("Package installation and environment modifications are disabled");
-    expect(pkgOutput).toContain("Policy ENF-24-SEC");
+    expect(pkgOutput).toContain("Package installation is disabled");
+    expect(pkgOutput).not.toContain("Cooperative Managed Environment");
 
     // Shell tool execution
     const shellRes = typeLine(state, "run bash script", "p1");
     const shellOutput = shellRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(shellOutput).toContain("Arbitrary shell tool execution is disabled in this managed Claude Code session");
+    expect(shellOutput).toContain("Shell tool execution isn't enabled");
+    expect(shellOutput).toContain("Herdr shell pane");
 
     // External network browsing
     const netRes = typeLine(state, "browse the web to find the vendor", "p1");
     const netOutput = netRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(netOutput).toContain("External internet access is blocked on this investigative workstation");
+    expect(netOutput).toContain("External internet access isn't available");
 
     // Arbitrary filesystem modifications
     const fsRes = typeLine(state, "delete all files in the system", "p1");
-    const fsOutput = fsRes.effects
-      .map((e) => (e.kind === "pane-output" ? e.line : ""))
-      .join("\n");
-    expect(fsOutput).toContain("Arbitrary filesystem modifications are restricted");
+    const fsOutput = fsRes.effects.map((e) => (e.kind === "pane-output" ? e.line : "")).join("\n");
+    expect(fsOutput).toContain("Direct filesystem modifications aren't permitted");
   });
 
   it("clearly distinguishes missing records, general guidance, and policy restrictions", () => {
@@ -448,23 +455,24 @@ describe("Cooperative Managed Claude Code Environment (Policy ENF-24-SEC)", () =
     state = typeLine(state, "herdr").state;
     state = typeLine(state, "claude", "p1").state;
 
-    // Missing record does NOT trigger security policy violation
+    // Missing record does NOT trigger security policy violation or repeat restrictions
     const searchRes = typeLine(state, "search for city budget report", "p1");
     const searchOutput = searchRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(searchOutput).toContain("No matching document or record was found");
-    expect(searchOutput).not.toContain("ENF-24-SEC");
-    expect(searchOutput).not.toContain("restricted under Cooperative IT policy");
+    expect(searchOutput).toContain("No matching record was found");
+    expect(searchOutput).not.toContain("disabled");
+    expect(searchOutput).not.toContain("Cooperative Managed Environment");
 
-    // General guidance does NOT trigger security policy violation
+    // General guidance does NOT trigger security policy violation or repeat restrictions
     const helpRes = typeLine(state, "how can you help?", "p1");
     const helpOutput = helpRes.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
-    expect(helpOutput).toContain("Approved research workflows currently available:");
-    expect(helpOutput).toContain("Check your morning schedule or review unread newsroom email");
+    expect(helpOutput).toContain("I can help with today's desk work:");
+    expect(helpOutput).toContain("Check your morning schedule or unread newsroom email");
     expect(helpOutput).not.toContain("disabled");
+    expect(helpOutput).not.toContain("Cooperative Managed Environment");
   });
 
   it("preserves session continuity and context across multiple panes", () => {

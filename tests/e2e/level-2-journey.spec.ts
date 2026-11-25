@@ -64,10 +64,7 @@ test("L1–L3 keep the same session across a tab comparison and a split intervie
 
   await page.keyboard.press("Control+b");
   await page.keyboard.press("p");
-  await expect(page.getByRole("tab", { name: "1" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  await expect(page.getByRole("tab", { name: "1" })).toHaveAttribute("aria-selected", "true");
   await expect(
     page.getByText("SOURCE-HANDLING MEMORANDUM // CPA-01A", { exact: true }),
   ).toBeVisible();

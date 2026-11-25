@@ -236,7 +236,7 @@ function ActiveTabView({
                     history: agent.history,
                     cwd: application?.paneCwds?.[pane.id] ?? "~/Projects/the-mandate",
                     inputBuffer: paneInputs[pane.id] ?? "",
-                    inputCursor: paneCursors?.[pane.id] ?? (paneInputs[pane.id]?.length ?? 0),
+                    inputCursor: paneCursors?.[pane.id] ?? paneInputs[pane.id]?.length ?? 0,
                     phase: agent.phase,
                     isFocused: pane.id === tab.focusedPaneId,
                   })}

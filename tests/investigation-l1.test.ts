@@ -95,7 +95,9 @@ describe("L1 player-driven investigation", () => {
     const session = createInvestigationSession();
     // In startup terminal:
     submit(session, "pwd");
-    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("~/Projects/the-mandate");
+    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain(
+      "~/Projects/the-mandate",
+    );
     submit(session, "ls");
     expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("README.md");
     submit(session, "cat README.md");

@@ -427,7 +427,8 @@ export function createInvestigationSession(): InvestigationSession {
             const launched = transition.effects.some((effect) => effect.kind === "claude-started");
             const researchTab =
               attempt.level === 1 ||
-              (workspace.id !== idleSnapshot(1).activeWorkspaceId && workspace.tabs.indexOf(tab) > 0);
+              (workspace.id !== idleSnapshot(1).activeWorkspaceId &&
+                workspace.tabs.indexOf(tab) > 0);
             const containsRecord = (pane: string, documentId: string) =>
               application.readReceipts.some(
                 (receipt) => receipt.paneId === pane && receipt.documentId === documentId,

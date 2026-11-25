@@ -34,13 +34,7 @@ export interface AgentHistoryEntry {
 export type ApplicationTaskPhase =
   "queued" | "working" | "waiting_for_input" | "settled" | "failed";
 
-export type AgentTopic =
-  | "schedule"
-  | "inbox"
-  | "assignment"
-  | "document"
-  | "filing"
-  | "intake";
+export type AgentTopic = "schedule" | "inbox" | "assignment" | "document" | "filing" | "intake";
 
 export interface AgentSession {
   readonly status: "ready" | "blocked";
@@ -81,6 +75,7 @@ export interface ApplicationState {
   readonly records: readonly FictionalDocument[];
   readonly readReceipts: readonly ReadReceipt[];
   readonly assignmentAcknowledged: boolean;
+  readonly managedNoticeShown?: boolean;
 }
 
 export type ApplicationInput =
@@ -486,6 +481,7 @@ export function createApplicationState(): ApplicationState {
     records: RECORDS,
     readReceipts: [],
     assignmentAcknowledged: false,
+    managedNoticeShown: false,
   };
 }
 
@@ -557,7 +553,10 @@ function tokenize(text: string): readonly string[] {
 
 function isAssignmentAcceptanceIntent(request: string): boolean {
   const norm = normalize(request);
-  const tokens = norm.replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
+  const tokens = norm
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
   const tokenSet = new Set(tokens);
   const hasAccept =
     tokenSet.has("accept") ||
@@ -568,8 +567,10 @@ function isAssignmentAcceptanceIntent(request: string): boolean {
     tokenSet.has("confirm") ||
     tokenSet.has("confirmed");
   if (tokens.length === 1 && hasAccept) return true;
-  if (norm.startsWith("i accept") || norm.startsWith("i agree") || norm.startsWith("we accept")) return true;
-  if (hasAccept && (tokenSet.has("assignment") || tokenSet.has("terms") || tokenSet.has("task"))) return true;
+  if (norm.startsWith("i accept") || norm.startsWith("i agree") || norm.startsWith("we accept"))
+    return true;
+  if (hasAccept && (tokenSet.has("assignment") || tokenSet.has("terms") || tokenSet.has("task")))
+    return true;
   return false;
 }
 
@@ -589,7 +590,8 @@ function isScheduleIntent(request: string): boolean {
   const norm = normalize(request);
   if (/\b(schedule|calendar|agenda|morning check-in|my day|on my plate)\b/i.test(norm)) return true;
   if (/\b(going on|happening|plans?|tasks?)\b/i.test(norm) && /\btoday\b/i.test(norm)) return true;
-  if (norm.includes("what do i have going on") || norm.includes("what do i have today")) return true;
+  if (norm.includes("what do i have going on") || norm.includes("what do i have today"))
+    return true;
   return false;
 }
 
@@ -693,56 +695,51 @@ function classifyPolicyRestriction(request: string): string | null {
 
   // 1. Software development / code generation / app creation
   if (
-    /\b(create|build|write|develop|generate|make|deploy|scaffold|code)\b.*\b(app|application|web app|website|software|script|python|javascript|typescript|program|backend|frontend|api|microservice|database)\b/i.test(norm) ||
+    /\b(create|build|write|develop|generate|make|deploy|scaffold|code)\b.*\b(app|application|web app|website|software|script|python|javascript|typescript|program|backend|frontend|api|microservice|database)\b/i.test(
+      norm,
+    ) ||
     /\b(write|create|generate|code)\b.*\b(code|script|function|component|module)\b/i.test(norm) ||
     /\b(create a web application|build a website|write python|write some code)\b/i.test(norm)
   ) {
     return (
-      "This managed newsroom profile cannot execute software development or code generation tasks under Cooperative IT Policy ENF-24-SEC. " +
-      "I can discuss or analyze software and technical concepts, but cannot create or execute application code here. " +
-      "I can assist with newsroom records, editorial schedules, mail, and incident logs."
+      "I can't build or execute application code in this newsroom session—development tools are disabled here. " +
+      "I can still discuss a proposed application or talk through its design with you."
     );
   }
 
   // 2. Package installation
   if (
     /\b(npm (i|install)|pip install|cargo add|pnpm add|gem install|brew install)\b/i.test(norm) ||
-    (/\b(install|download)\b.*\b(package|library|dependency|module)\b/i.test(norm))
+    /\b(install|download)\b.*\b(package|library|dependency|module)\b/i.test(norm)
   ) {
-    return (
-      "Package installation and environment modifications are disabled on managed newsroom terminals (Policy ENF-24-SEC). " +
-      "Pre-installed tools and newsroom MCP connections are managed by Cooperative IT."
-    );
+    return "Package installation is disabled on this workstation, so I can only use the preconfigured newsroom tools.";
   }
 
   // 3. Arbitrary shell / system command execution
   if (
-    /\b(run (a )?(bash|shell|command)|execute (a )?(bash|shell|command)|run bash|run shell|sudo|chmod|chown|rm -rf)\b/i.test(norm)
+    /\b(run (a )?(bash|shell|command)|execute (a )?(bash|shell|command)|run bash|run shell|sudo|chmod|chown|rm -rf)\b/i.test(
+      norm,
+    )
   ) {
-    return (
-      "Arbitrary shell tool execution is disabled in this managed Claude Code session (Policy ENF-24-SEC). " +
-      "Terminal commands should be run directly in your Herdr shell panes using the supported local commands."
-    );
+    return "Shell tool execution isn't enabled in this session. You can run supported local commands directly in your Herdr shell pane instead.";
   }
 
   // 4. External network / web browsing / scraping
   if (
-    /\b(browse (the )?web|search (the )?internet|google|curl |fetch http|download from|scrape)\b/i.test(norm)
+    /\b(browse (the )?web|search (the )?internet|google|curl |fetch http|download from|scrape)\b/i.test(
+      norm,
+    )
   ) {
-    return (
-      "External internet access is blocked on this investigative workstation under data-handling guidelines (Policy ENF-24-SEC). " +
-      "Research is limited to internal cooperative archives, local documents, and authorized intake feeds."
-    );
+    return "External internet access isn't available here—I can only search the cooperative archives, newsroom mail, and intake feeds.";
   }
 
   // 5. Arbitrary filesystem modification
   if (
-    /\b(delete (all )?files?|remove (all )?files?|modify (system )?files?|write to (root|\/)|format (disk|drive))\b/i.test(norm)
+    /\b(delete (all )?files?|remove (all )?files?|modify (system )?files?|write to (root|\/)|format (disk|drive))\b/i.test(
+      norm,
+    )
   ) {
-    return (
-      "Arbitrary filesystem modifications are restricted under Cooperative IT policy ENF-24-SEC. " +
-      "Investigative work is confined to your newsroom workspace directory and authorized intake queues."
-    );
+    return "Direct filesystem modifications aren't permitted from this session—I only have access to approved newsroom records and intake queues.";
   }
 
   return null;
@@ -771,8 +768,9 @@ function handlePolicyRestrictionRequest(
 function isGeneralGuidanceRequest(request: string): boolean {
   const norm = normalize(request);
   return (
-    /^(hello|hi|hey|help|what can you do|how can you help|where do we start|what next|options?|what should i do)(\?|!)?$/i.test(norm) ||
-    /\b(what can you do|how can you help|guide me|what are my options)\b/i.test(norm)
+    /^(hello|hi|hey|help|what can you do|how can you help|where do we start|what next|options?|what should i do)(\?|!)?$/i.test(
+      norm,
+    ) || /\b(what can you do|how can you help|guide me|what are my options)\b/i.test(norm)
   );
 }
 
@@ -782,15 +780,13 @@ function handleGeneralGuidanceRequest(
   agent: AgentSession,
 ): ApplicationTransition {
   const guidance = [
-    "I am running in a managed Cooperative newsroom profile with approved research tools.",
-    "",
-    "Approved research workflows currently available:",
-    "  • Check your morning schedule or review unread newsroom email",
-    "  • Examine June Adebayo's lead assignment on the vendor incident",
-    "  • Review cooperative source-handling procedures",
+    "I can help with today's desk work:",
+    "  • Check your morning schedule or unread newsroom email",
+    "  • Review June Adebayo's assignment on the vendor incident",
+    "  • Look up cooperative source-handling procedures",
     "  • Search newsroom archives and incident records",
     "",
-    "What would you like to review first?",
+    "Where would you like to start?",
   ];
   const nextAgent = addHistory(
     { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
@@ -809,8 +805,9 @@ function handleGeneralGuidanceRequest(
 function isOtherMessagesFollowUp(request: string): boolean {
   const norm = normalize(request);
   return (
-    /\b(other (messages?|emails?)|any other|more (messages?|emails?)|what about the other|are there (any )?other)\b/i.test(norm) &&
-    /\b(email|mail|inbox|message)\b/i.test(norm)
+    /\b(other (messages?|emails?)|any other|more (messages?|emails?)|what about the other|are there (any )?other)\b/i.test(
+      norm,
+    ) && /\b(email|mail|inbox|message)\b/i.test(norm)
   );
 }
 
@@ -853,7 +850,11 @@ function isReadEmailFollowUp(request: string, agent: AgentSession): boolean {
     return true;
   }
   if (
-    (norm === "read it" || norm === "open it" || norm === "read message" || norm === "open email" || norm === "read the email") &&
+    (norm === "read it" ||
+      norm === "open it" ||
+      norm === "read message" ||
+      norm === "open email" ||
+      norm === "read the email") &&
     agent.lastTopic === "inbox"
   ) {
     return true;
@@ -878,7 +879,9 @@ function isReadDocumentFollowUp(request: string, agent: AgentSession): boolean {
   }
   if (
     (norm === "read it" || norm === "open it" || norm === "show it") &&
-    (agent.lastTopic === "assignment" || agent.lastTopic === "document" || agent.lastReferencedDocumentId !== undefined)
+    (agent.lastTopic === "assignment" ||
+      agent.lastTopic === "document" ||
+      agent.lastReferencedDocumentId !== undefined)
   ) {
     return true;
   }
@@ -945,10 +948,7 @@ function handleInboxRequest(
   };
   return {
     state: setAgent(state, paneId, nextAgent),
-    effects: paneOutput(paneId, [
-      "> " + (agent.history.at(-1)?.content ?? "inbox"),
-      ...replyLines,
-    ]),
+    effects: paneOutput(paneId, ["> " + (agent.history.at(-1)?.content ?? "inbox"), ...replyLines]),
   };
 }
 
@@ -999,7 +999,7 @@ function handleAssignmentBriefRequest(
   agent: AgentSession,
 ): ApplicationTransition {
   const replyLines = [
-    "[tool: newsroom_mail.get_message(id: \"MSG-1112-01\")]",
+    '[tool: newsroom_mail.get_message(id: "MSG-1112-01")]',
     "Here is June Adebayo's assignment message:",
     "",
     "From: June Adebayo <j.adebayo@cooperative.press>",
@@ -1007,13 +1007,13 @@ function handleAssignmentBriefRequest(
     "Date: Nov 12, 2026, 08:42 EST",
     "Subject: Priority: Vendor security incident & protected source",
     "",
-    "\"We have an unverified report of a vendor incident affecting State oversight records.",
+    '"We have an unverified report of a vendor incident affecting State oversight records.',
     "The source is anxious and requested strict confidentiality.",
     "",
     "Before you contact the source or open external lines:",
     "  1. Review our newsroom source-handling procedures (CPA-01A).",
     "  2. Confirm your acceptance of the handling terms.",
-    "  3. Keep your working notes in a separate tab so we maintain a clean audit trail.\"",
+    '  3. Keep your working notes in a separate tab so we maintain a clean audit trail."',
   ];
   const nextAgent: AgentSession = {
     ...addHistory(
@@ -1057,12 +1057,12 @@ function handleAssignmentRequest(
     };
   }
   const replyLines = [
-    "[tool: newsroom_mail.reply(to: \"j.adebayo@cooperative.press\", body: \"Assignment accepted. Handling rules confirmed.\")]",
+    '[tool: newsroom_mail.reply(to: "j.adebayo@cooperative.press", body: "Assignment accepted. Handling rules confirmed.")]',
     "Reply dispatched to June Adebayo.",
     "",
     "JUNE ADEBAYO // Cooperative editor",
-    "\"Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.\"",
-    "\"Open a new research tab in Herdr to begin reviewing incoming records while keeping this desk log open.\"",
+    '"Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports."',
+    '"Open a new research tab in Herdr to begin reviewing incoming records while keeping this desk log open."',
   ];
   const nextAgent = addHistory(
     { ...agent, lastTask: "completed", phase: "settled" },
@@ -1197,10 +1197,7 @@ function handleFindingSubmissionRequest(
   );
   return {
     state: setAgent(state, paneId, nextAgent),
-    effects: [
-      ...paneOutput(paneId, findingOutput),
-      { kind: "finding-submitted" },
-    ],
+    effects: [...paneOutput(paneId, findingOutput), { kind: "finding-submitted" }],
   };
 }
 
@@ -1222,8 +1219,8 @@ function handleDocumentSearchRequest(
   if (!document) {
     const isSearch = isExplicitSearchRequest(request);
     const replyMessage = isSearch
-      ? `No matching document or record was found in the cooperative index for "${request}". Check the record title or identifier.${availableRecordHints(state.records, level)}`
-      : `I could not identify a record or matching newsroom action for "${request}". In this investigative session, you can ask about your schedule, unread email, June's assignment, source-handling procedures, or search cooperative records.${availableRecordHints(state.records, level)}`;
+      ? `No matching record was found in the cooperative archive for "${request}".${availableRecordHints(state.records, level)}`
+      : `I could not identify a record or newsroom task for "${request}". You can ask about your schedule, email, June's assignment, or search cooperative records.${availableRecordHints(state.records, level)}`;
 
     const nextAgent: AgentSession = {
       ...addHistory(
@@ -1508,18 +1505,26 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
     const nextCwds = { ...(base.paneCwds ?? {}), [paneId]: res.nextCwd };
 
     if (res.launchClaude) {
-      const managedNotice =
-        "Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC).\n" +
-        "Approved tools: editorial mail, schedules, document archive, and incident logs.\n" +
-        "External network, code generation, and shell tool execution are restricted.";
+      const showNotice = !base.managedNoticeShown;
+      const noticeLines = showNotice
+        ? [
+            "Cooperative Managed Environment · Newsroom research profile active.",
+            "Approved tools: editorial mail, schedule, cooperative archives, and incident records.",
+            "Code execution, package installs, arbitrary shell tools, and external network access are disabled.",
+          ]
+        : [];
       const newAgent: AgentSession = {
         status: "ready",
         phase: "waiting_for_input",
-        history: [{ role: "assistant", content: managedNotice }],
+        history: showNotice ? [{ role: "assistant", content: noticeLines.join("\n") }] : [],
         lastTask: null,
       };
       return {
-        state: { ...setAgent(base, paneId, newAgent), paneCwds: nextCwds },
+        state: {
+          ...setAgent(base, paneId, newAgent),
+          paneCwds: nextCwds,
+          managedNoticeShown: true,
+        },
         effects: [
           ...paneOutput(paneId, [
             echoed,
@@ -1528,10 +1533,7 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
             " ██ █  █ ██   " + displayCwd(res.nextCwd),
             " ██████████",
             "  █      █",
-            "",
-            "Cooperative IT Notice: Managed newsroom profile active (Policy ENF-24-SEC).",
-            "Approved tools: editorial mail, schedules, document archive, and incident logs.",
-            "External network, code generation, and shell tool execution are restricted.",
+            ...(showNotice ? ["", ...noticeLines] : []),
           ]),
           { kind: "claude-started", paneId },
         ],
@@ -1558,10 +1560,7 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
     return {
       state: { ...base, agents: nextAgents },
       effects: [
-        ...paneOutput(paneId, [
-          `> ${line}`,
-          "Exiting Claude Code. Returning to shell.",
-        ]),
+        ...paneOutput(paneId, [`> ${line}`, "Exiting Claude Code. Returning to shell."]),
         { kind: "claude-exited", paneId },
       ],
     };
@@ -1607,7 +1606,13 @@ function applyLineEdit(
   const isHome = commandKey === "home";
   const isEnd = commandKey === "end";
 
-  if (!isCtrlA && !isCtrlE && !isCtrlW && !isCtrlU && input.modifiers?.some((mod) => mod !== "shift")) {
+  if (
+    !isCtrlA &&
+    !isCtrlE &&
+    !isCtrlW &&
+    !isCtrlU &&
+    input.modifiers?.some((mod) => mod !== "shift")
+  ) {
     return null;
   }
 

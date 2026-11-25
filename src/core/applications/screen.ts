@@ -2,15 +2,7 @@
 // Pure data: zero React, zero DOM imports, zero host dependencies.
 
 export type SpanStyle =
-  | "plain"
-  | "bold"
-  | "dim"
-  | "coral"
-  | "userBlock"
-  | "bullet"
-  | "cursor"
-  | "rule"
-  | "footer";
+  "plain" | "bold" | "dim" | "coral" | "userBlock" | "bullet" | "cursor" | "rule" | "footer";
 
 export interface ScreenSpan {
   readonly text: string;
@@ -74,7 +66,10 @@ export function buildClaudeBanner(cwd: string): readonly ScreenLine[] {
 }
 
 export interface ClaudeScreenInput {
-  readonly history: readonly { readonly role: "user" | "assistant" | "tool"; readonly content: string }[];
+  readonly history: readonly {
+    readonly role: "user" | "assistant" | "tool";
+    readonly content: string;
+  }[];
   readonly cwd: string;
   readonly inputBuffer: string;
   readonly inputCursor: number;
@@ -98,9 +93,7 @@ export function buildClaudeScreenModel(input: ClaudeScreenInput): TerminalScreen
       for (let i = 0; i < contentLines.length; i++) {
         const text = contentLines[i] ?? "";
         const isDim =
-          text.startsWith("[tool:") ||
-          text.startsWith("MCP CALL") ||
-          text.startsWith("MCP RESULT");
+          text.startsWith("[tool:") || text.startsWith("MCP CALL") || text.startsWith("MCP RESULT");
         if (i === 0) {
           lines.push({
             kind: "reply",
@@ -137,7 +130,12 @@ export function buildClaudeScreenModel(input: ClaudeScreenInput): TerminalScreen
   // Input Area bounded by horizontal rules
   lines.push({
     kind: "rule",
-    spans: [{ text: "────────────────────────────────────────────────────────────────────────────", style: "rule" }],
+    spans: [
+      {
+        text: "────────────────────────────────────────────────────────────────────────────",
+        style: "rule",
+      },
+    ],
   });
 
   const buffer = input.inputBuffer;
@@ -159,7 +157,12 @@ export function buildClaudeScreenModel(input: ClaudeScreenInput): TerminalScreen
 
   lines.push({
     kind: "rule",
-    spans: [{ text: "────────────────────────────────────────────────────────────────────────────", style: "rule" }],
+    spans: [
+      {
+        text: "────────────────────────────────────────────────────────────────────────────",
+        style: "rule",
+      },
+    ],
   });
 
   lines.push({

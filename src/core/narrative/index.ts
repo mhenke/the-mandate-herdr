@@ -180,7 +180,7 @@ const BRIEFING: Record<Level, string> = {
 const RESPONSE: Record<Level, string> = {
   1:
     'Assignment accepted on the record. Adebayo, editor: "Stringer rates. Verify origin. ' +
-    'Preserve attribution. Do not assume independent confirmation. ' +
+    "Preserve attribution. Do not assume independent confirmation. " +
     'Open a new research tab in Herdr with Ctrl+B C to review incoming records while keeping this desk log open."',
   2:
     "Adebayo: The shared copy gives us the banner and the five-minute window. " +

@@ -107,11 +107,7 @@ function StartupTerminal({
           <span className="terminal-boot-path">~/Projects/{workspaceName} </span>
         ) : null}
         {prompt}
-        {renderStartupInput(
-          application.terminal.input,
-          application.terminal.cursor,
-          captured,
-        )}
+        {renderStartupInput(application.terminal.input, application.terminal.cursor, captured)}
       </p>
     </section>
   );
