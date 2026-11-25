@@ -36,13 +36,6 @@ function focusedPane(session: Session) {
   return tab?.panes.find((pane) => pane.id === tab.focusedPaneId);
 }
 
-function createWorkspace(session: Session, name: string): void {
-  session.dispatch(prefix());
-  session.dispatch(key("n", ["shift"]));
-  type(session, name);
-  session.dispatch(key("enter"));
-}
-
 function createTab(session: Session, name: string): void {
   session.dispatch(prefix());
   session.dispatch(key("c"));
@@ -53,10 +46,8 @@ function createTab(session: Session, name: string): void {
 function enterLevel2(): Session {
   const session = createInvestigationSession();
   submit(session, "herdr");
-  createWorkspace(session, "investigation");
-  createTab(session, "research");
   submit(session, "claude");
-  submit(session, "Find the cooperative source-handling memo and show me the original.");
+  submit(session, "Find our procedures for handling confidential sources");
   submit(session, "Accept the assignment");
   expect(session.getSnapshot().phase).toBe("response");
   session.advancePresentation();
@@ -81,8 +72,7 @@ describe("L2 continues the same investigation session", () => {
     expect(session.getSnapshot().storyConditionMet).toBe(false);
     const sourcePaneId = focusedPane(session)?.id;
     const l1Application = session.getSnapshot().application;
-    expect(workspace?.name).toBe("investigation");
-    expect(workspace?.tabs.find((tab) => tab.id === sourceTabId)?.name).toBe("research");
+    expect(workspace?.name).toBe("the-mandate");
     expect(l1Application.readReceipts).toContainEqual({
       documentId: "CPA-01A",
       paneId: sourcePaneId,

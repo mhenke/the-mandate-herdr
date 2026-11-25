@@ -226,24 +226,24 @@ describe("Specification Boundaries — The Mandate", () => {
 
   describe("3. Shortcut mastery origin gate", () => {
     it("grants shortcut mastery credit exclusively to player-origin authentic Herdr actions", () => {
-      const initialAssessment: AssessmentState = createAssessment(1);
-      expect(initialAssessment.objectives.find((o) => o.id === "L1-O2")?.met).toBe(false);
+      const initialAssessment: AssessmentState = createAssessment(4);
+      expect(initialAssessment.objectives.find((o) => o.id === "L4-O1")?.met).toBe(false);
 
-      const before: HerdrState = createScenario(1);
+      const before: HerdrState = createScenario(4);
       // Simulate state after workspace creation
       const after: HerdrState = {
         ...before,
         workspaces: [
           ...before.workspaces,
           {
-            id: "ws-2",
-            name: "investigation",
-            activeTabId: "tab-2",
+            id: "ws-filing",
+            name: "filing",
+            activeTabId: "tab-filing",
             newTabApp: "shell",
             tabs: [],
           },
         ],
-        activeWorkspaceId: "ws-2",
+        activeWorkspaceId: "ws-filing",
       };
 
       // Case A: Action event emitted with non-player provenance (e.g. script or fixture)
@@ -263,8 +263,8 @@ describe("Specification Boundaries — The Mandate", () => {
 
       const observedNonPlayer = observe(initialAssessment, before, after, nonPlayerEntry);
       // Non-player action NEVER grants mastery credit
-      expect(observedNonPlayer.objectives.find((o) => o.id === "L1-O2")?.met).toBe(false);
-      expect(observedNonPlayer.progress.l1WorkspaceCreated).toBe(false);
+      expect(observedNonPlayer.objectives.find((o) => o.id === "L4-O1")?.met).toBe(false);
+      expect(observedNonPlayer.progress.l4FilingWorkspaceCreated).toBe(false);
 
       // Case B: Authentic player-origin keyboard action
       const playerEntry: JournalEntry = {
@@ -283,8 +283,7 @@ describe("Specification Boundaries — The Mandate", () => {
 
       const observedPlayer = observe(initialAssessment, before, after, playerEntry);
       // Only player action earns mastery
-      expect(observedPlayer.progress.l1WorkspaceCreated).toBe(true);
-      expect(observedPlayer.objectives.find((o) => o.id === "L1-O2")?.met).toBe(true);
+      expect(observedPlayer.progress.l4FilingWorkspaceCreated).toBe(true);
     });
   });
 });

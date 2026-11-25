@@ -8,7 +8,10 @@
 import { useEffect, useRef, type JSX } from "react";
 import type { HerdrSnapshot, Overlay, TabView } from "../core/herdr/index";
 import { helpBindingRows } from "../core/herdr/index";
+import type { ApplicationState } from "../core/applications";
+import { buildClaudeScreenModel } from "../core/applications/screen";
 import { useMandateActions } from "./ActionsContext";
+import { TerminalScreen } from "./TerminalScreen";
 
 /** Plain key report passed up to the App-owned adapter binding. */
 export interface PreviewKeyInput {
@@ -30,6 +33,8 @@ export interface KeyboardToast {
 export interface MandatePreviewProps {
   readonly snapshot: HerdrSnapshot;
   readonly paneInputs: Readonly<Record<string, string>>;
+  readonly paneCursors?: Readonly<Record<string, number>>;
+  readonly application?: ApplicationState;
   readonly captured: boolean;
   readonly reminder: KeyboardToast | null;
   readonly onPreviewKey: (input: PreviewKeyInput) => boolean;
@@ -156,12 +161,47 @@ function renderLine(line: string, index: number, paneId: string): JSX.Element {
   return renderHeaderLine(line, key) ?? renderPromptLine(line, key) ?? renderContentLine(line, key);
 }
 
+function renderShellInput(
+  input: string,
+  cursor: number | undefined,
+  isFocused: boolean,
+): JSX.Element {
+  if (!isFocused) {
+    return <span>{input}</span>;
+  }
+  const pos = cursor ?? input.length;
+  if (pos >= input.length) {
+    return (
+      <>
+        <span>{input}</span>
+        <span className="term-cursor" aria-hidden="true" />
+      </>
+    );
+  }
+  const before = input.slice(0, pos);
+  const at = input[pos];
+  const after = input.slice(pos + 1);
+  return (
+    <>
+      <span>{before}</span>
+      <span className="term-cursor" aria-hidden="true">
+        {at}
+      </span>
+      <span>{after}</span>
+    </>
+  );
+}
+
 function ActiveTabView({
   tab,
   paneInputs,
+  paneCursors,
+  application,
 }: {
   readonly tab: TabView;
   readonly paneInputs: MandatePreviewProps["paneInputs"];
+  readonly paneCursors?: Readonly<Record<string, number>>;
+  readonly application?: ApplicationState;
 }): JSX.Element {
   const actions = useMandateActions();
   const panes =
@@ -170,38 +210,58 @@ function ActiveTabView({
       : tab.panes;
   return (
     <div className="tui-panes" role="group" aria-label={`Tab ${tab.name}`}>
-      {panes.map((pane) => (
-        <section
-          key={pane.id}
-          className={pane.id === tab.focusedPaneId ? "tui-pane tui-pane-focused" : "tui-pane"}
-          style={{
-            left: `${(pane.rect.x / 120) * 100}%`,
-            top: `${(pane.rect.y / 40) * 100}%`,
-            width: `${(pane.rect.width / 120) * 100}%`,
-            height: `${(pane.rect.height / 40) * 100}%`,
-          }}
-          aria-label={`${pane.title}${pane.id === tab.focusedPaneId ? " (focused)" : ""}`}
-          onMouseDown={(event) => {
-            if (event.target instanceof HTMLElement && event.target.closest("button")) return;
-            actions.focusPane(pane.id);
-          }}
-        >
-          <div className="tui-pane-body">
-            {pane.output.map((line, index) => renderLine(line, index, pane.id))}
-            {pane.app === "shell" ? (
-              <p className="tui-command-line">
-                {"$ "}
-                {paneInputs[pane.id]}
-                {pane.id === tab.focusedPaneId ? (
-                  <span className="term-cursor" aria-hidden="true" />
-                ) : null}
-              </p>
-            ) : pane.output.length === 0 ? (
-              <p className="tui-empty">No output yet.</p>
-            ) : null}
-          </div>
-        </section>
-      ))}
+      {panes.map((pane) => {
+        const agent = application?.agents[pane.id];
+        const isClaude = Boolean(agent);
+        return (
+          <section
+            key={pane.id}
+            className={pane.id === tab.focusedPaneId ? "tui-pane tui-pane-focused" : "tui-pane"}
+            style={{
+              left: `${(pane.rect.x / 120) * 100}%`,
+              top: `${(pane.rect.y / 40) * 100}%`,
+              width: `${(pane.rect.width / 120) * 100}%`,
+              height: `${(pane.rect.height / 40) * 100}%`,
+            }}
+            aria-label={`${pane.title}${pane.id === tab.focusedPaneId ? " (focused)" : ""}`}
+            onMouseDown={(event) => {
+              if (event.target instanceof HTMLElement && event.target.closest("button")) return;
+              actions.focusPane(pane.id);
+            }}
+          >
+            <div className="tui-pane-body">
+              {isClaude && agent ? (
+                <TerminalScreen
+                  model={buildClaudeScreenModel({
+                    history: agent.history,
+                    cwd: application?.paneCwds?.[pane.id] ?? "~/Projects/the-mandate",
+                    inputBuffer: paneInputs[pane.id] ?? "",
+                    inputCursor: paneCursors?.[pane.id] ?? (paneInputs[pane.id]?.length ?? 0),
+                    phase: agent.phase,
+                    isFocused: pane.id === tab.focusedPaneId,
+                  })}
+                />
+              ) : (
+                <>
+                  {pane.output.map((line, index) => renderLine(line, index, pane.id))}
+                  {pane.app === "shell" ? (
+                    <p className="tui-command-line">
+                      <span className="term-dim">$ </span>
+                      {renderShellInput(
+                        paneInputs[pane.id] ?? "",
+                        paneCursors?.[pane.id],
+                        pane.id === tab.focusedPaneId,
+                      )}
+                    </p>
+                  ) : pane.output.length === 0 ? (
+                    <p className="tui-empty">No output yet.</p>
+                  ) : null}
+                </>
+              )}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -415,6 +475,8 @@ function renderModeHints(mode: string, modeBarMode: string): JSX.Element | null 
 export function MandatePreview({
   snapshot,
   paneInputs,
+  paneCursors,
+  application,
   captured,
   reminder,
   onPreviewKey,
@@ -517,12 +579,20 @@ export function MandatePreview({
                 ? "Simulated Herdr surface. Keyboard capture engaged. Press Tab to leave, or use the Release capture control."
                 : "Simulated Herdr surface. Keyboard capture released."
             }
+            onClick={() => {
+              surfaceRef.current?.focus();
+            }}
             onKeyDown={(event) => {
               if (captured && onPreviewKey(event)) event.preventDefault();
             }}
           >
             {tab ? (
-              <ActiveTabView tab={tab} paneInputs={paneInputs} />
+              <ActiveTabView
+                tab={tab}
+                paneInputs={paneInputs}
+                paneCursors={paneCursors}
+                application={application}
+              />
             ) : (
               <p className="tui-empty">Detached.</p>
             )}

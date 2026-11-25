@@ -36,13 +36,6 @@ function focusedPane(session: Session) {
   return tab?.panes.find((pane) => pane.id === tab.focusedPaneId);
 }
 
-function createWorkspace(session: Session, name: string): void {
-  session.dispatch(prefix());
-  session.dispatch(key("n", ["shift"]));
-  type(session, name);
-  session.dispatch(key("enter"));
-}
-
 function createTab(session: Session, name: string): void {
   session.dispatch(prefix());
   session.dispatch(key("c"));
@@ -53,10 +46,8 @@ function createTab(session: Session, name: string): void {
 function enterLevel3(): Session {
   const session = createInvestigationSession();
   submit(session, "herdr");
-  createWorkspace(session, "investigation");
-  createTab(session, "research");
   submit(session, "claude");
-  submit(session, "Find the cooperative source-handling memo and show me the original.");
+  submit(session, "Find our procedures for handling confidential sources");
   submit(session, "Accept the assignment");
   session.advancePresentation();
   session.skipPresentation();
@@ -120,7 +111,7 @@ describe("L3 continues the newspaper investigation", () => {
     type(session, "claude");
     expect(objectiveMet(session, "L3-O1")).toBe(true);
     session.dispatch(key("enter"));
-    expect(focusedPane(session)?.output.join("\n")).toContain("Claude Code v1.0.12 (simulated)");
+    expect(focusedPane(session)?.output.join("\n")).toContain("Claude Code");
     submit(session, "Please find Theo Park's consent interview transcript for LT-47B.");
 
     const snapshot = session.getSnapshot();

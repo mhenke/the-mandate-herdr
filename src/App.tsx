@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type JSX,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import type { ApplicationState } from "./core/applications";
@@ -42,6 +43,39 @@ const COLD_OPEN_TRANSCRIPT =
   "SOURCE-HANDLING MEMORANDUM: verify origin · preserve attribution · no assumed confirmation. " +
   "Your desk is live.";
 
+function renderStartupInput(
+  input: string,
+  cursor: number | undefined,
+  captured: boolean,
+): JSX.Element {
+  const pos = cursor ?? input.length;
+  if (!captured) {
+    return <span>{input}</span>;
+  }
+  if (pos >= input.length) {
+    return (
+      <>
+        <span>{input}</span>
+        <span className="term-cursor" aria-hidden="true">
+          ▊
+        </span>
+      </>
+    );
+  }
+  const before = input.slice(0, pos);
+  const at = input[pos];
+  const after = input.slice(pos + 1);
+  return (
+    <>
+      <span>{before}</span>
+      <span className="term-cursor" aria-hidden="true">
+        {at}
+      </span>
+      <span>{after}</span>
+    </>
+  );
+}
+
 function StartupTerminal({
   application,
   workspaceName,
@@ -73,10 +107,11 @@ function StartupTerminal({
           <span className="terminal-boot-path">~/Projects/{workspaceName} </span>
         ) : null}
         {prompt}
-        {application.terminal.input}
-        <span className="term-cursor" aria-hidden="true">
-          ▊
-        </span>
+        {renderStartupInput(
+          application.terminal.input,
+          application.terminal.cursor,
+          captured,
+        )}
       </p>
     </section>
   );
@@ -257,7 +292,7 @@ export function App() {
   // Scenes cut, never scroll the page into motion; move DOM focus to the
   // scene heading for screen-reader and keyboard users on each phase change.
   useEffect(() => {
-    if (snapshot.phase === "workspace") focusSurface();
+    if (snapshot.phase === "workspace" || snapshot.phase === "response") focusSurface();
     else sceneTopRef.current?.focus();
   }, [focusSurface, snapshot.phase, snapshot.application.herdrLaunched]);
 
@@ -270,8 +305,8 @@ export function App() {
     [session],
   );
 
-  const inWorkspace = snapshot.phase === "workspace";
-  const showChrome = inWorkspace || snapshot.phase === "response";
+  const inWorkspace = snapshot.phase === "workspace" || snapshot.phase === "response";
+  const showChrome = inWorkspace;
 
   const coldOpenTranscript = useMemo(() => COLD_OPEN_TRANSCRIPT, []);
 
@@ -424,13 +459,15 @@ export function App() {
               className="terminal"
               ref={surfaceHostRef}
               onClick={() => {
-                if (!captured) engage();
+                engage();
               }}
             >
               {snapshot.application.herdrLaunched ? (
                 <MandatePreview
                   snapshot={snapshot.herdr}
                   paneInputs={snapshot.application.paneInputs}
+                  paneCursors={snapshot.application.paneCursors}
+                  application={snapshot.application}
                   captured={captured && inWorkspace}
                   reminder={reminder}
                   onPreviewKey={handlePreviewKey}

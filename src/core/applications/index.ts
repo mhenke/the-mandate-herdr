@@ -1,3 +1,5 @@
+export * from "./screen";
+
 export type DocumentAccess = "cooperative" | "public" | "restricted";
 
 export interface FictionalDocument {
@@ -39,15 +41,31 @@ export interface AgentSession {
   readonly lastTask: "completed" | "blocked" | "unrecognized" | null;
 }
 
+export interface VirtualFile {
+  readonly name: string;
+  readonly type: "file";
+  readonly content: readonly string[];
+}
+
+export interface VirtualDirectory {
+  readonly name: string;
+  readonly type: "dir";
+  readonly children: Readonly<Record<string, VirtualNode>>;
+}
+
+export type VirtualNode = VirtualFile | VirtualDirectory;
+
 export interface ApplicationState {
   readonly herdrLaunched: boolean;
   readonly terminal: {
     readonly input: string;
     readonly output: readonly string[];
     readonly cursor?: number;
+    readonly cwd?: string;
   };
   readonly paneInputs: Readonly<Record<string, string>>;
   readonly paneCursors?: Readonly<Record<string, number>>;
+  readonly paneCwds?: Readonly<Record<string, string>>;
   readonly agents: Readonly<Record<string, AgentSession>>;
   readonly records: readonly FictionalDocument[];
   readonly readReceipts: readonly ReadReceipt[];
@@ -73,7 +91,9 @@ export type ApplicationEffect =
   | { readonly kind: "terminal-output"; readonly line: string }
   | { readonly kind: "herdr-started" }
   | { readonly kind: "pane-output"; readonly paneId: string; readonly line: string }
+  | { readonly kind: "pane-clear"; readonly paneId: string }
   | { readonly kind: "claude-started"; readonly paneId: string }
+  | { readonly kind: "claude-exited"; readonly paneId: string }
   | { readonly kind: "assignment-acknowledged" }
   | { readonly kind: "document-read"; readonly documentId: string }
   | { readonly kind: "vn12-filed"; readonly choice: "paraphrase" | "detail" }
@@ -90,7 +110,21 @@ const RECORDS: readonly FictionalDocument[] = [
     id: "CPA-01A",
     title: "SOURCE-HANDLING MEMORANDUM // CPA-01A",
     access: "cooperative",
-    searchTerms: ["memo", "source", "handling", "cpa-01a", "quill", "assignment"],
+    searchTerms: [
+      "memo",
+      "source",
+      "sources",
+      "handling",
+      "cpa-01a",
+      "quill",
+      "assignment",
+      "procedure",
+      "procedures",
+      "rules",
+      "policy",
+      "guidelines",
+      "confidential",
+    ],
     body: [
       "SOURCE-HANDLING MEMORANDUM // CPA-01A",
       "01 // VERIFY ORIGIN. Confirm where the material came from before relying on it.",
@@ -181,12 +215,262 @@ const RECORDS: readonly FictionalDocument[] = [
   },
 ];
 
+export const INITIAL_FS: VirtualDirectory = {
+  name: "root",
+  type: "dir",
+  children: {
+    home: {
+      name: "home",
+      type: "dir",
+      children: {
+        investigator: {
+          name: "investigator",
+          type: "dir",
+          children: {
+            Projects: {
+              name: "Projects",
+              type: "dir",
+              children: {
+                "the-mandate": {
+                  name: "the-mandate",
+                  type: "dir",
+                  children: {
+                    "README.md": {
+                      name: "README.md",
+                      type: "file",
+                      content: [
+                        "# The Mandate — Newsroom Investigative Desk",
+                        "Cooperative Press investigative workstation.",
+                        "Preconfigured assistant: Claude Code (run 'claude')",
+                        "Standard operating procedures in docs/source-policy.txt",
+                      ],
+                    },
+                    notes: {
+                      name: "notes",
+                      type: "dir",
+                      children: {
+                        "assignment.txt": {
+                          name: "assignment.txt",
+                          type: "file",
+                          content: [
+                            "Desk Assignment: Review vendor security incident report.",
+                            "Consult Claude Code for morning inbox and schedule.",
+                            "Remember Directive 47 source-handling standards.",
+                          ],
+                        },
+                        "contacts.txt": {
+                          name: "contacts.txt",
+                          type: "file",
+                          content: [
+                            "June Adebayo — Cooperative Desk Editor <j.adebayo@cooperative.press>",
+                            "Newsroom Wire Desk — extension 404",
+                          ],
+                        },
+                      },
+                    },
+                    docs: {
+                      name: "docs",
+                      type: "dir",
+                      children: {
+                        "source-policy.txt": {
+                          name: "source-policy.txt",
+                          type: "file",
+                          content: [
+                            "DIRECTIVE 47 EXCERPT: CONFIDENTIAL SOURCE HANDLING",
+                            "1. Origin verification is mandatory before reporting vendor incidents.",
+                            "2. Preserve attribution and maintain isolated audit workspaces.",
+                            "3. Do not disclose confidential sources without consent.",
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const DEFAULT_CWD = "/home/investigator/Projects/the-mandate";
+
+export function displayCwd(path: string): string {
+  if (path === "/home/investigator") return "~";
+  if (path.startsWith("/home/investigator/")) {
+    return "~" + path.slice("/home/investigator".length);
+  }
+  return path;
+}
+
+export function resolvePath(cwd: string, target?: string): string {
+  if (!target || target === "~") return "/home/investigator";
+  let abs = target;
+  if (target.startsWith("~/")) {
+    abs = "/home/investigator/" + target.slice(2);
+  } else if (!target.startsWith("/")) {
+    abs = `${cwd.replace(/\/+$/, "")}/${target}`;
+  }
+  const parts = abs.split("/").filter(Boolean);
+  const resolved: string[] = [];
+  for (const part of parts) {
+    if (part === ".") continue;
+    if (part === "..") {
+      resolved.pop();
+    } else {
+      resolved.push(part);
+    }
+  }
+  return "/" + resolved.join("/");
+}
+
+export function getFsNode(fs: VirtualDirectory, path: string): VirtualNode | null {
+  const parts = path.split("/").filter(Boolean);
+  let current: VirtualNode = fs;
+  for (const part of parts) {
+    if (current.type !== "dir") return null;
+    const child: VirtualNode | undefined = current.children[part];
+    if (!child) return null;
+    current = child;
+  }
+  return current;
+}
+
+export interface ShellResult {
+  readonly nextCwd: string;
+  readonly lines: readonly string[];
+  readonly clear?: boolean;
+  readonly launchHerdr?: boolean;
+  readonly launchClaude?: boolean;
+}
+
+export function executeShellCommand(
+  cmdLine: string,
+  cwd: string,
+  fs: VirtualDirectory = INITIAL_FS,
+): ShellResult {
+  const trimmed = cmdLine.trim();
+  if (!trimmed) {
+    return { nextCwd: cwd, lines: [] };
+  }
+  const parts = trimmed.split(/\s+/);
+  const command = parts[0]?.toLowerCase() ?? "";
+  const arg = parts[1];
+
+  switch (command) {
+    case "pwd":
+      return { nextCwd: cwd, lines: [displayCwd(cwd)] };
+
+    case "ls": {
+      const targetPath = arg ? resolvePath(cwd, arg) : cwd;
+      const node = getFsNode(fs, targetPath);
+      if (!node) {
+        return {
+          nextCwd: cwd,
+          lines: [`ls: cannot access '${arg}': No such file or directory`],
+        };
+      }
+      if (node.type === "file") {
+        return { nextCwd: cwd, lines: [node.name] };
+      }
+      const names = Object.values(node.children)
+        .map((child) => (child.type === "dir" ? `${child.name}/` : child.name))
+        .sort((a, b) => a.localeCompare(b));
+      return { nextCwd: cwd, lines: names.length > 0 ? [names.join("  ")] : [] };
+    }
+
+    case "cd": {
+      const targetPath = resolvePath(cwd, arg);
+      const node = getFsNode(fs, targetPath);
+      if (!node) {
+        return {
+          nextCwd: cwd,
+          lines: [`cd: no such file or directory: ${arg ?? ""}`],
+        };
+      }
+      if (node.type !== "dir") {
+        return {
+          nextCwd: cwd,
+          lines: [`cd: not a directory: ${arg ?? ""}`],
+        };
+      }
+      return { nextCwd: targetPath, lines: [] };
+    }
+
+    case "cat": {
+      if (!arg) {
+        return { nextCwd: cwd, lines: ["cat: missing file operand"] };
+      }
+      const targetPath = resolvePath(cwd, arg);
+      const node = getFsNode(fs, targetPath);
+      if (!node) {
+        return {
+          nextCwd: cwd,
+          lines: [`cat: ${arg}: No such file or directory`],
+        };
+      }
+      if (node.type === "dir") {
+        return { nextCwd: cwd, lines: [`cat: ${arg}: Is a directory`] };
+      }
+      return { nextCwd: cwd, lines: node.content };
+    }
+
+    case "clear":
+      return { nextCwd: cwd, lines: [], clear: true };
+
+    case "help":
+      return {
+        nextCwd: cwd,
+        lines: [
+          "Supported shell commands:",
+          "  claude      Start Claude Code investigative assistant",
+          "  pwd         Print working directory",
+          "  ls [path]   List directory contents",
+          "  cd [path]   Change directory",
+          "  cat [file]  Display file contents",
+          "  clear       Clear terminal output",
+          "  help        Display this help message",
+          "  exit        Exit current shell or assistant",
+        ],
+      };
+
+    case "exit":
+      return {
+        nextCwd: cwd,
+        lines: ["[Process completed - press Enter to restart shell]"],
+      };
+
+    case "claude":
+      return {
+        nextCwd: cwd,
+        lines: [],
+        launchClaude: true,
+      };
+
+    case "herdr":
+      return {
+        nextCwd: cwd,
+        lines: [],
+        launchHerdr: true,
+      };
+
+    default:
+      return {
+        nextCwd: cwd,
+        lines: [`${parts[0]}: command not found. Type 'help' for available commands.`],
+      };
+  }
+}
+
 export function createApplicationState(): ApplicationState {
   return {
     herdrLaunched: false,
-    terminal: { input: "", output: ["$ "], cursor: 0 },
+    terminal: { input: "", output: ["$ "], cursor: 0, cwd: DEFAULT_CWD },
     paneInputs: {},
     paneCursors: {},
+    paneCwds: {},
     agents: {},
     records: RECORDS,
     readReceipts: [],
@@ -260,26 +544,52 @@ function tokenize(text: string): readonly string[] {
   return tokens;
 }
 
-function isAssignmentIntent(request: string): boolean {
-  const clean = normalize(request).replace(/[^a-z0-9 ]/g, " ");
-  const tokens = clean.split(/\s+/).filter(Boolean);
+function isAssignmentAcceptanceIntent(request: string): boolean {
+  const norm = normalize(request);
+  const tokens = norm.replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
   const tokenSet = new Set(tokens);
   const hasAccept =
     tokenSet.has("accept") ||
     tokenSet.has("accepts") ||
     tokenSet.has("accepted") ||
     tokenSet.has("agree") ||
-    tokenSet.has("agrees");
-  const hasAssignment =
-    tokenSet.has("assignment") ||
-    tokenSet.has("brief") ||
-    tokenSet.has("task") ||
-    tokenSet.has("mandate") ||
-    tokenSet.has("directive");
-  if (hasAccept && hasAssignment) return true;
-  if (clean === "accept assignment" || clean.startsWith("accept the assignment")) return true;
-  if (clean.startsWith("i accept") || clean.startsWith("i agree")) return true;
+    tokenSet.has("agrees") ||
+    tokenSet.has("confirm") ||
+    tokenSet.has("confirmed");
+  if (tokens.length === 1 && hasAccept) return true;
+  if (norm.startsWith("i accept") || norm.startsWith("i agree") || norm.startsWith("we accept")) return true;
+  if (hasAccept && (tokenSet.has("assignment") || tokenSet.has("terms") || tokenSet.has("task"))) return true;
   return false;
+}
+
+function isAssignmentBriefIntent(request: string): boolean {
+  const norm = normalize(request);
+  if (/\b(memo|document|transcript|cpa-01a|um-1109|lt-47b|receipt|report)\b/i.test(norm)) {
+    return false;
+  }
+  return (
+    /\b(assignment|what should i (do|investigate)|what is (the|my) (assignment|task|lead)|what did june|june'?s? assignment)\b/i.test(
+      norm,
+    ) && !isAssignmentAcceptanceIntent(request)
+  );
+}
+
+function isScheduleIntent(request: string): boolean {
+  const norm = normalize(request);
+  return /\b(schedule|calendar|agenda|morning check-in|my day)\b/i.test(norm);
+}
+
+function isInboxIntent(request: string): boolean {
+  const norm = normalize(request);
+  if (/\b(memo|document|transcript|cpa-01a|um-1109|lt-47b|receipt|report)\b/i.test(norm)) {
+    return false;
+  }
+  return /\b(email|mail|inbox|messages?|unread)\b/i.test(norm);
+}
+
+function isIncidentIntent(request: string): boolean {
+  const norm = normalize(request);
+  return /\b(incident|misfire|telemetry|breach|what happened)\b/i.test(norm);
 }
 
 const VN12_KEYWORDS = ["vn-12", "vn12", "verifier note", "note", "filing"] as const;
@@ -364,16 +674,104 @@ function availableRecordHints(records: readonly FictionalDocument[], level: numb
   return available.length > 0 ? ` Available records: ${available.join(", ")}.` : "";
 }
 
+function handleScheduleRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const replyLines = [
+    "[tool: newsroom_schedule.get_today()]",
+    "Date: November 12, 2026",
+    "  09:00 EST — Editorial morning check-in",
+    "  09:30 EST — Priority lead triage with June Adebayo (Cooperative Desk)",
+    "  14:00 EST — Wire monitoring & intake queue",
+    "  17:00 EST — Daily publication deadline",
+    "Note: June Adebayo flagged an urgent confidential lead. Check newsroom email or ask about your assignment.",
+  ];
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    replyLines.join("\n"),
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "schedule"),
+      ...replyLines,
+    ]),
+  };
+}
+
+function handleInboxRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const replyLines = [
+    "[tool: newsroom_mail.list_inbox()]",
+    "Inbox (1 unread message):",
+    "  [MSG-1112-01] From: June Adebayo <j.adebayo@cooperative.press>",
+    "  Subject: Priority: Vendor security incident & protected source (08:42 EST)",
+    "  Preview: We have an unverified report of a vendor incident. Review our source-handling rules before contact.",
+    "Ask me to read the message or ask: 'What did June assign me?'",
+  ];
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    replyLines.join("\n"),
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "inbox"),
+      ...replyLines,
+    ]),
+  };
+}
+
+function handleAssignmentBriefRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const replyLines = [
+    "[tool: newsroom_mail.get_message(id: \"MSG-1112-01\")]",
+    "From: June Adebayo <j.adebayo@cooperative.press>",
+    "To: Investigative Desk",
+    "Date: Nov 12, 2026, 08:42 EST",
+    "Subject: Priority: Vendor security incident & protected source",
+    "",
+    "We have an unverified report of a vendor incident affecting State oversight records.",
+    "The source is anxious and requested strict confidentiality.",
+    "",
+    "Before you contact the source or open external lines:",
+    "  1. Review our newsroom source-handling procedures (CPA-01A).",
+    "  2. Confirm your acceptance of the handling terms.",
+    "  3. Keep your working notes in a separate tab so we maintain a clean audit trail.",
+    "",
+    "Ask me: 'What are our source handling procedures?' to retrieve CPA-01A.",
+  ];
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    replyLines.join("\n"),
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "assignment"),
+      ...replyLines,
+    ]),
+  };
+}
+
 function handleAssignmentRequest(
   state: ApplicationState,
   paneId: string,
   agent: AgentSession,
 ): ApplicationTransition {
-  if (
-    !state.readReceipts.some(
-      (receipt) => receipt.documentId === "CPA-01A" && receipt.paneId === paneId,
-    )
-  ) {
+  const hasReadCpa = state.readReceipts.some((receipt) => receipt.documentId === "CPA-01A");
+  if (!hasReadCpa) {
     const nextAgent = addHistory(
       { ...agent, lastTask: "blocked", phase: "failed" },
       "assistant",
@@ -382,7 +780,11 @@ function handleAssignmentRequest(
     const nextState = setAgent(state, paneId, { ...nextAgent, status: "ready", phase: "failed" });
     return {
       state: nextState,
-      effects: paneOutput(paneId, ["June's assignment stays on hold until CPA-01A is read."]),
+      effects: paneOutput(paneId, [
+        "> " + (agent.history.at(-1)?.content ?? "accept assignment"),
+        "Claude: June's instructions require reviewing the source-handling procedures before accepting the assignment.",
+        "Ask me about our 'source handling procedures' first.",
+      ]),
     };
   }
   const nextAgent = addHistory(
@@ -395,11 +797,38 @@ function handleAssignmentRequest(
     state: nextState,
     effects: [
       ...paneOutput(paneId, [
+        "> " + (agent.history.at(-1)?.content ?? "accept assignment"),
+        "[tool: newsroom_mail.reply(to: \"j.adebayo@cooperative.press\", body: \"Assignment accepted. Handling rules confirmed.\")]",
+        "Reply dispatched to June Adebayo.",
+        "",
         "JUNE ADEBAYO // Cooperative editor",
-        "Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.",
+        "\"Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.\"",
+        "\"Open a new research tab in Herdr to begin reviewing incoming records while keeping this desk log open.\"",
       ]),
       { kind: "assignment-acknowledged" },
     ],
+  };
+}
+
+function handleIncidentOverviewRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const nextAgent = addHistory(
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    "Provided incident background.",
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: paneOutput(paneId, [
+      "> " + (agent.history.at(-1)?.content ?? "incident"),
+      "[tool: editorial_records.search(query: \"vendor incident\")]",
+      "Incident Overview:",
+      "  A source alleges a 5-minute telemetry misfire during a vendor maintenance test on November 9.",
+      "  Detailed SOC records (UM-1109-88) will be transferred once the investigation tab is opened.",
+    ]),
   };
 }
 
@@ -611,8 +1040,24 @@ function runAgentRequest(
   );
   const nextState = setAgent(state, paneId, agent);
 
-  if (isAssignmentIntent(request)) {
+  if (isScheduleIntent(request)) {
+    return handleScheduleRequest(nextState, paneId, agent);
+  }
+
+  if (isInboxIntent(request)) {
+    return handleInboxRequest(nextState, paneId, agent);
+  }
+
+  if (isAssignmentBriefIntent(request)) {
+    return handleAssignmentBriefRequest(nextState, paneId, agent);
+  }
+
+  if (isAssignmentAcceptanceIntent(request)) {
     return handleAssignmentRequest(nextState, paneId, agent);
+  }
+
+  if (isIncidentIntent(request) && level === 1) {
+    return handleIncidentOverviewRequest(nextState, paneId, agent);
   }
 
   if (level === 4) {
@@ -630,68 +1075,147 @@ function runAgentRequest(
 }
 
 function submitTerminal(state: ApplicationState): ApplicationTransition {
-  const command = state.terminal.input.trim();
-  const printed = `$ ${command}`;
-  if (command.toLowerCase() === "herdr") {
+  const line = state.terminal.input;
+  const cwd = state.terminal.cwd ?? DEFAULT_CWD;
+  const prompt = `$ ${line}`;
+  const res = executeShellCommand(line, cwd);
+
+  if (res.launchHerdr) {
     return {
       state: {
         ...state,
         herdrLaunched: true,
-        terminal: { input: "", output: [...state.terminal.output, printed], cursor: 0 },
+        terminal: {
+          input: "",
+          output: [...state.terminal.output, prompt],
+          cursor: 0,
+          cwd,
+        },
       },
-      effects: [{ kind: "terminal-output", line: printed }, { kind: "herdr-started" }],
+      effects: [{ kind: "terminal-output", line: prompt }, { kind: "herdr-started" }],
     };
   }
-  const message = command ? `command not found: ${command}.` : "";
+
+  if (res.launchClaude) {
+    const message = "Claude Code requires Herdr multiplexer. Type 'herdr' first.";
+    return {
+      state: {
+        ...state,
+        terminal: {
+          input: "",
+          output: [...state.terminal.output, prompt, message, "$ "],
+          cursor: 0,
+          cwd,
+        },
+      },
+      effects: [
+        { kind: "terminal-output", line: prompt },
+        { kind: "terminal-output", line: message },
+      ],
+    };
+  }
+
+  if (res.clear) {
+    return {
+      state: {
+        ...state,
+        terminal: {
+          input: "",
+          output: ["$ "],
+          cursor: 0,
+          cwd: res.nextCwd,
+        },
+      },
+      effects: [],
+    };
+  }
+
+  const newOutput = [...state.terminal.output, prompt, ...res.lines, "$ "];
   return {
     state: {
       ...state,
       terminal: {
         input: "",
-        output: [...state.terminal.output, printed, ...(message ? [message] : []), "$ "],
+        output: newOutput,
         cursor: 0,
+        cwd: res.nextCwd,
       },
     },
     effects: [
-      { kind: "terminal-output", line: printed },
-      ...(message ? [{ kind: "terminal-output" as const, line: message }] : []),
+      { kind: "terminal-output", line: prompt },
+      ...res.lines.map((l) => ({ kind: "terminal-output" as const, line: l })),
     ],
   };
 }
 
 function submitPane(state: ApplicationState, paneId: string, level: number): ApplicationTransition {
   const line = state.paneInputs[paneId] ?? "";
+  const cwd = state.paneCwds?.[paneId] ?? DEFAULT_CWD;
   const echoed = `$ ${line}`;
-  const base = {
+  const base: ApplicationState = {
     ...state,
     paneInputs: { ...state.paneInputs, [paneId]: "" },
     paneCursors: { ...state.paneCursors, [paneId]: 0 },
   };
-  if (line.trim() === "claude" && !base.agents[paneId]) {
-    const agent: AgentSession = {
-      status: "ready",
-      phase: "waiting_for_input",
-      history: [],
-      lastTask: null,
-    };
+
+  const agent = base.agents[paneId];
+  if (!agent) {
+    const res = executeShellCommand(line, cwd);
+    const nextCwds = { ...(base.paneCwds ?? {}), [paneId]: res.nextCwd };
+
+    if (res.launchClaude) {
+      const newAgent: AgentSession = {
+        status: "ready",
+        phase: "waiting_for_input",
+        history: [],
+        lastTask: null,
+      };
+      return {
+        state: { ...setAgent(base, paneId, newAgent), paneCwds: nextCwds },
+        effects: [
+          ...paneOutput(paneId, [
+            echoed,
+            "  █ █  █ █    Claude Code v2.0.24",
+            " ██████████   Sonnet 4.5 · Newsroom License",
+            " ██ █  █ ██   " + displayCwd(res.nextCwd),
+            " ██████████",
+            "  █      █",
+            "",
+          ]),
+          { kind: "claude-started", paneId },
+        ],
+      };
+    }
+
+    if (res.clear) {
+      return {
+        state: { ...base, paneCwds: nextCwds },
+        effects: [{ kind: "pane-clear", paneId }],
+      };
+    }
+
     return {
-      state: setAgent(base, paneId, agent),
+      state: { ...base, paneCwds: nextCwds },
+      effects: paneOutput(paneId, [echoed, ...res.lines]),
+    };
+  }
+
+  const trimmed = line.trim().toLowerCase();
+  if (trimmed === "exit" || trimmed === "quit" || trimmed === "/exit") {
+    const nextAgents = { ...base.agents };
+    delete nextAgents[paneId];
+    return {
+      state: { ...base, agents: nextAgents },
       effects: [
         ...paneOutput(paneId, [
-          echoed,
-          "Claude Code v1.0.12 (simulated)",
-          "Ready. What should I investigate?",
+          `> ${line}`,
+          "Exiting Claude Code. Returning to shell.",
         ]),
-        { kind: "claude-started", paneId },
+        { kind: "claude-exited", paneId },
       ],
     };
   }
-  if (line.trim() === "claude" && base.agents[paneId]) {
-    return {
-      state: base,
-      effects: paneOutput(paneId, [echoed, "Claude Code is already running in this pane."]),
-    };
-  }
+
   return runAgentRequest(base, paneId, line, level);
 }
 
@@ -721,7 +1245,10 @@ function applyLineEdit(
   const rawKey = input.key;
   const commandKey = rawKey.toLowerCase();
   const control = input.modifiers?.length === 1 && input.modifiers[0] === "ctrl";
-  const clear = control && (commandKey === "u" || commandKey === "c");
+  const isCtrlA = control && commandKey === "a";
+  const isCtrlE = control && commandKey === "e";
+  const isCtrlW = control && commandKey === "w";
+  const isCtrlU = control && (commandKey === "u" || commandKey === "c");
   const backspace = commandKey === "backspace";
   const forwardDelete = commandKey === "delete";
   const isLeft = commandKey === "arrowleft" || commandKey === "left";
@@ -729,12 +1256,29 @@ function applyLineEdit(
   const isHome = commandKey === "home";
   const isEnd = commandKey === "end";
 
-  if (!clear && input.modifiers?.some((mod) => mod !== "shift")) {
+  if (!isCtrlA && !isCtrlE && !isCtrlW && !isCtrlU && input.modifiers?.some((mod) => mod !== "shift")) {
     return null;
   }
 
-  if (clear) {
+  if (isCtrlU) {
     return { input: "", cursor: 0 };
+  }
+
+  if (isCtrlA || isHome) {
+    return { input: currentInput, cursor: 0 };
+  }
+
+  if (isCtrlE || isEnd) {
+    return { input: currentInput, cursor: currentInput.length };
+  }
+
+  if (isCtrlW) {
+    const before = currentInput.slice(0, cursor);
+    const after = currentInput.slice(cursor);
+    const trimmed = before.replace(/\s+$/, "");
+    const lastSpace = trimmed.lastIndexOf(" ");
+    const newBefore = lastSpace >= 0 ? trimmed.slice(0, lastSpace + 1) : "";
+    return { input: newBefore + after, cursor: newBefore.length };
   }
 
   if (backspace) {

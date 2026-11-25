@@ -16,7 +16,6 @@ const key = (
   phase: "press",
 });
 
-const prefix = (origin: Origin = "player") => key("b", ["ctrl"], origin);
 type Session = ReturnType<typeof createInvestigationSession>;
 
 function type(session: Session, value: string, origin: Origin = "player"): void {
@@ -39,20 +38,6 @@ function launchHerdr(session: Session): void {
   submit(session, "herdr");
 }
 
-function createWorkspace(session: Session, name: string, origin: Origin = "player"): void {
-  session.dispatch(prefix(origin));
-  session.dispatch(key("n", ["shift"], origin));
-  type(session, name, origin);
-  session.dispatch(key("enter", [], origin));
-}
-
-function createTab(session: Session, name: string): void {
-  session.dispatch(prefix());
-  session.dispatch(key("c"));
-  type(session, name);
-  session.dispatch(key("enter"));
-}
-
 function focusedPane(session: Session) {
   const { herdr } = session.getSnapshot();
   const workspace = herdr.workspaces.find((item) => item.id === herdr.activeWorkspaceId);
@@ -69,12 +54,10 @@ function objectiveMet(session: Session, id: string): boolean {
 function reachL1Response(): ReturnType<Session["getSnapshot"]> {
   const session = createInvestigationSession();
   launchHerdr(session);
-  createWorkspace(session, "investigation");
-  createTab(session, "research");
   const paneId = focusedPane(session)?.id;
-  if (!paneId) throw new Error("The research tab must have a focused pane.");
+  if (!paneId) throw new Error("The initial tab must have a focused pane.");
   submit(session, "claude", paneId);
-  submit(session, "Find the cooperative source-handling memo and show me the original.", paneId);
+  submit(session, "Find our procedures for handling confidential sources", paneId);
   submit(session, "Accept the assignment", paneId);
   return session.getSnapshot();
 }
@@ -93,7 +76,7 @@ describe("L1 player-driven investigation", () => {
     expect(session.getSnapshot().application.herdrLaunched).toBe(false);
     session.dispatch(key("enter"));
     expect(session.getSnapshot().application.herdrLaunched).toBe(true);
-    expect(session.getSnapshot().application.terminal.output).toContain("$ herdr");
+    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("$ herdr");
   });
 
   it("credits a player launch command but not a scripted Herdr launch", () => {
@@ -108,59 +91,109 @@ describe("L1 player-driven investigation", () => {
     expect(objectiveMet(session, "L1-O1")).toBe(true);
   });
 
-  it("credits a player-created investigation workspace and tab, not scripted Herdr actions", () => {
+  it("supports simulated filesystem shell commands before and inside Herdr", () => {
     const session = createInvestigationSession();
+    // In startup terminal:
+    submit(session, "pwd");
+    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("~/Projects/the-mandate");
+    submit(session, "ls");
+    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("README.md");
+    submit(session, "cat README.md");
+    expect(session.getSnapshot().application.terminal.output.join("\n")).toContain("The Mandate");
+
+    // Launch Herdr:
     launchHerdr(session);
-    createWorkspace(session, "fixture-workspace", "script");
-    expect(objectiveMet(session, "L1-O2")).toBe(false);
-    createWorkspace(session, "investigation");
-    expect(objectiveMet(session, "L1-O2")).toBe(true);
-    createTab(session, "research");
-    expect(objectiveMet(session, "L1-O3")).toBe(true);
-    const state = session.getSnapshot().herdr;
-    const workspace = state.workspaces.find((item) => item.id === state.activeWorkspaceId);
-    expect(workspace?.name).toBe("investigation");
-    expect(workspace?.tabs.find((item) => item.id === workspace.activeTabId)?.name).toBe(
-      "research",
-    );
-    expect(session.getSnapshot().application.readReceipts).toEqual([]);
-    expect(session.getSnapshot().story.events).toEqual([]);
+    const paneId = focusedPane(session)?.id;
+    if (!paneId) throw new Error("Focused pane required");
+
+    // In Herdr shell before Claude:
+    submit(session, "pwd", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("~/Projects/the-mandate");
+    submit(session, "ls notes", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("assignment.txt");
+    submit(session, "cat notes/assignment.txt", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("Desk Assignment");
+    submit(session, "unknowncmd", paneId);
+    expect(focusedPane(session)?.output.join("\n")).toContain("command not found");
   });
 
-  it("retrieves and displays the original memo, then advances after June's acknowledgment", () => {
+  it("launches Claude Code and retrieves assignment through natural schedule/email queries", () => {
     const session = createInvestigationSession();
     launchHerdr(session);
-    createWorkspace(session, "investigation");
-    createTab(session, "research");
     const paneId = focusedPane(session)?.id;
-    if (!paneId) throw new Error("The research tab must have a focused pane.");
+    if (!paneId) throw new Error("Focused pane required");
 
     submit(session, "claude", paneId);
-    expect(focusedPane(session)?.output.join("\n")).toContain("Claude Code v1.0.12 (simulated)");
+    expect(focusedPane(session)?.output.join("\n")).toContain("Claude Code");
 
-    submit(
-      session,
-      "Please locate CPA-01A, the cooperative source-handling memo, and show its text.",
-      paneId,
-    );
-    const output = focusedPane(session)?.output.join("\n") ?? "";
-    expect(output).toContain("MCP CALL documents.search");
-    expect(output).toContain("MCP CALL documents.read");
+    // Schedule check:
+    submit(session, "What's on my schedule today?", paneId);
+    let output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("newsroom_schedule.get_today");
+    expect(output).toContain("June Adebayo");
+
+    // Email check:
+    submit(session, "Do I have any new email?", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("newsroom_mail.list_inbox");
+    expect(output).toContain("Vendor security incident & protected source");
+
+    // Assignment inquiry:
+    submit(session, "What did June assign me?", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("newsroom_mail.get_message");
+    expect(output).toContain("CPA-01A");
+
+    // Attempting acceptance before reading rules is politely blocked:
+    submit(session, "Accept the assignment", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("require reviewing the source-handling procedures");
+    expect(session.getSnapshot().application.assignmentAcknowledged).toBe(false);
+  });
+
+  it("retrieves source handling procedures naturally and allows continued typing after completion", () => {
+    const session = createInvestigationSession();
+    launchHerdr(session);
+    const paneId = focusedPane(session)?.id;
+    if (!paneId) throw new Error("The default tab must have a focused pane.");
+
+    submit(session, "claude", paneId);
+
+    // Natural source procedure query:
+    submit(session, "Find our procedures for handling confidential sources", paneId);
+    let output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("documents.read");
+    expect(output).toContain("SOURCE-HANDLING MEMORANDUM // CPA-01A");
     expect(output).toContain("01 // VERIFY ORIGIN.");
     expect(output).toContain("02 // PRESERVE ATTRIBUTION.");
-    expect(output).toContain("03 // ASSUME NOTHING CONFIRMED.");
     expect(session.getSnapshot().application.readReceipts).toContainEqual({
       documentId: "CPA-01A",
       paneId,
     });
-    expect(session.getSnapshot().phase).toBe("workspace");
 
+    // Accept assignment:
     submit(session, "I accept the assignment.", paneId);
-    expect(focusedPane(session)?.output.join("\n")).toContain("JUNE ADEBAYO");
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("JUNE ADEBAYO");
     expect(session.getSnapshot().application.assignmentAcknowledged).toBe(true);
     expect(session.getSnapshot().storyConditionMet).toBe(true);
     expect(session.getSnapshot().objectivesMet).toBe(true);
     expect(session.getSnapshot().phase).toBe("response");
+
+    // Interactivity test: terminal input continues working seamlessly even after completing the objective!
+    submit(session, "What do we know about the incident?", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("telemetry misfire");
+
+    // Exiting Claude returns to shell:
+    submit(session, "exit", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("Exiting Claude Code. Returning to shell.");
+
+    // Can continue typing shell commands:
+    submit(session, "pwd", paneId);
+    output = focusedPane(session)?.output.join("\n") ?? "";
+    expect(output).toContain("~/Projects/the-mandate");
   });
 
   it("reveals one additional hint per request", () => {
@@ -168,7 +201,7 @@ describe("L1 player-driven investigation", () => {
     expect(session.getSnapshot().presentation.hints).toEqual([]);
     session.requestHint();
     expect(session.getSnapshot().presentation.hints).toEqual([
-      "The terminal is ready. Type herdr and press Enter.",
+      "Type herdr and press Enter to open your newsroom workspace.",
     ]);
   });
 

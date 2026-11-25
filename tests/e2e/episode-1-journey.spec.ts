@@ -13,23 +13,16 @@ test("Episode I full journey (L1–L5): files VN-12, triages intake, and complet
   await page.keyboard.press("Enter");
   await expect(page.getByRole("region", { name: /Simulated Herdr surface/ })).toBeVisible();
 
-  await page.keyboard.press("Control+b");
-  await page.keyboard.press("Shift+n");
-  await page.keyboard.type("investigation");
-  await page.keyboard.press("Enter");
-
-  await page.keyboard.press("Control+b");
-  await page.keyboard.press("c");
-  await page.keyboard.type("research");
-  await page.keyboard.press("Enter");
-
   await page.keyboard.type("claude");
   await page.keyboard.press("Enter");
-  await page.keyboard.type("Please locate CPA-01A memo.");
+  await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
+
+  await page.keyboard.type("Find our procedures for handling confidential sources.");
   await page.keyboard.press("Enter");
   await expect(
     page.getByText("SOURCE-HANDLING MEMORANDUM // CPA-01A", { exact: true }),
   ).toBeVisible();
+
   await page.keyboard.type("Accept the assignment");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Filed" })).toBeVisible();

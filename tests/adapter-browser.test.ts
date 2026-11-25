@@ -128,7 +128,7 @@ describe("development reload recovery", () => {
     first.dispatchChrome({ action: "new-tab" });
     first.dispatch(key("escape"));
     const before = first.getSnapshot();
-    expect(before.objectivesMet).toBe(false);
+    expect(before.objectivesMet).toBe(true);
     const json = first.serializeRecovery() as string;
     const second = createInvestigationSession();
     expect(second.restoreRecovery(json)).toBe(true);
@@ -136,7 +136,7 @@ describe("development reload recovery", () => {
     expect(after.phase).toBe("workspace");
     expect(after.herdr).toEqual(before.herdr);
     expect(after.assessment).toEqual(before.assessment);
-    expect(after.objectivesMet).toBe(false);
+    expect(after.objectivesMet).toBe(true);
     expect(after.inputPolicy).toBe("accessible");
     expect(after.application).toEqual(before.application);
     expect(after.application.readReceipts).toContainEqual({

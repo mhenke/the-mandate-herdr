@@ -83,18 +83,18 @@ Milestone 2 authorizes L1–L3 gameplay only. L4–L15 are design contracts. Thi
 
 ### L1 — Nov 12 — “Stringer Rates”
 
-- **Objective and stakes:** Accept June Adebayo's assignment without exposing the source. Read CPA-01A before contact.
-- **Starting state:** Open terminal at `$`. No memo, player workspace, or Claude session. The landing page offers the skippable cold open. `/workspace` goes straight to the terminal.
-- **New Herdr operations:** Launch (`herdr`, Enter), use the prefix, create a workspace (`prefix+shift+n`), and create a research tab (`prefix+c`). The default session precedes the player's workspace. One investigation workspace and one agent in its research tab are active for the assignment.
-- **HUD route:** Start Herdr → create the investigation workspace → open a research tab → type `claude` and ask for the memo → inspect the original and tell Claude to accept the assignment. Show exact keys for new operations. Clear each completed instruction.
-- **Assessment:** `L1-O1` is a successful player-origin shell launch. `L1-O2` is a committed keyboard workspace creation. `L1-O3` is a committed keyboard tab creation in that workspace. Neither the launch of Claude nor the response is graded.
-- **Story and tools:** Claude searches the preconfigured document index and reads CPA-01A. The transcript shows both calls and the original memo: verify origin, preserve attribution, and avoid claiming corroboration from one origin. June acknowledges acceptance only after retrieval. No new helper clue. The equipment and evidence stay available in L2.
+- **Objective and stakes:** Review morning assignment and source-handling procedures; accept June Adebayo's assignment without exposing the source. Read CPA-01A before contact.
+- **Starting state:** Open terminal at `$` with a working simulated shell (`pwd`, `ls`, `cd`, `cat`, `clear`, `help`, `exit`). No memo or Claude session yet. The landing page offers the skippable cold open. `/workspace` goes straight to the terminal.
+- **New Herdr operations:** Launch (`herdr`, Enter). Herdr opens its authentic default workspace (`the-mandate`), tab (`1`), and shell. (Mandatory second-workspace creation is deferred to L4 where genuinely motivated).
+- **HUD route:** Start Herdr → Start the session (type `claude`) → Check assignment & source rules (ask Claude about schedule, email, or source-handling procedures) → Read CPA-01A, then accept June's assignment (`Accept the assignment`). Show exact keys for new operations. Clear each completed instruction.
+- **Assessment:** `L1-O1` is a successful player-origin shell launch. Neither the launch of Claude nor the response is graded.
+- **Story and tools:** Claude starts in the default workspace. Player queries schedule, inbox, or source procedures naturally. Claude uses preconfigured fictional tools (`newsroom_schedule`, `newsroom_mail`, `editorial_records`) to present June's assignment and CPA-01A. The transcript shows calls and the memo: verify origin, preserve attribution, and avoid claiming corroboration from one origin. June acknowledges acceptance only after retrieval. Free typing remains interactive before, during, and after completion.
 - **Recovery:** Unknown commands, unrecognized requests, and denied reads leave the current terminal and evidence intact. Retry without replaying the cold open.
 
 ### L2 — Nov 12 (afternoon) — “Supplied Goods”
 
 - **Objective and stakes:** Compare the shared SOC report with the handling memo. The shared copy lacks an origin header.
-- **New and reused Herdr operations:** Reuse the investigation workspace and tab creation. Add a named report tab and navigate back to the research tab and then the report. Keep the prior agent and transcript live. One investigation workspace, two agents: source guidance and SOC material.
+- **New and reused Herdr operations:** Reuse the initial workspace. Introduce tab creation (`prefix+c`) with a named report tab, and navigate back to the initial tab and then the report (`prefix+p`, `prefix+n`). Keep the prior agent and transcript live. One workspace, two tabs: source guidance and SOC material.
 - **Assessment and guidance:** `L2-O1` checks a player-created and named tab. `L2-O2` checks a keyboard traversal away from and back to it. Give the first switching sequence (`prefix+p`, `prefix+n`); mark it complete once the result commits. Do not grade a conclusion about report provenance.
 - **Story and tools:** Claude retrieves UM-1109-88 through document search/read. The original shared copy gives the portal, banner, five-minute window, and absent header. June permits a follow-up with Park, not a claim of a second source. No separate helper clue. Carry both agents and reports into L3.
 - **Recovery:** Return to the intended tab and retry after a wrong-target request. The prior document stays readable.

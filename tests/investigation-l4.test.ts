@@ -53,10 +53,8 @@ function createTab(session: Session, name: string): void {
 function enterLevel4(): Session {
   const session = createInvestigationSession();
   submit(session, "herdr");
-  createWorkspace(session, "investigation");
-  createTab(session, "research");
   submit(session, "claude");
-  submit(session, "Find the cooperative source-handling memo and show me the original.");
+  submit(session, "Find our procedures for handling confidential sources");
   submit(session, "Accept the assignment");
   session.advancePresentation();
   session.skipPresentation();

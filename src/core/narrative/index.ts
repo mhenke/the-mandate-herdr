@@ -156,9 +156,9 @@ const EPISODE = "Episode I — THE LEAK";
 
 const BRIEFING: Record<Level, string> = {
   1:
-    "June Adebayo needs the source-handling rules checked before anyone contacts the protected source. " +
-    "The terminal is ready. Type herdr, start Claude Code in the terminal, then " +
-    "retrieve CPA-01A. Read the original memo before you accept the assignment.",
+    "Your newsroom desk is live. Start Herdr with 'herdr', then launch Claude Code with 'claude'. " +
+    "Check your morning schedule or email to retrieve June Adebayo's lead, review the source-handling rules, " +
+    "and accept the assignment.",
   2:
     "The cooperative received SOC Memo UM-1109-88 with its origin headers removed. Keep the shared " +
     "copy in a second Herdr tab beside CPA-01A. Ask Claude to retrieve the record so June can decide " +
@@ -180,7 +180,8 @@ const BRIEFING: Record<Level, string> = {
 const RESPONSE: Record<Level, string> = {
   1:
     'Assignment accepted on the record. Adebayo, editor: "Stringer rates. Verify origin. ' +
-    'Preserve attribution. Do not assume independent confirmation." The shared artifact is next.',
+    'Preserve attribution. Do not assume independent confirmation. ' +
+    'Open a new research tab in Herdr with Ctrl+B C to review incoming records while keeping this desk log open."',
   2:
     "Adebayo: The shared copy gives us the banner and the five-minute window. " +
     "It does not tell us where the report began. Theo Park has agreed to speak off the record. " +
@@ -202,10 +203,10 @@ const RESPONSE: Record<Level, string> = {
 
 const HINTS: Record<Level, readonly string[]> = {
   1: [
-    "The terminal is ready. Type herdr and press Enter.",
+    "Type herdr and press Enter to open your newsroom workspace.",
     "Type claude and press Enter to start Claude Code.",
-    "Ask Claude to find CPA-01A.",
-    "Read the memo. Then tell Claude: Accept the assignment.",
+    "Ask Claude: 'What's on my schedule today?' or 'Do I have any email?'",
+    "Ask Claude about source-handling procedures, then tell it: 'Accept the assignment'.",
   ],
   2: [
     "Open and name a second tab for the shared report.",

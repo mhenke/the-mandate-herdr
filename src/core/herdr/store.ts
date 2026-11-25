@@ -187,7 +187,7 @@ export function createScenario(level: number): HerdrState {
         name: "cooperative",
         newTabApp: "artifact",
         newTabOutput: [
-          "Claude Code v1.0.12 (simulated session)",
+          "Claude Code v2.0.24",
           "$ claude review artifacts/um-1109-88.pdf --extract-metadata",
           "ATTACHMENT: UM-1109-88 / BANNER CAPTURE",
           "ORIGIN-EVENT-ID: [BLANK - FORM DEFAULT / STRIPPED]",
@@ -1367,6 +1367,16 @@ function routeProcess(state: HerdrState, event: Extract<InputEvent, { kind: "pro
       ),
       effect: "action",
       action: "process-output",
+    };
+  }
+  if (payload.kind === "clear") {
+    return {
+      state: withTab(
+        state,
+        updatePane(tab, pane.id, (p) => ({ ...p, output: [] })),
+      ),
+      effect: "action",
+      action: "process-clear",
     };
   }
   const seq = pane.agent.seq + 1;

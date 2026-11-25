@@ -35,6 +35,7 @@ export interface KeyEvent {
 export type ProcessPayload =
   | { readonly kind: "agentState"; readonly paneId: string; readonly state: RawAgentState }
   | { readonly kind: "output"; readonly paneId: string; readonly line: string }
+  | { readonly kind: "clear"; readonly paneId: string }
   | { readonly kind: "consumeInput"; readonly paneId: string };
 
 export interface ProcessEvent {

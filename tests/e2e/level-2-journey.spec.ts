@@ -13,20 +13,6 @@ async function enterL1(page: Page, accessible = false): Promise<void> {
   await page.keyboard.press("Enter");
   await expect(page.getByRole("region", { name: /Simulated Herdr surface/ })).toBeVisible();
 
-  await page.keyboard.press("Control+b");
-  await page.keyboard.press("Shift+n");
-  await page.keyboard.type("investigation");
-  await page.keyboard.press("Enter");
-
-  if (accessible) {
-    await page.getByRole("button", { name: "New tab" }).click();
-  } else {
-    await page.keyboard.press("Control+b");
-    await page.keyboard.press("c");
-  }
-  await page.keyboard.type("research");
-  await page.keyboard.press("Enter");
-
   await page.keyboard.type("claude");
   await page.keyboard.press("Enter");
   await page.keyboard.type(
@@ -45,7 +31,7 @@ async function openL2(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Continue the investigation" }).click();
   await expect(page.getByRole("heading", { name: "Incoming assignment" })).toBeVisible();
   await page.getByRole("button", { name: "Open the workspace" }).click();
-  await expect(page.getByRole("tab", { name: "research" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "1" })).toBeVisible();
   await expect(
     page.getByText("SOURCE-HANDLING MEMORANDUM // CPA-01A", { exact: true }),
   ).toBeVisible();
@@ -64,7 +50,7 @@ test("L1–L3 keep the same session across a tab comparison and a split intervie
   await expect(page.getByRole("dialog", { name: "new tab" })).toBeVisible();
   await page.keyboard.type("report");
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("tab")).toHaveCount(3);
+  await expect(page.getByRole("tab")).toHaveCount(2);
   await expect(page.getByRole("tab", { name: "report" })).toBeVisible();
   await expect(page.getByText("Switch with Ctrl+B P, then Ctrl+B N.")).toBeVisible();
 
@@ -78,7 +64,7 @@ test("L1–L3 keep the same session across a tab comparison and a split intervie
 
   await page.keyboard.press("Control+b");
   await page.keyboard.press("p");
-  await expect(page.getByRole("tab", { name: "research" })).toHaveAttribute(
+  await expect(page.getByRole("tab", { name: "1" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -129,7 +115,7 @@ test("L2 accessible navigation advances the story without Herdr mastery credit",
   await page.keyboard.type("report");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("tab", { name: "report" })).toBeVisible();
-  await page.getByRole("tab", { name: "research" }).click();
+  await page.getByRole("tab", { name: "1" }).click();
   await page.getByRole("tab", { name: "report" }).click();
 
   await page.keyboard.type("claude");

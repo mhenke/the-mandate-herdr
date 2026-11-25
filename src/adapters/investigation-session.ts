@@ -367,7 +367,7 @@ export function createInvestigationSession(): InvestigationSession {
       return false;
     },
     dispatch(event) {
-      if (!attempt || phase !== "workspace") return null;
+      if (!attempt || (phase !== "workspace" && phase !== "response")) return null;
       if (!attempt.application.herdrLaunched) {
         if (
           event.kind !== "key" ||
@@ -426,7 +426,8 @@ export function createInvestigationSession(): InvestigationSession {
           if (event.key === "enter") {
             const launched = transition.effects.some((effect) => effect.kind === "claude-started");
             const researchTab =
-              workspace.id !== idleSnapshot(1).activeWorkspaceId && workspace.tabs.indexOf(tab) > 0;
+              attempt.level === 1 ||
+              (workspace.id !== idleSnapshot(1).activeWorkspaceId && workspace.tabs.indexOf(tab) > 0);
             const containsRecord = (pane: string, documentId: string) =>
               application.readReceipts.some(
                 (receipt) => receipt.paneId === pane && receipt.documentId === documentId,
@@ -445,6 +446,12 @@ export function createInvestigationSession(): InvestigationSession {
                   kind: "process",
                   origin: "process",
                   process: { kind: "output", paneId, line: effect.line },
+                });
+              } else if (effect.kind === "pane-clear") {
+                attempt.store.dispatch({
+                  kind: "process",
+                  origin: "process",
+                  process: { kind: "clear", paneId },
                 });
               } else if (effect.kind === "assignment-acknowledged" && researchTab) {
                 story = applyStoryAction(story, "acknowledge-assignment");
@@ -517,7 +524,7 @@ export function createInvestigationSession(): InvestigationSession {
       // Standard mode is the keyboard-only session: clicks never dispatch
       // (cooperative security notice), so they cannot change state or objectives.
       if (policy === "standard") return false;
-      if (!attempt || phase !== "workspace") return true;
+      if (!attempt || (phase !== "workspace" && phase !== "response")) return true;
       const before: HerdrState = attempt.store.getState();
       const entry = attempt.store.dispatch({
         ...action,
@@ -529,7 +536,7 @@ export function createInvestigationSession(): InvestigationSession {
       return true;
     },
     requestHint() {
-      if (!attempt || phase !== "workspace") return;
+      if (!attempt || (phase !== "workspace" && phase !== "response")) return;
       updateAttempt({ ...attempt, assessment: requestAssessmentHint(attempt.assessment) });
     },
     setAccessibleMode(on) {

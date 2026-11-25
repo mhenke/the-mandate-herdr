@@ -22,10 +22,10 @@ Apply two tests to each level:
 | S01 — Launch Herdr at an open terminal and use its prefix | L1 | L2–L3 | L4 onward | L5, L10, L15 (prefix in context) |
 | S02 — Find active bindings in authentic Help | L4 | L6–L7 | Voluntary after introduction | L15 |
 | S03 — Navigate the workspace, tab, pane, and process hierarchy | L1 | L2–L4 | L6 onward | L5, L10, L15 |
-| S04 — Create, name, switch, and rename tabs | L1 (create), L2 (switch), L3 (rename) | L2–L4 | L6 onward | L5, L10, L15 |
+| S04 — Create, name, switch, and rename tabs | L2 (create, switch), L3 (rename) | L2–L4 | L6 onward | L5, L10, L15 |
 | S05 — Split panes for comparison | L3 | L4, L6 | L8 onward | L5, L10, L15 |
 | S06 — Move focus and direct input | L3 | L4, L6 | L7 onward | L5, L10, L15 |
-| S07 — Create and navigate workspaces | L1 (create), L4 (navigator) | L4, L6, L9 | L11 onward | L5 (create), L10, L15 |
+| S07 — Create and navigate workspaces | L4 (create, navigator) | L4, L6, L9 | L11 onward | L5 (create), L10, L15 |
 | S08 — Locate a process with Goto | L6 | L8–L9 | L10 onward | L10, L15 |
 | S09 — Zoom a pane and restore its layout | L6 | L7, L9 | L10 onward | L10, L15 |
 | S10 — Navigate to agents using Herdr status and inspect pane output | L7 | L8–L9 | L10 onward | L10, L15 |

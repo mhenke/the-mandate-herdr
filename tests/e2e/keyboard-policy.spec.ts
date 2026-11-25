@@ -4,7 +4,7 @@ async function enterHerdr(page: Page): Promise<void> {
   await page.goto("/workspace");
   const terminal = page.getByRole("region", { name: /Terminal\. Type herdr/ });
   await expect(terminal).toBeVisible();
-  await expect(page.locator(".mission-step")).toHaveCount(5);
+  await expect(page.locator(".mission-step")).toHaveCount(4);
   await expect(page.getByText("Type herdr, then press Enter.")).toBeVisible();
   await expect(page.getByRole("button", { name: /Ask Claude/ })).toHaveCount(0);
   await expect(page.getByText("SOURCE-HANDLING MEMORANDUM // CPA-01A")).toHaveCount(0);
@@ -70,18 +70,13 @@ test("first launch opens one shell pane with a single live prompt", async ({ pag
 
 test("L1 starts at a terminal and advances through player-driven Herdr work", async ({ page }) => {
   await enterHerdr(page);
-  await createWorkspace(page, "investigation");
-  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(2);
-
-  await createTab(page, "research");
-  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(3);
   await retrieveMemo(page);
-  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(4);
+  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(3);
 
   await page.keyboard.type("Accept the assignment");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Filed" })).toBeVisible();
-  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(5);
+  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(4);
 });
 
 test("captured prompts leave the browser reload chords uncanceled", async ({ page }) => {
@@ -161,8 +156,6 @@ test("shell control keys edit the prompt without taking over Herdr shortcuts", a
   await page.keyboard.press("Enter");
   await expect(page.getByRole("region", { name: /Simulated Herdr surface/ })).toBeVisible();
 
-  await createWorkspace(page, "investigation");
-  await createTab(page, "research");
   await page.keyboard.type("abandon this");
   await page.keyboard.press("Control+c");
   await page.keyboard.type("claudex");
@@ -216,7 +209,6 @@ test("Standard mode refuses pointer chrome without changing Herdr state", async 
   await page.getByRole("button", { name: "New tab" }).click();
   await expect(page.getByRole("tab")).toHaveCount(2);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator(".mission-step.is-complete s")).toHaveCount(3);
 });
 
 test("Escape closes Herdr help only while capture is engaged", async ({ page }) => {
@@ -246,17 +238,10 @@ test("Accessible navigation reaches the story response without Herdr mastery cre
   await terminal.focus();
   await page.keyboard.type("herdr");
   await page.keyboard.press("Enter");
-  await createWorkspace(page, "investigation");
-
-  await page.getByRole("button", { name: "New tab" }).click();
-  await expect(page.getByRole("dialog", { name: "new tab" })).toBeVisible();
-  await page.keyboard.type("research");
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("tab", { name: "research" })).toBeVisible();
   await retrieveMemo(page);
 
   await page.keyboard.type("Accept the assignment");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Filed" })).toBeVisible();
-  await expect(page.getByText("1 of 3 Herdr skills shown")).toBeVisible();
+  await expect(page.getByText("1 of 1 Herdr skills shown")).toBeVisible();
 });

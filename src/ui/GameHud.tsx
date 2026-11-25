@@ -35,10 +35,11 @@ function missionL1(props: GameHudProps): {
   why: string;
   steps: readonly HudStep[];
 } {
-  const { application, objectives, story } = props;
+  const { application, story } = props;
+  const isClaudeRunning = Object.keys(application.agents).length > 0;
   return {
-    objective: "Accept June's assignment.",
-    why: "Read the handling memo before you contact the source.",
+    objective: "Review your morning assignment and newsroom handling rules.",
+    why: "Understand the terms before investigating the incident.",
     steps: [
       {
         label: "Start Herdr",
@@ -46,23 +47,18 @@ function missionL1(props: GameHudProps): {
         complete: application.herdrLaunched,
       },
       {
-        label: "Create the investigation workspace",
-        instruction: "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
-        complete: met(objectives, "L1-O2"),
+        label: "Start the session",
+        instruction: "Type claude and press Enter.",
+        complete: isClaudeRunning,
       },
       {
-        label: "Open a research tab",
-        instruction: "Press Ctrl+B, then C. Name it research.",
-        complete: met(objectives, "L1-O3"),
-      },
-      {
-        label: "Ask Claude to find CPA-01A",
-        instruction: "Type claude. Ask it to find CPA-01A.",
+        label: "Check assignment & source rules",
+        instruction: "Ask Claude about your schedule, email, or source-handling procedures.",
         complete: story.events.includes("SE-L1-assignment"),
       },
       {
         label: "Read CPA-01A, then accept June's assignment",
-        instruction: "Read the rules. Tell Claude: Accept the assignment.",
+        instruction: "Tell Claude: Accept the assignment.",
         complete: story.flags.includes("assignment-accepted"),
       },
     ],

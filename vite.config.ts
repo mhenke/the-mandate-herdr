@@ -25,6 +25,9 @@ export default defineConfig(({ command }) => ({
     process.env.BASE_URL ??
     (command === "build" && process.env.GITHUB_ACTIONS ? "/the-mandate-herdr/" : "/"),
   plugins: [react(), copy404Plugin()],
+  server: {
+    watch: null,
+  },
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],

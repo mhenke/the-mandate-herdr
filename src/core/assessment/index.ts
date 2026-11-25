@@ -101,7 +101,7 @@ const EMPTY_PROGRESS: Progress = {
 };
 
 const REQUIRED: Record<Level, readonly ObjectiveId[]> = {
-  1: ["L1-O1", "L1-O2", "L1-O3"],
+  1: ["L1-O1"],
   2: ["L2-O1", "L2-O2"],
   3: ["L3-O1", "L3-O2"],
   4: ["L4-O1", "L4-O2"],
