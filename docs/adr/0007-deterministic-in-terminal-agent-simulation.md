@@ -2,20 +2,59 @@
 status: accepted
 ---
 
-# Deterministic in-terminal agent simulation and fresh session topology
+# ADR 0007: Deterministic In-Terminal Agent Simulation, Task Phases, and Herdr Status Projection
 
-Herdr is the sole learning objective. Simulated Claude Code supplies realistic terminal work for the player to organize. We chose a deterministic pane application over a live API, an external chat widget, or pre-opened evidence.
+## Context
 
-## Considered options
+Herdr multiplexer workflows are the sole learning objective of *The Mandate*. In real-world software engineering, multiplexers are primary tools for isolating, monitoring, and managing in-terminal AI coding agents (Claude Code, OpenCode, Aider). Simulated Claude Code provides authentic terminal work for the player to organize across tabs and split panes without the non-deterministic latency, offline vulnerability, and test variance of live LLM APIs or out-of-band web chat drawers.
 
-- **A. Deterministic in-terminal CLI simulation (chosen).** Level 1 starts at an open terminal. The player starts Herdr, creates a workspace and research tab, and launches simulated Claude Code there. The app emits reproducible transcript lines from preconfigured fictional records.
-- **B. Live Claude API / Anthropic SDK integration (rejected).** Live LLM calls introduce external credentials, per-user token costs, network latency, non-deterministic model variance, and potential offline failures. Inconsistent model responses would break automated vitest property checks and test grading.
-- **C. External web chat UI widget (rejected).** Rendering agent interaction in a floating web side-drawer or popup breaks the core premise of Herdr. Developers use multiplexers specifically because real CLI agents (Claude Code, Aider, OpenCode) live inside terminals. An external widget would fail to teach pane splitting, tab isolation, and session persistence.
-- **D. Static pre-split fixture files (rejected).** Starting levels with pre-opened split panes containing static text (e.g. "Review memo in right pane") felt contrived and confusing to players who expected an authentic terminal environment. It bypassed the fundamental workflow of launching tools within a workspace.
+To prevent authority leakage between application simulation and Herdr multiplexer mechanics, the system must clearly separate application task execution, observable process events, and Herdr status projections.
+
+## Decision
+
+We formalize three distinct, non-interchangeable concepts across the application and simulation layers:
+
+### 1. Tripartite Concept Separation
+
+1. **Application Task Phase (`ApplicationTaskPhase`)**:
+   - The internal, deterministic lifecycle of simulated Claude Code within `src/core/applications`:
+     - `queued`: Request recognized and awaiting dispatch.
+     - `working`: Active execution of tool calls (search, read) and line generation.
+     - `waiting_for_input`: Prompt idle, waiting for the player's next query or command.
+     - `settled`: Task successfully concluded with retrieved document or narrative acknowledgment.
+     - `failed`: Task blocked due to invalid input or permission denial.
+   - Owned entirely by application state; never directly mutates Herdr multiplexer data.
+
+2. **ProcessEvent (`ProcessEvent`)**:
+   - Discrete, observable facts emitted by simulated processes into the Herdr runtime:
+     - `{ kind: "process", origin: "process", process: { kind: "agentState", paneId, state } }`
+     - `{ kind: "process", origin: "process", process: { kind: "output", paneId, line } }`
+   - Process events document what happened inside terminal runtimes. Narrative and assessment cores observe committed process events, but process events can never manufacture player action evidence or grant keyboard-transfer credit.
+
+3. **Herdr Agent Status (`RawAgentState` and `ProjectedAgentState`)**:
+   - The authentic multiplexer process status tracked and rendered by Herdr (`src/core/herdr`):
+     - `idle`: Process running with zero pending output or CPU demand.
+     - `working`: Process actively executing.
+     - `blocked`: Process paused awaiting external intervention or permission.
+     - `done`: **Presentation projection only.** An `idle` state that has not yet been acknowledged by the focused client.
+   - `done` reflects client attention, **not task correctness**. A settled task may appear `done`, but inspecting agent output remains strictly necessary. Streaming output is application activity, not a Herdr status.
+
+### 2. Session, Pane, and Lifecycle Rules
+
+- **Pane-local history vs. shared records**: Each pane owns an isolated command prompt, input line, cursor position, and agent history (`AgentSession`). Canonical fictional documents reside in a shared store accessed via simulated tool calls (`documents.search`, `documents.read`).
+- **Pane and tab navigation**: Switching panes, tabs, or workspaces is purely a Herdr client navigation event. It must never reset running agent progress, alter task ownership, fabricate task completion, or discard terminal output buffers. Background agent tasks continue to settle deterministically.
+- **Pane closure vs. client detach**:
+  - *Closing a pane (`applyClosePane`)*: Terminates the pane's runtime and removes its pane-local history.
+  - *Client detach (`session detach`)*: Detaches the client viewing connection. The background server, sessions, panes, processes, agent phases, and history buffers remain running and completely intact.
+- **Blocked-work recovery**: When an agent encounters an error or permission denial (transitioning to `failed` and status `blocked`), the pane remains interactive. The player can clear the input (`Ctrl+U`, `Ctrl+C`) or submit a new query to transition back to `waiting_for_input`.
+
+### 3. Event Ordering & Determinism
+
+- Task progression is strictly sequential and deterministic. Given the same input sequence, the application produces identical output lines, tool calls, and state transitions.
+- Browser wall-clock timers (`setTimeout`, `setInterval`) are non-authoritative and must never govern task progression, deadlines, or objective completion.
 
 ## Consequences
 
-- The simulation runs offline and needs no external credentials.
-- `src/core/applications` owns pane histories and shared records. Herdr owns layout and focus. Narrative observes tool effects and assessment observes Herdr actions.
-- No prompting, MCP, or source-evaluation skill is assessed. See `../CLAUDE_MCP_SIMULATION.md` for the tool contract.
-- L2 reuses the first session. L3 introduces splits because the report and transcript need to stay visible together.
+- `src/core/applications` remains pure data with zero dependencies on React, DOM APIs, or Herdr store internals.
+- Herdr's simulation remains faithful to upstream commit `e8d7d97`, recognizing process states without coupling to fictional agent semantics.
+- Tests can deterministically verify agent execution, background persistence across layout changes, and distinction between detach and closure.

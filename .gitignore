@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+**/node_modules/
+**/node_modules
 
 # Production build
 dist/
@@ -18,7 +20,7 @@ playwright-report/
 
 # Agent Worktrees & Exploration Graphs
 .worktrees/
-graphify-out/
+graphify-out
 
 # AI Tooling & Local Settings
 # Impeccable: share durable project context, not machine-local runtime state.

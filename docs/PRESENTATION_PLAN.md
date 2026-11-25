@@ -64,7 +64,14 @@ Cinematics are rewards and narrative transitions, **never assessment gates**:
 3. The UI presents the cinematic outro.
 4. The next level unlocks based on the committed narrative fact, **never** on video playback completion.
 
-### Rule 2: Skipping Never Changes Evidence
+### Rule 2: Presentation Event Ownership & Story Clock Decoupling
+- Cold opens, pauses, resumes, skips, and natural playback endings are strictly **Presentation events**.
+- They are **not** Herdr `ChromeEvent`s, fictional `ProcessEvent`s, `Action evidence`, or `Learning evidence`.
+- Playback never advances the authoritative story clock. The clock remains at $T_0$ until an explicitly declared narrative transition advances it (`SE-*`). The first terminal input does not automatically advance time.
+- Cinematics may display an already-committed story transition, but playback does not create that transition.
+- Presentation state stays strictly outside the authoritative gameplay journal (`HerdrState.journal`) unless recovery requires an isolated presentation cursor.
+
+### Rule 3: Skipping Never Changes Evidence
 - Skipping an outro skips **only presentation playback**.
 - Skipping never awards unearned objectives, alters provenance, suppresses evidence, or bypasses prerequisites.
 - The player can skip immediately via visible button (`Skip`) or keyboard shortcut (`Escape` or `Space`).

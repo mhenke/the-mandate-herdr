@@ -29,8 +29,16 @@ export interface AgentHistoryEntry {
   readonly content: string;
 }
 
+export type ApplicationTaskPhase =
+  | "queued"
+  | "working"
+  | "waiting_for_input"
+  | "settled"
+  | "failed";
+
 export interface AgentSession {
   readonly status: "ready" | "blocked";
+  readonly phase?: ApplicationTaskPhase;
   readonly history: readonly AgentHistoryEntry[];
   readonly lastTask: "completed" | "blocked" | "unrecognized" | null;
 }
@@ -283,7 +291,11 @@ function runAgentRequest(
       effects: paneOutput(paneId, ["Claude Code is not running here. Type claude first."]),
     };
   }
-  agent = addHistory({ ...agent, status: "ready", lastTask: null }, "user", request);
+  agent = addHistory(
+    { ...agent, status: "ready", phase: "working", lastTask: null },
+    "user",
+    request,
+  );
   let nextState = setAgent(state, paneId, agent);
 
   if (isAssignmentIntent(request)) {
@@ -293,18 +305,18 @@ function runAgentRequest(
       )
     ) {
       agent = addHistory(
-        { ...agent, lastTask: "blocked" },
+        { ...agent, lastTask: "blocked", phase: "failed" },
         "assistant",
         "Read CPA-01A before you accept June's assignment.",
       );
-      nextState = setAgent(nextState, paneId, { ...agent, status: "ready" });
+      nextState = setAgent(nextState, paneId, { ...agent, status: "ready", phase: "failed" });
       return {
         state: nextState,
         effects: paneOutput(paneId, ["June's assignment stays on hold until CPA-01A is read."]),
       };
     }
     agent = addHistory(
-      { ...agent, lastTask: "completed" },
+      { ...agent, lastTask: "completed", phase: "settled" },
       "assistant",
       "June Adebayo acknowledges the assignment.",
     );
@@ -324,11 +336,11 @@ function runAgentRequest(
   const document = documentForRequest(state, request);
   if (!document) {
     agent = addHistory(
-      { ...agent, lastTask: "unrecognized" },
+      { ...agent, lastTask: "unrecognized", phase: "waiting_for_input" },
       "assistant",
       "Name a record or an investigative question.",
     );
-    nextState = setAgent(nextState, paneId, { ...agent, status: "ready" });
+    nextState = setAgent(nextState, paneId, { ...agent, status: "ready", phase: "waiting_for_input" });
     return {
       state: nextState,
       effects: paneOutput(paneId, [
@@ -350,7 +362,7 @@ function runAgentRequest(
   if (!search.ok) {
     lines.push(`MCP RESULT documents.search error: ${search.error}`);
     agent = addHistory(
-      { ...agent, status: "blocked", lastTask: "blocked" },
+      { ...agent, status: "blocked", phase: "failed", lastTask: "blocked" },
       "assistant",
       search.error,
     );
@@ -365,7 +377,7 @@ function runAgentRequest(
   if (!read.ok) {
     lines.push(`MCP RESULT documents.read error: ${read.error}`);
     agent = addHistory(
-      { ...agent, status: "blocked", lastTask: "blocked" },
+      { ...agent, status: "blocked", phase: "failed", lastTask: "blocked" },
       "assistant",
       read.error,
     );
@@ -390,7 +402,7 @@ function runAgentRequest(
     `documents.read result ${JSON.stringify({ id: read.document.id, lines: read.document.body.length })}`,
   );
   agent = addHistory(
-    { ...agent, status: "ready", lastTask: "completed" },
+    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
     "assistant",
     `Read ${read.document.id}; original text returned.`,
   );
@@ -442,7 +454,12 @@ function submitPane(state: ApplicationState, paneId: string, level: number): App
     paneCursors: { ...state.paneCursors, [paneId]: 0 },
   };
   if (line.trim() === "claude" && !base.agents[paneId]) {
-    const agent: AgentSession = { status: "ready", history: [], lastTask: null };
+    const agent: AgentSession = {
+      status: "ready",
+      phase: "waiting_for_input",
+      history: [],
+      lastTask: null,
+    };
     return {
       state: setAgent(base, paneId, agent),
       effects: [
