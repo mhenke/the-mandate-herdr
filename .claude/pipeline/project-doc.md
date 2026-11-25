@@ -1,5 +1,5 @@
 # Project Documentation
-> Generated: 2026-11-24T17:44:00Z | Mode: DELTA
+> Generated: 2026-11-24T20:05:00Z | Mode: DELTA
 
 ## Tech Stack
 - Runtime: Node.js >= 22.12.0
@@ -41,7 +41,7 @@
 Hexagonal / Clean Architecture with strict architectural boundaries:
 - **Pure Core (`src/core/*`)**: Zero external dependencies (no React, no DOM, no browser globals). Pure functional state transitions over immutable models.
   - `src/core/herdr`: Deterministic simulation of the pinned upstream Herdr multiplexer (workspaces, tabs, panes, process tree, overlays, keymaps).
-  - `src/core/applications`: Pure deterministic in-terminal agent simulation (simulated Claude Code v1.0.12, child process command loop, document vault, read receipts, and agent states per ADR 0007).
+  - `src/core/applications`: Pure deterministic in-terminal agent simulation (simulated Claude Code v1.0.12, child process command loop, line-editing engine with cursor management, document vault, read receipts, and agent states per ADR 0007).
   - `src/core/narrative`: Story state machines, canon episodes, briefings, in-world assignments, and narrative progression triggers.
   - `src/core/assessment`: Learning objective evaluators, evidence provenance tracking, and mastery verification.
 - **Adapters (`src/adapters/*`)**: Mediate between the pure simulation cores and the host browser runtime.
@@ -50,17 +50,18 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
   - `navigation.ts`: Pure URL path and hash parser with pushState route synchronization and popstate browser traversal without simulation state teardown.
 - **UI / Presentation (`src/ui/*`, `src/App.tsx`)**:
   - React components render read-only projections of committed session snapshots.
+  - `ActionsContext.tsx`: `ActionsProvider` and `useMandateActions()` eliminate prop-drilling across `App.tsx` and deeply nested preview components (`MandatePreview`, `ActiveTabView`, `WorkspaceItem`, `TabButton`).
   - `GameHud.tsx`: Cleanly separated Journalist Cooperative Mission HUD displaying current level objectives, keyboard shortcut guidance, and capture controls above the terminal.
-  - `MandatePreview.tsx`: Authentic OneDark terminal projection matching pinned Herdr baseline 08-focus-left and cinematic workspace composition.
-  - UI components emit user actions via typed callbacks; zero direct mutation of core simulation or narrative state.
+  - `MandatePreview.tsx`: Authentic OneDark terminal projection matching pinned Herdr baselines, single `$ ` prompt line editing, and mode bar integration.
+  - UI components emit user actions via typed actions; zero direct mutation of core simulation or narrative state.
 
 ## Folder Structure
 - `src/core/herdr/`: Pure deterministic Herdr simulation engine (types, store, keymaps, layouts).
-- `src/core/applications/`: Pure deterministic in-terminal agent CLI simulation engine (Claude Code v1.0.12, document vault, read receipts).
+- `src/core/applications/`: Pure deterministic in-terminal agent CLI simulation engine (Claude Code v1.0.12, document vault, read receipts, line-editing).
 - `src/core/narrative/`: Story canon, script runners, and level progression rules.
 - `src/core/assessment/`: Objective evaluators, provenance verification, retention gates.
 - `src/adapters/`: Browser adapters, keyboard decoders, session orchestrators, recovery persistence.
-- `src/ui/`: React presentation components (MandatePreview, scenes, hooks).
+- `src/ui/`: React presentation components (MandatePreview, ActionsContext, scenes, hooks).
 - `src/styles/`: Application styles, typography tokens, layout CSS.
 - `docs/`: Story bible, design contracts, architectural decision records (ADRs), research baselines.
 - `docs/adr/`: Architecture Decision Records (0001 through 0007).
@@ -71,7 +72,7 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 
 ## Code Style Conventions
 - **Naming**: camelCase for functions, variables, and instances; PascalCase for types, interfaces, and React components; UPPER_SNAKE_CASE for constants.
-- **File Naming**: kebab-case for modules and test files (`investigation-session.ts`, `herdr-chrome.test.ts`); PascalCase for React component files (`MandatePreview.tsx`).
+- **File Naming**: kebab-case for modules and test files (`investigation-session.ts`, `herdr-chrome.test.ts`); PascalCase for React component files (`MandatePreview.tsx`, `ActionsContext.tsx`).
 - **Immutability**: Readonly data structures throughout (`readonly` array and object properties). Pure reducer functions returning new state references.
 - **Type Safety**: Strict TypeScript (`noEmit`, strict null checks, explicit return types where beneficial). No `any` escapes.
 
@@ -79,7 +80,7 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - Architectural boundaries enforced by ESLint import rules and a bare-Node purity test (`tests/core-purity.test.ts`).
 - `src/core` cannot import from `src/adapters`, `src/ui`, or React.
 - `src/adapters` cannot import from `src/ui`.
-- `src/ui` renders view models only and delegates all state mutations to session callbacks.
+- `src/ui` renders view models only and delegates all state mutations to session callbacks via `ActionsContext`.
 
 ## Data Architecture
 - In-memory event-sourced journal: All state changes in the Herdr simulation are recorded as journal entries with provenance tags (`player`, `script`, `fixture`, `host`).
@@ -98,8 +99,8 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 ## Test Coverage
 - Overall coverage: 100% of critical paths across core, adapter, and UI.
 - Test suites:
-  - 20 Vitest test files (**181 unit, property, and fidelity tests**).
-  - 7 Playwright test files (**22 E2E, accessibility, navigation, and visual tests passing**).
+  - 21 Vitest test files (**198 unit, property, and fidelity tests passing**).
+  - 7 Playwright test files (**26 E2E, accessibility, navigation, visual, and keyboard policy tests passing**).
 - Test patterns:
   - Core purity tests (bare Node process invocation).
   - Fast-check generative property tests for navigation, keymaps, layouts, session recovery, assessment provenance, determinism, and chrome routing.
@@ -112,25 +113,21 @@ Hexagonal / Clean Architecture with strict architectural boundaries:
 - `index.html`: Web application HTML shell.
 - `src/main.tsx`: React DOM client root mounting `App` in `React.StrictMode`.
 - `src/App.tsx`: Top-level scene router, session lifecycle, recovery listener, and keyboard capture coordinator.
+- `src/ui/ActionsContext.tsx`: Context provider for UI actions decoupling pointer chrome from prop chains.
 - `vite.config.ts`: Vite build and development configuration.
 - `playwright.config.ts`: Playwright test runner configuration.
 
 ## Changed Files
-- `GLOSSARY.md` (Domain modeling: added canonical entries for "Simulated Claude Code session", "Bounded task assignment", "Source-handling protocol CPA-01A", "Fresh Herdr session", "Two-curricula model", "Spiral learning progression", "Scaffolding fading rule", "Dual clock system")
-- `docs/adr/0007-deterministic-in-terminal-agent-simulation.md` (ADR for simulated Claude Code CLI child processes in fresh Herdr session topology)
-- `src/core/applications/index.ts` (Deterministic in-terminal CLI agent simulation, document vault, and read receipts)
-- `docs/LEARNING_DESIGN.md` (15-level spiral learning progression map across Curriculum A S01-S12 and Curriculum B A01-A07)
-- `docs/LEVEL.md` (Reconciled L1-L15 contracts with Curriculum A/B, fading rules, and dual clock)
-- `src/core/herdr/store.ts` (Level 1 starts in a fresh single-pane terminal session in workspace `main`, added new-workspace overlay support)
-- `src/core/assessment/index.ts` (Updated objective evaluation for terminal-driven workspace and tab creation)
-- `src/adapters/investigation-session.ts` (Recovery v4, in-terminal agent integration, grounded story actions)
-- `tests/navigation-properties.test.ts` (Fast-check: navigation roundtrip, URL fuzzing)
-- `tests/session-recovery-properties.test.ts` (Fast-check: recovery serde roundtrip, corrupt JSON safety)
-- `tests/layout-properties.test.ts` (Fast-check: area conservation, disjoint panes, split ratios)
-- `tests/keymap-properties.test.ts` (Fast-check: normalization idempotence, backtab, prefix resolution)
-- `tests/assessment-properties.test.ts` (Fast-check: non-player event immunity, objective monotonicity)
-- `tests/fictional-applications.test.ts` (Unit tests for in-terminal agent simulation)
-- `tests/investigation-l3.test.ts` (Level 3 vertical slice investigation journey test)
+- `src/ui/ActionsContext.tsx`: Context boundary and hook eliminating prop-drilling across the preview component tree.
+- `tests/actions-context.test.ts`: Unit test suite verifying `ActionsContext` provider and consumer behavior.
+- `src/App.tsx`: Bound actions to `ActionsProvider`; simplified component tree.
+- `src/ui/MandatePreview.tsx`: Eliminated drilled callbacks; refactored `ActiveTabView`, `WorkspaceItem`, and `TabButton` to consume `useMandateActions()`; enforced single `$ ` prompt without duplicate markers.
+- `src/core/applications/index.ts`: In-pane command line editing engine (`applyLineEdit`, `insertAtCursor`, backspace, cursor positioning), token relevance matching, fallback suggestions, and paste support.
+- `tests/fictional-applications.test.ts`: Added unit tests for line editing, mid-line cursor insertion/deletion, token relevance matching, and paste.
+- `tests/e2e/keyboard-policy.spec.ts`: Re-anchored prompt editing expectations to authentic `$ ` prompt and validated single-prompt launch.
+- `docs/ARCHITECTURE.md`: Documented `ActionsContext` UI boundary and calibrated replay determinism vs snapshot recovery contracts.
+- `README.md`: Calibrated behavioral authority and replay determinism statements.
+- `GLOSSARY.md`: Sharpened domain model (Token relevance matching, Reload recovery, Purity compiler audit, Actions context, In-pane command editing).
 
 ## Last Scanned
-2026-11-24T17:44:00Z
+2026-11-24T20:10:00Z

@@ -52,6 +52,10 @@ _Avoid_: Reporter, freelance agent, private investigator, auditor
 A deterministic, in-terminal simulation of an automated LLM coding agent (Claude Code v1.0.12) running as a child process inside a dedicated Herdr pane. Emits bounded, reproducible log outputs, hashes, and audit extractions without connecting to external networks or requiring API credentials.
 _Avoid_: Real Claude API, backend LLM integration, chatbot widget
 
+**Token relevance matching**:
+The prompt-matching mechanism used in `src/core/applications/index.ts` where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
+_Avoid_: NLP model, fuzzy regex, vector search, semantic embedder
+
 **Bounded task assignment**:
 Directing a simulated agent with narrow, falsifiable verification questions (e.g. audit metadata, extract timestamp, calculate hash) rather than unbounded open-ended prompts, producing structured evidence suitable for cross-examination.
 _Avoid_: Prompt engineering, agent chat, freeform prompting
@@ -182,9 +186,33 @@ _Avoid_: Terminal header, TUI top bar, multiplexer banner, console HUD
 A clean multiplexer session starting with a single active tab and one un-split terminal pane in the default workspace. Does not pre-populate split panes or pre-open unearned reference documents.
 _Avoid_: Pre-split template, default layout fixture, starter panes
 
-**Two-curricula model (Curriculum A & B)**:
-The pedagogical separation between authentic Herdr multiplexer operations (Curriculum A: S01–S12) and simulated Claude Code agent orchestration (Curriculum B: A01–A07). Herdr provides the session persistence, spatial layout, and process isolation needed to supervise and cross-examine automated agents.
-_Avoid_: Merged shortcuts, compound skills, general tool usage
+**Single curriculum model (Herdr keyboard operations as sole curriculum)**:
+The strict pedagogical boundary governing assessment: authentic Herdr multiplexer operations (S01–S12) constitute the sole assessed curriculum for keyboard-transfer credit. Fictional Claude Code agent orchestration and newsroom document tools supply the narrative work to organize, never an assessed skill. Prompt quality, tool choice, and investigative reasoning advance the story but never grant keyboard credit.
+_Avoid_: Two-curricula model, prompt grading, agent curriculum, dual assessment
+
+**Agent state rollup (`RawAgentState` / `Working`, `Blocked`, `Idle/Done`)**:
+The three live process states projected in the Herdr spaces & agents sidebar: Working (🟢, active command execution or document search), Blocked (🟡, process suspended awaiting player intervention or confirmation, such as witness consent), and Idle/Done (⚪, task completed or terminal waiting for input, subject to client-side unviewed presentation).
+_Avoid_: Agent status bar, task stage, process badge
+
+**Client-side seen/unseen acknowledgment**:
+The rule that a completed/idle agent remains flagged with its completion indicator in the local client's sidebar until the player focuses or views that specific pane surface, matching authentic Herdr v0.9.5 per-client composition rules.
+_Avoid_: Server acknowledgment, read receipt, global seen flag
+
+**Actions context (`ActionsProvider` / `useMandateActions`)**:
+The React context boundary (`src/ui/ActionsContext.tsx`) providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components from prop-drilling without violating Standard mode's keyboard-only rule.
+_Avoid_: Global state store, redux action, UI controller
+
+**In-pane command line editing**:
+Authentic terminal line editing inside focused shell panes where printable characters, Backspace, Ctrl+U (line clear), Ctrl+C (cancel), and cursor navigation operate directly on the live prompt buffer (`$ <input>`) without duplicating prompt glyphs or emitting synthetic key names.
+_Avoid_: Form input, textbox edit, terminal textarea
+
+**Reload recovery (Development state caching)**:
+The development-only mechanism in `src/adapters/investigation-session.ts` that preserves committed state across hot reloads in `sessionStorage` via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
+_Avoid_: Save game, checkpoint save, persistent database
+
+**Purity compiler audit**:
+The automated static verification in `tests/core-purity.test.ts` using the TypeScript compiler AST (`ts.createSourceFile`) to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across `src/core/**/*.ts`.
+_Avoid_: Regex test, lint script, import scanner
 
 **Spiral learning progression (`[I]`, `[G]`, `[Ind]`, `[M]`)**:
 The four-stage progression advancing each skill through: Introduce (explicit binding prompt and safe initial trial), Guided Practice (contextual reminders and optional hints), Independent Retrieval (outcome-based goal with keybindings omitted from prompt), and Cumulative Mastery (checkpoint or final boss assessment under operational pressure).
