@@ -131,41 +131,34 @@ function usePhaseNavigation(
   }, [phase]);
 }
 
+function getStorage(type: "local" | "session"): Storage | null {
+  try {
+    return type === "local"
+      ? typeof localStorage !== "undefined"
+        ? localStorage
+        : null
+      : typeof sessionStorage !== "undefined"
+        ? sessionStorage
+        : null;
+  } catch {
+    return null;
+  }
+}
+
 function readStorage(key: string): string | null {
-  try {
-    if (typeof localStorage !== "undefined") {
-      const val = localStorage.getItem(key);
-      if (val) return val;
-    }
-  } catch {
-    // Ignore storage availability errors
-  }
-  try {
-    if (typeof sessionStorage !== "undefined") {
-      return sessionStorage.getItem(key);
-    }
-  } catch {
-    // Ignore storage availability errors
-  }
-  return null;
+  return getStorage("local")?.getItem(key) ?? getStorage("session")?.getItem(key) ?? null;
 }
 
 function writeStorage(key: string, value: string | null): void {
-  try {
-    if (typeof localStorage !== "undefined") {
-      if (value === null) localStorage.removeItem(key);
-      else localStorage.setItem(key, value);
+  for (const type of ["local", "session"] as const) {
+    const s = getStorage(type);
+    if (!s) continue;
+    try {
+      if (value === null) s.removeItem(key);
+      else s.setItem(key, value);
+    } catch {
+      // Ignore storage write errors
     }
-  } catch {
-    // Ignore storage write errors
-  }
-  try {
-    if (typeof sessionStorage !== "undefined") {
-      if (value === null) sessionStorage.removeItem(key);
-      else sessionStorage.setItem(key, value);
-    }
-  } catch {
-    // Ignore storage write errors
   }
 }
 
@@ -427,7 +420,13 @@ export function App() {
               onToggleCapture={captured ? release : engage}
               onSetAccessible={(on) => session.setAccessibleMode(on)}
             />
-            <div className="terminal" ref={surfaceHostRef}>
+            <div
+              className="terminal"
+              ref={surfaceHostRef}
+              onClick={() => {
+                if (!captured) engage();
+              }}
+            >
               {snapshot.application.herdrLaunched ? (
                 <MandatePreview
                   snapshot={snapshot.herdr}

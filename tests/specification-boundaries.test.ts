@@ -16,11 +16,7 @@ function getActiveTab(state: HerdrState): TabState {
   const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId) ?? state.workspaces[0]!;
   return ws.tabs.find((t) => t.id === ws.activeTabId) ?? ws.tabs[0]!;
 }
-import {
-  createAssessment,
-  observe,
-  type AssessmentState,
-} from "../src/core/assessment";
+import { createAssessment, observe, type AssessmentState } from "../src/core/assessment";
 
 const playerKey = (state: ApplicationState, key: string, paneId?: string, level = 1) =>
   stepApplication(state, { kind: "key", origin: "player", key, paneId }, level);

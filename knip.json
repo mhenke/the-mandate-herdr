@@ -2,6 +2,7 @@
   "entry": ["tests/**/*.test.ts"],
   "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
   "ignore": ["src/content/**"],
+  "ignoreBinaries": ["graphify"],
   "rules": {
     "exports": "off",
     "types": "off"

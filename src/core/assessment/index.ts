@@ -218,18 +218,22 @@ export function observe(
           (workspace) => !before.workspaces.some((old) => old.id === workspace.id),
         )
       : undefined;
-  const l1WorkspaceId = progress.l1WorkspaceId ?? (assessment.level === 1 ? createdWorkspace?.id ?? null : null);
+  const l1WorkspaceId =
+    progress.l1WorkspaceId ?? (assessment.level === 1 ? (createdWorkspace?.id ?? null) : null);
   const l4FilingWorkspaceId =
-    progress.l4FilingWorkspaceId ?? (assessment.level === 4 ? createdWorkspace?.id ?? null : null);
+    progress.l4FilingWorkspaceId ??
+    (assessment.level === 4 ? (createdWorkspace?.id ?? null) : null);
   const l5TriageWorkspaceId =
-    progress.l5TriageWorkspaceId ?? (assessment.level === 5 ? createdWorkspace?.id ?? null : null);
+    progress.l5TriageWorkspaceId ??
+    (assessment.level === 5 ? (createdWorkspace?.id ?? null) : null);
 
   const split =
     player &&
     (action === "split-right" || action === "split-down") &&
     paneCount(after) > paneCount(before);
-  const newPaneId =
-    split ? (afterTab?.panes.find((pane) => pane.id !== beforeFocus?.id)?.id ?? null) : null;
+  const newPaneId = split
+    ? (afterTab?.panes.find((pane) => pane.id !== beforeFocus?.id)?.id ?? null)
+    : null;
   const l3NewPaneId = progress.l3NewPaneId ?? (assessment.level === 3 ? newPaneId : null);
   const l4DraftPaneId = progress.l4DraftPaneId ?? (assessment.level === 4 ? newPaneId : null);
   const l5SplitPaneId = progress.l5SplitPaneId ?? (assessment.level === 5 ? newPaneId : null);
@@ -259,8 +263,7 @@ export function observe(
   const next: Progress = {
     ...progress,
     l1WorkspaceCreated:
-      progress.l1WorkspaceCreated ||
-      (assessment.level === 1 && createdWorkspace !== undefined),
+      progress.l1WorkspaceCreated || (assessment.level === 1 && createdWorkspace !== undefined),
     l1WorkspaceId,
     l1TabCreated:
       progress.l1TabCreated ||
@@ -277,7 +280,9 @@ export function observe(
     l2RenamedTabId,
     l2SwitchedAway:
       progress.l2SwitchedAway ||
-      Boolean(assessment.level === 2 && tabSwitch && l2RenamedTabId && afterTab?.id !== l2RenamedTabId),
+      Boolean(
+        assessment.level === 2 && tabSwitch && l2RenamedTabId && afterTab?.id !== l2RenamedTabId,
+      ),
     l2SwitchedBack:
       progress.l2SwitchedBack ||
       Boolean(
@@ -344,8 +349,7 @@ export function observe(
     l5SplitPaneId,
     l5FocusMoved: progress.l5FocusMoved || Boolean(assessment.level === 5 && focusChanged),
     l5TypedInTargetPane:
-      progress.l5TypedInTargetPane ||
-      Boolean(assessment.level === 5 && typedInFocused),
+      progress.l5TypedInTargetPane || Boolean(assessment.level === 5 && typedInFocused),
   };
 
   return finalize({ ...assessment, progress: next, helpConsulted });
@@ -372,40 +376,65 @@ function renamedTab(before: HerdrState, after: HerdrState, entry: JournalEntry):
   return null;
 }
 
-function metIds(level: Level, progress: Progress): Set<ObjectiveId> {
+function metIdsL1(progress: Progress): Set<ObjectiveId> {
   const met = new Set<ObjectiveId>();
-  if (level === 1) {
-    if (progress.l1HerdrLaunched) met.add("L1-O1");
-    if (progress.l1WorkspaceCreated) met.add("L1-O2");
-    if (progress.l1TabCreated) met.add("L1-O3");
-  }
-  if (level === 2) {
-    if (progress.l2SecondTab && progress.l2RenamedTabId !== null) met.add("L2-O1");
-    if (progress.l2SwitchedAway && progress.l2SwitchedBack) met.add("L2-O2");
-  }
-  if (level === 3) {
-    if (progress.l3Split && progress.l3FocusMoved && progress.l3TypedInNewPane) met.add("L3-O1");
-    if (progress.l3RenamedTabId !== null) met.add("L3-O2");
-  }
-  if (level === 4) {
-    if (
-      progress.l4FilingWorkspaceCreated &&
-      progress.l4Split &&
-      progress.l4TypedInDraft &&
-      progress.l4NavigatedBack
-    ) {
-      met.add("L4-O1");
-    }
-    if (progress.l4TypedInDraft) met.add("L4-O2");
-  }
-  if (level === 5) {
-    if (progress.l5TabCount >= 2 && progress.l5RenamedTabs.length >= 1) met.add("L5-O1");
-    if (progress.l5Split) met.add("L5-O2");
-    if (progress.l5FocusMoved && progress.l5TypedInTargetPane) met.add("L5-O3");
-    if (progress.l5FindingSubmitted) met.add("L5-O4");
-    if (progress.l5TriageWorkspaceCreated) met.add("L5-O5");
-  }
+  if (progress.l1HerdrLaunched) met.add("L1-O1");
+  if (progress.l1WorkspaceCreated) met.add("L1-O2");
+  if (progress.l1TabCreated) met.add("L1-O3");
   return met;
+}
+
+function metIdsL2(progress: Progress): Set<ObjectiveId> {
+  const met = new Set<ObjectiveId>();
+  if (progress.l2SecondTab && progress.l2RenamedTabId !== null) met.add("L2-O1");
+  if (progress.l2SwitchedAway && progress.l2SwitchedBack) met.add("L2-O2");
+  return met;
+}
+
+function metIdsL3(progress: Progress): Set<ObjectiveId> {
+  const met = new Set<ObjectiveId>();
+  if (progress.l3Split && progress.l3FocusMoved && progress.l3TypedInNewPane) met.add("L3-O1");
+  if (progress.l3RenamedTabId !== null) met.add("L3-O2");
+  return met;
+}
+
+function metIdsL4(progress: Progress): Set<ObjectiveId> {
+  const met = new Set<ObjectiveId>();
+  if (
+    progress.l4FilingWorkspaceCreated &&
+    progress.l4Split &&
+    progress.l4TypedInDraft &&
+    progress.l4NavigatedBack
+  ) {
+    met.add("L4-O1");
+  }
+  if (progress.l4TypedInDraft) met.add("L4-O2");
+  return met;
+}
+
+function metIdsL5(progress: Progress): Set<ObjectiveId> {
+  const met = new Set<ObjectiveId>();
+  if (progress.l5TabCount >= 2 && progress.l5RenamedTabs.length >= 1) met.add("L5-O1");
+  if (progress.l5Split) met.add("L5-O2");
+  if (progress.l5FocusMoved && progress.l5TypedInTargetPane) met.add("L5-O3");
+  if (progress.l5FindingSubmitted) met.add("L5-O4");
+  if (progress.l5TriageWorkspaceCreated) met.add("L5-O5");
+  return met;
+}
+
+function metIds(level: Level, progress: Progress): Set<ObjectiveId> {
+  switch (level) {
+    case 1:
+      return metIdsL1(progress);
+    case 2:
+      return metIdsL2(progress);
+    case 3:
+      return metIdsL3(progress);
+    case 4:
+      return metIdsL4(progress);
+    case 5:
+      return metIdsL5(progress);
+  }
 }
 
 const EVIDENCE: Record<ObjectiveId, string> = {
@@ -416,7 +445,8 @@ const EVIDENCE: Record<ObjectiveId, string> = {
   "L2-O2": "player switched away from and back to the named tab",
   "L3-O1": "player split panes, moved focus, and typed in the new pane",
   "L3-O2": "player renamed a tab through Herdr",
-  "L4-O1": "player created filing workspace, staged draft in split pane, and navigated between workspaces",
+  "L4-O1":
+    "player created filing workspace, staged draft in split pane, and navigated between workspaces",
   "L4-O2": "player directed input to the draft pane before filing",
   "L5-O1": "player organized fresh intake records across multiple named tabs",
   "L5-O2": "player created comparison split for intake records",

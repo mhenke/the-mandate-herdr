@@ -81,7 +81,9 @@ test("Episode I full journey (L1–L5): files VN-12, triages intake, and complet
   // Advance to L4
   await page.getByRole("button", { name: "Continue the investigation" }).click();
   await expect(page.getByRole("heading", { name: "Incoming assignment" })).toBeVisible();
-  await expect(page.getByText(/Drafting Verifier Note VN-12 requires strict separation/)).toBeVisible();
+  await expect(
+    page.getByText(/Drafting Verifier Note VN-12 requires strict separation/),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Open the workspace" }).click();
   await expect(page.getByRole("heading", { name: /Level 4/ })).toBeVisible();
 

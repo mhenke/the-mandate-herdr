@@ -5,11 +5,7 @@
 export type Level = 1 | 2 | 3 | 4 | 5;
 
 export type StoryEventId =
-  | "SE-L1-assignment"
-  | "SE-L2-artifact"
-  | "SE-L3-interview"
-  | "SE-L4-filing"
-  | "SE-L5-retention1";
+  "SE-L1-assignment" | "SE-L2-artifact" | "SE-L3-interview" | "SE-L4-filing" | "SE-L5-retention1";
 
 export type StoryActionId =
   | "read-memo"
@@ -73,36 +69,57 @@ function flag(story: StoryState, value: StoryFlag): StoryState {
  * consent recorded). They never grant keyboard-transfer credit; assessment
  * observes Herdr facts separately.
  */
+function applyL1StoryAction(story: StoryState, action: StoryActionId): StoryState {
+  if (action === "read-memo") return fire(story, "SE-L1-assignment");
+  if (action === "acknowledge-assignment" && story.events.includes("SE-L1-assignment")) {
+    return flag(story, "assignment-accepted");
+  }
+  return story;
+}
+
+function applyL2StoryAction(story: StoryState, action: StoryActionId): StoryState {
+  if (action === "examine-artifact") return fire(story, "SE-L2-artifact");
+  return story;
+}
+
+function applyL3StoryAction(story: StoryState, action: StoryActionId): StoryState {
+  if (action === "record-consent") return flag(story, "consent-recorded");
+  if (action === "complete-interview" && story.flags.includes("consent-recorded")) {
+    return fire(story, "SE-L3-interview");
+  }
+  return story;
+}
+
+function applyL4StoryAction(story: StoryState, action: StoryActionId): StoryState {
+  if (action === "draft-vn12") return fire(story, "SE-L4-filing");
+  if (action === "file-vn12-paraphrase") {
+    return fire(flag(flag(story, "source-protection-paraphrase"), "vn12-filed"), "SE-L4-filing");
+  }
+  if (action === "file-vn12-detail") {
+    return fire(flag(flag(story, "source-protection-detail"), "vn12-filed"), "SE-L4-filing");
+  }
+  return story;
+}
+
+function applyL5StoryAction(story: StoryState, action: StoryActionId): StoryState {
+  if (action === "submit-finding") {
+    return fire(flag(story, "retention1-submitted"), "SE-L5-retention1");
+  }
+  return story;
+}
+
 export function applyStoryAction(story: StoryState, action: StoryActionId): StoryState {
-  switch (action) {
-    case "read-memo":
-      return story.level === 1 ? fire(story, "SE-L1-assignment") : story;
-    case "acknowledge-assignment":
-      return story.level === 1 && story.events.includes("SE-L1-assignment")
-        ? flag(story, "assignment-accepted")
-        : story;
-    case "examine-artifact":
-      return story.level === 2 ? fire(story, "SE-L2-artifact") : story;
-    case "record-consent":
-      return story.level === 3 ? flag(story, "consent-recorded") : story;
-    case "complete-interview":
-      return story.level === 3 && story.flags.includes("consent-recorded")
-        ? fire(story, "SE-L3-interview")
-        : story;
-    case "draft-vn12":
-      return story.level === 4 ? fire(story, "SE-L4-filing") : story;
-    case "file-vn12-paraphrase":
-      return story.level === 4
-        ? fire(flag(flag(story, "source-protection-paraphrase"), "vn12-filed"), "SE-L4-filing")
-        : story;
-    case "file-vn12-detail":
-      return story.level === 4
-        ? fire(flag(flag(story, "source-protection-detail"), "vn12-filed"), "SE-L4-filing")
-        : story;
-    case "submit-finding":
-      return story.level === 5
-        ? fire(flag(story, "retention1-submitted"), "SE-L5-retention1")
-        : story;
+  switch (story.level) {
+    case 1:
+      return applyL1StoryAction(story, action);
+    case 2:
+      return applyL2StoryAction(story, action);
+    case 3:
+      return applyL3StoryAction(story, action);
+    case 4:
+      return applyL4StoryAction(story, action);
+    case 5:
+      return applyL5StoryAction(story, action);
   }
 }
 
@@ -140,8 +157,8 @@ const EPISODE = "Episode I — THE LEAK";
 const BRIEFING: Record<Level, string> = {
   1:
     "June Adebayo needs the source-handling rules checked before anyone contacts the protected source. " +
-    "The terminal is ready. Type herdr, create an investigation workspace and a research tab, then " +
-    "start Claude and retrieve CPA-01A. Read the original memo before you accept the assignment.",
+    "The terminal is ready. Type herdr, start Claude Code in the terminal, then " +
+    "retrieve CPA-01A. Read the original memo before you accept the assignment.",
   2:
     "The cooperative received SOC Memo UM-1109-88 with its origin headers removed. Keep the shared " +
     "copy in a second Herdr tab beside CPA-01A. Ask Claude to retrieve the record so June can decide " +
@@ -173,7 +190,7 @@ const RESPONSE: Record<Level, string> = {
     "The scan happened. That does not make this an independent report. " +
     "Keep LT-47B with the transcript. We will need it when we write VN-12.",
   4:
-    'Adebayo: Verifier Note VN-12 filed at 19:05 EST. Submission acknowledgement SUB-ACK-12 returned on the wire: ' +
+    "Adebayo: Verifier Note VN-12 filed at 19:05 EST. Submission acknowledgement SUB-ACK-12 returned on the wire: " +
     '"Origin blank (form default). Retraction always receivable prior to formal certification. ' +
     'Counting review next cycle." Keep both workspaces intact—morning paperwork arrives tomorrow.',
   5:
@@ -186,9 +203,8 @@ const RESPONSE: Record<Level, string> = {
 const HINTS: Record<Level, readonly string[]> = {
   1: [
     "The terminal is ready. Type herdr and press Enter.",
-    "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
-    "Press Ctrl+B, then C. Name the tab research.",
-    "Type claude. Ask Claude to find CPA-01A.",
+    "Type claude and press Enter to start Claude Code.",
+    "Ask Claude to find CPA-01A.",
     "Read the memo. Then tell Claude: Accept the assignment.",
   ],
   2: [

@@ -410,9 +410,10 @@ export function CompleteScene({ onReturn }: { readonly onReturn: () => void }): 
       <p className="scene-kicker">Episode I Complete — The Leak</p>
       <h2 id="complete-heading">The Third Count</h2>
       <p className="scene-lede">
-        Verifier Note VN-12 has been counted as R-2 under &ldquo;independent pending verification.&rdquo;
-        With three reports on file, Emergency Package F-47-E3 has been recommended for Board vote on November 24.
-        Episode II: The Containment begins in the next milestone release.
+        Verifier Note VN-12 has been counted as R-2 under &ldquo;independent pending
+        verification.&rdquo; With three reports on file, Emergency Package F-47-E3 has been
+        recommended for Board vote on November 24. Episode II: The Containment begins in the next
+        milestone release.
       </p>
       <div className="scene-actions">
         <button type="button" autoFocus onClick={onReturn} aria-keyshortcuts="R">

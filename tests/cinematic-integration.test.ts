@@ -118,4 +118,3 @@ describe("cinematic integration contracts", () => {
     expect(l3OutroManifest.spoilerExclusions.revealsThirdReportTrap).toBe(false);
   });
 });
-

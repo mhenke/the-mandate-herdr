@@ -907,6 +907,12 @@ function isNavigateCancel(key: string, mods: readonly Modifier[]): boolean {
   return key === "escape" || (key === "[" && mods.includes("ctrl")) || isPrefixKey(key, mods);
 }
 
+function navigateDelta(key: string): number | null {
+  if (key === "up" || key === "arrowup" || key === "k") return -1;
+  if (key === "down" || key === "arrowdown" || key === "j") return 1;
+  return null;
+}
+
 function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifier[]): Routed {
   if (isNavigateCancel(key, mods)) {
     return {
@@ -915,15 +921,8 @@ function routeNavigateKey(state: HerdrState, key: string, mods: readonly Modifie
       action: "navigate-cancel",
     };
   }
-  if (
-    key === "up" ||
-    key === "down" ||
-    key === "arrowup" ||
-    key === "arrowdown" ||
-    key === "k" ||
-    key === "j"
-  ) {
-    const delta = key === "up" || key === "arrowup" || key === "k" ? -1 : 1;
+  const delta = navigateDelta(key);
+  if (delta !== null) {
     const count = state.workspaces.length;
     const next = (state.navigateSelection + delta + count) % count;
     return {

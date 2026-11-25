@@ -47,13 +47,6 @@ export type Phase =
   | "complete"
   | "not-found";
 
-export type PresentationEvent =
-  | { readonly kind: "presentation"; readonly action: "cold-open-started" }
-  | { readonly kind: "presentation"; readonly action: "pause" }
-  | { readonly kind: "presentation"; readonly action: "resume" }
-  | { readonly kind: "presentation"; readonly action: "skip" }
-  | { readonly kind: "presentation"; readonly action: "ended" };
-
 export interface AssessmentProgress {
   readonly objectives: readonly ObjectiveRecord[];
   readonly hintsUsed: number;

@@ -30,11 +30,7 @@ export interface AgentHistoryEntry {
 }
 
 export type ApplicationTaskPhase =
-  | "queued"
-  | "working"
-  | "waiting_for_input"
-  | "settled"
-  | "failed";
+  "queued" | "working" | "waiting_for_input" | "settled" | "failed";
 
 export interface AgentSession {
   readonly status: "ready" | "blocked";
@@ -286,50 +282,45 @@ function isAssignmentIntent(request: string): boolean {
   return false;
 }
 
-function isVn12FilingIntent(
-  request: string,
-): { filing: boolean; choice: "paraphrase" | "detail" | null } {
-  const norm = normalize(request);
-  const mentionsVn12 =
-    norm.includes("vn-12") ||
-    norm.includes("vn12") ||
-    norm.includes("verifier note") ||
-    norm.includes("note") ||
-    norm.includes("filing");
-  const mentionsFile =
-    norm.includes("file") ||
-    norm.includes("draft") ||
-    norm.includes("submit") ||
-    norm.includes("commit");
-  const mentionsParaphrase =
-    norm.includes("paraphrase") || norm.includes("quill safe") || norm.includes("protect source");
-  const mentionsDetail =
-    norm.includes("detail") || norm.includes("identifying") || norm.includes("stronger");
+const VN12_KEYWORDS = ["vn-12", "vn12", "verifier note", "note", "filing"] as const;
+const FILE_KEYWORDS = ["file", "draft", "submit", "commit"] as const;
+const PARAPHRASE_KEYWORDS = ["paraphrase", "quill safe", "protect source"] as const;
+const DETAIL_KEYWORDS = ["detail", "identifying", "stronger"] as const;
+const FINDING_ACTIONS = ["submit", "file", "compile", "triage", "provenance"] as const;
+const FINDING_PHRASES = [
+  "submit finding",
+  "compile finding",
+  "file finding",
+  "triage intake",
+] as const;
 
-  if (mentionsVn12 || mentionsFile) {
-    if (mentionsParaphrase) return { filing: true, choice: "paraphrase" };
-    if (mentionsDetail) return { filing: true, choice: "detail" };
-    if (mentionsVn12 && mentionsFile) return { filing: true, choice: null };
-  }
-  if (mentionsParaphrase) return { filing: true, choice: "paraphrase" };
-  if (mentionsDetail) return { filing: true, choice: "detail" };
+function hasAnyKeyword(text: string, keywords: readonly string[]): boolean {
+  return keywords.some((k) => text.includes(k));
+}
+
+function vn12Choice(text: string): "paraphrase" | "detail" | null {
+  if (hasAnyKeyword(text, PARAPHRASE_KEYWORDS)) return "paraphrase";
+  if (hasAnyKeyword(text, DETAIL_KEYWORDS)) return "detail";
+  return null;
+}
+
+function isVn12FilingIntent(request: string): {
+  filing: boolean;
+  choice: "paraphrase" | "detail" | null;
+} {
+  const norm = normalize(request);
+  const choice = vn12Choice(norm);
+  if (choice !== null) return { filing: true, choice };
+  const mentionsVn12 = hasAnyKeyword(norm, VN12_KEYWORDS);
+  const mentionsFile = hasAnyKeyword(norm, FILE_KEYWORDS);
+  if (mentionsVn12 && mentionsFile) return { filing: true, choice: null };
   return { filing: false, choice: null };
 }
 
 function isFindingSubmissionIntent(request: string): boolean {
   const norm = normalize(request);
-  return (
-    (norm.includes("finding") &&
-      (norm.includes("submit") ||
-        norm.includes("file") ||
-        norm.includes("compile") ||
-        norm.includes("triage") ||
-        norm.includes("provenance"))) ||
-    norm.includes("submit finding") ||
-    norm.includes("compile finding") ||
-    norm.includes("file finding") ||
-    norm.includes("triage intake")
-  );
+  if (FINDING_PHRASES.some((phrase) => norm.includes(phrase))) return true;
+  return norm.includes("finding") && hasAnyKeyword(norm, FINDING_ACTIONS);
 }
 
 function documentForRequest(state: ApplicationState, request: string): FictionalDocument | null {
@@ -520,7 +511,11 @@ function runAgentRequest(
       "assistant",
       "Name a record or an investigative question.",
     );
-    nextState = setAgent(nextState, paneId, { ...agent, status: "ready", phase: "waiting_for_input" });
+    nextState = setAgent(nextState, paneId, {
+      ...agent,
+      status: "ready",
+      phase: "waiting_for_input",
+    });
     return {
       state: nextState,
       effects: paneOutput(paneId, [

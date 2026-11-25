@@ -30,135 +30,156 @@ function met(objectives: readonly ObjectiveRecord[], id: string): boolean {
   return objectives.some((objective) => objective.id === id && objective.met);
 }
 
-function mission(
-  level: number,
-  props: GameHudProps,
-): {
+function missionL1(props: GameHudProps): {
   objective: string;
   why: string;
   steps: readonly HudStep[];
 } {
-  const { application, objectives, responseReady, story } = props;
-  if (level === 1) {
-    return {
-      objective: "Accept June's assignment.",
-      why: "Read the handling memo before you contact the source.",
-      steps: [
-        {
-          label: "Start Herdr",
-          instruction: "Type herdr, then press Enter.",
-          complete: application.herdrLaunched,
-        },
-        {
-          label: "Create the investigation workspace",
-          instruction: "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
-          complete: met(objectives, "L1-O2"),
-        },
-        {
-          label: "Open a research tab",
-          instruction: "Press Ctrl+B, then C. Name it research.",
-          complete: met(objectives, "L1-O3"),
-        },
-        {
-          label: "Ask Claude to find CPA-01A",
-          instruction: "Type claude. Ask it to find CPA-01A.",
-          complete: story.events.includes("SE-L1-assignment"),
-        },
-        {
-          label: "Read CPA-01A, then accept June's assignment",
-          instruction: "Read the rules. Tell Claude: Accept the assignment.",
-          complete: story.flags.includes("assignment-accepted"),
-        },
-      ],
-    };
-  }
-  if (level === 2) {
-    return {
-      objective: "Compare the SOC report with the handling memo.",
-      why: "The shared report has no origin header.",
-      steps: [
-        {
-          label: "Add a report tab",
-          instruction: "Press Ctrl+B, then C. Name it report.",
-          complete: met(objectives, "L2-O1"),
-        },
-        {
-          label: "Switch to the source, then back to the report",
-          instruction: "Switch with Ctrl+B P, then Ctrl+B N.",
-          complete: met(objectives, "L2-O2"),
-        },
-        {
-          label: "Ask Claude for UM-1109-88",
-          instruction: "Start Claude in the report tab. Ask for UM-1109-88.",
-          complete: story.events.includes("SE-L2-artifact"),
-        },
-        {
-          label: "Get June's update",
-          complete: responseReady,
-        },
-      ],
-    };
-  }
-  if (level === 3) {
-    return {
-      objective: "Put Park's account beside the SOC report.",
-      why: "His account may explain what happened during those five minutes.",
-      steps: [
-        {
-          label: "Split the report tab",
-          instruction:
-            "Press Ctrl+B V. Move with Ctrl+B H and Ctrl+B L. Type claude in the new pane.",
-          complete: met(objectives, "L3-O1"),
-        },
-        {
-          label: "Name the interview tab",
-          instruction: "Press Ctrl+B, then Shift+T. Clear with Ctrl+U, then type park-interview.",
-          complete: met(objectives, "L3-O2"),
-        },
-        {
-          label: "Ask Claude for Park's transcript",
-          instruction: "Ask Claude for Park's interview about LT-47B.",
-          complete: story.events.includes("SE-L3-interview"),
-        },
-        {
-          label: "Get June's update",
-          complete: responseReady,
-        },
-      ],
-    };
-  }
-  if (level === 4) {
-    return {
-      objective: "Draft and file Verifier Note VN-12.",
-      why: "Keep drafting strictly separated from your live investigation transcripts.",
-      steps: [
-        {
-          label: "Create a filing workspace",
-          instruction: "Press Ctrl+B then Shift+N. Name it filing.",
-          complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
-        },
-        {
-          label: "Split the filing tab to stage draft",
-          instruction: "Press Ctrl+B V. Move between panes with Ctrl+B H and Ctrl+B L.",
-          complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
-        },
-        {
-          label: "Draft and file VN-12 (paraphrase vs detail)",
-          instruction: "Start Claude. Ask Claude to file VN-12 with paraphrase or detail.",
-          complete: story.events.includes("SE-L4-filing"),
-        },
-        {
-          label: "Navigate back to reading workspace",
-          instruction: "Press Ctrl+B W to open navigator. Select your investigation workspace.",
-          complete: met(objectives, "L4-O1"),
-        },
-        {
-          label: "Receive submission acknowledgement",
-          complete: responseReady,
-        },
-      ],
-    };
-  }
+  const { application, objectives, story } = props;
+  return {
+    objective: "Accept June's assignment.",
+    why: "Read the handling memo before you contact the source.",
+    steps: [
+      {
+        label: "Start Herdr",
+        instruction: "Type herdr, then press Enter.",
+        complete: application.herdrLaunched,
+      },
+      {
+        label: "Create the investigation workspace",
+        instruction: "Press Ctrl+B. Release both keys, then press Shift+N. Name the workspace.",
+        complete: met(objectives, "L1-O2"),
+      },
+      {
+        label: "Open a research tab",
+        instruction: "Press Ctrl+B, then C. Name it research.",
+        complete: met(objectives, "L1-O3"),
+      },
+      {
+        label: "Ask Claude to find CPA-01A",
+        instruction: "Type claude. Ask it to find CPA-01A.",
+        complete: story.events.includes("SE-L1-assignment"),
+      },
+      {
+        label: "Read CPA-01A, then accept June's assignment",
+        instruction: "Read the rules. Tell Claude: Accept the assignment.",
+        complete: story.flags.includes("assignment-accepted"),
+      },
+    ],
+  };
+}
+
+function missionL2(props: GameHudProps): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  const { objectives, responseReady, story } = props;
+  return {
+    objective: "Compare the SOC report with the handling memo.",
+    why: "The shared report has no origin header.",
+    steps: [
+      {
+        label: "Add a report tab",
+        instruction: "Press Ctrl+B, then C. Name it report.",
+        complete: met(objectives, "L2-O1"),
+      },
+      {
+        label: "Switch to the source, then back to the report",
+        instruction: "Switch with Ctrl+B P, then Ctrl+B N.",
+        complete: met(objectives, "L2-O2"),
+      },
+      {
+        label: "Ask Claude for UM-1109-88",
+        instruction: "Start Claude in the report tab. Ask for UM-1109-88.",
+        complete: story.events.includes("SE-L2-artifact"),
+      },
+      {
+        label: "Get June's update",
+        complete: responseReady,
+      },
+    ],
+  };
+}
+
+function missionL3(props: GameHudProps): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  const { objectives, responseReady, story } = props;
+  return {
+    objective: "Put Park's account beside the SOC report.",
+    why: "His account may explain what happened during those five minutes.",
+    steps: [
+      {
+        label: "Split the report tab",
+        instruction:
+          "Press Ctrl+B V. Move with Ctrl+B H and Ctrl+B L. Type claude in the new pane.",
+        complete: met(objectives, "L3-O1"),
+      },
+      {
+        label: "Name the interview tab",
+        instruction: "Press Ctrl+B, then Shift+T. Clear with Ctrl+U, then type park-interview.",
+        complete: met(objectives, "L3-O2"),
+      },
+      {
+        label: "Ask Claude for Park's transcript",
+        instruction: "Ask Claude for Park's interview about LT-47B.",
+        complete: story.events.includes("SE-L3-interview"),
+      },
+      {
+        label: "Get June's update",
+        complete: responseReady,
+      },
+    ],
+  };
+}
+
+function missionL4(props: GameHudProps): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  const { objectives, responseReady, story } = props;
+  return {
+    objective: "Draft and file Verifier Note VN-12.",
+    why: "Keep drafting strictly separated from your live investigation transcripts.",
+    steps: [
+      {
+        label: "Create a filing workspace",
+        instruction: "Press Ctrl+B then Shift+N. Name it filing.",
+        complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
+      },
+      {
+        label: "Split the filing tab to stage draft",
+        instruction: "Press Ctrl+B V. Move between panes with Ctrl+B H and Ctrl+B L.",
+        complete: met(objectives, "L4-O1") || met(objectives, "L4-O2"),
+      },
+      {
+        label: "Draft and file VN-12 (paraphrase vs detail)",
+        instruction: "Start Claude. Ask Claude to file VN-12 with paraphrase or detail.",
+        complete: story.events.includes("SE-L4-filing"),
+      },
+      {
+        label: "Navigate back to reading workspace",
+        instruction: "Press Ctrl+B W to open navigator. Select your investigation workspace.",
+        complete: met(objectives, "L4-O1"),
+      },
+      {
+        label: "Receive submission acknowledgement",
+        complete: responseReady,
+      },
+    ],
+  };
+}
+
+function missionL5(props: GameHudProps): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  const { objectives } = props;
   return {
     objective: "Triage fresh intake batch and file finding.",
     why: "Morning paperwork delivered INT-RECEIPT-12. Verify the intake batch independently.",
@@ -190,6 +211,28 @@ function mission(
       },
     ],
   };
+}
+
+function mission(
+  level: number,
+  props: GameHudProps,
+): {
+  objective: string;
+  why: string;
+  steps: readonly HudStep[];
+} {
+  switch (level) {
+    case 1:
+      return missionL1(props);
+    case 2:
+      return missionL2(props);
+    case 3:
+      return missionL3(props);
+    case 4:
+      return missionL4(props);
+    default:
+      return missionL5(props);
+  }
 }
 function HudCaptureIndicator({
   captured,

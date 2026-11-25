@@ -106,9 +106,11 @@ describe("L4: Filed 19:05 (Verifier Note VN-12 and Choice 1)", () => {
     const initialWsId = initialWs?.id;
 
     // Earlier evidence is intact
-    expect(
-      session.getSnapshot().application.readReceipts.map((r) => r.documentId),
-    ).toEqual(["CPA-01A", "UM-1109-88", "PARK-INTERVIEW-11-13"]);
+    expect(session.getSnapshot().application.readReceipts.map((r) => r.documentId)).toEqual([
+      "CPA-01A",
+      "UM-1109-88",
+      "PARK-INTERVIEW-11-13",
+    ]);
 
     expect(session.getSnapshot().assessment.objectives.map((o) => o.id)).toEqual([
       "L4-O1",
@@ -143,7 +145,9 @@ describe("L4: Filed 19:05 (Verifier Note VN-12 and Choice 1)", () => {
     expect(snapshot.story.flags).toContain("source-protection-paraphrase");
     expect(snapshot.story.flags).toContain("vn12-filed");
     expect(snapshot.story.events).toContain("SE-L4-filing");
-    expect(focusedPane(session)?.output.join("\n")).toContain("SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12");
+    expect(focusedPane(session)?.output.join("\n")).toContain(
+      "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+    );
 
     // L4-O1 requires returning to the reading workspace
     expect(objectiveMet(session, "L4-O1")).toBe(false);
