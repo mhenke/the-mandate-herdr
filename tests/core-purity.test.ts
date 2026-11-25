@@ -73,14 +73,12 @@ function findBrowserGlobals(sourceFile: ts.SourceFile): string[] {
     // Check unambiguous globals like window, navigator, etc.
     if (ts.isIdentifier(node) && UNAMBIGUOUS_BROWSER_GLOBALS.has(node.text)) {
       const parent = node.parent;
-      if (
-        !(
-          (ts.isPropertyAccessExpression(parent) &&
-            parent.name === node &&
-            parent.expression !== node) ||
-          (ts.isPropertyAssignment(parent) && parent.name === node)
-        )
-      ) {
+      if (!(
+        (ts.isPropertyAccessExpression(parent) &&
+          parent.name === node &&
+          parent.expression !== node) ||
+        (ts.isPropertyAssignment(parent) && parent.name === node)
+      )) {
         foundGlobals.push(node.text);
       }
     }

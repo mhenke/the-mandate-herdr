@@ -113,9 +113,13 @@ describe("session recovery property tests", () => {
           const isValidPolicy = ["standard", "accessible"].includes(mutatedPayload.policy);
           const isValidAttempt = mutatedPayload.attempt === null;
 
-          if (
-            !(isValidVersion && isValidPhase && isValidSuspended && isValidPolicy && isValidAttempt)
-          ) {
+          if (!(
+            isValidVersion &&
+            isValidPhase &&
+            isValidSuspended &&
+            isValidPolicy &&
+            isValidAttempt
+          )) {
             expect(result).toBe(false);
           }
         },

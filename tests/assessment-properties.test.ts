@@ -19,13 +19,11 @@ const arbitraryNonPlayerEvent: fc.Arbitrary<InputEvent> = fc.oneof(
       line: fc.string({ maxLength: 50 }),
       paneId: fc.constantFrom("pane-1", "pane-2", "pane-3", "assignment", "memo"),
     })
-    .map(
-      ({ line, paneId }): InputEvent => ({
-        kind: "process",
-        origin: "process",
-        process: { kind: "output", paneId, line },
-      }),
-    ),
+    .map(({ line, paneId }): InputEvent => ({
+      kind: "process",
+      origin: "process",
+      process: { kind: "output", paneId, line },
+    })),
   fc.constant<InputEvent>({ kind: "host", origin: "host", host: "blur" }),
   fc.constant<InputEvent>({ kind: "host", origin: "host", host: "focus" }),
   fc.constant<InputEvent>({ kind: "host", origin: "host", host: "reattach" }),
@@ -51,15 +49,13 @@ const arbitraryPlayerKeyEvent: fc.Arbitrary<InputEvent> = fc
     ),
     modifiers: fc.subarray(["ctrl", "alt", "shift"] as const),
   })
-  .map(
-    ({ key, modifiers }): InputEvent => ({
-      kind: "key",
-      origin: "player",
-      key,
-      modifiers: [...modifiers],
-      phase: "press",
-    }),
-  );
+  .map(({ key, modifiers }): InputEvent => ({
+    kind: "key",
+    origin: "player",
+    key,
+    modifiers: [...modifiers],
+    phase: "press",
+  }));
 
 describe("assessment property tests", () => {
   it("property: non-player events (process/host) never satisfy any player objective", () => {
