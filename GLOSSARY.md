@@ -68,6 +68,10 @@ _Avoid_: Prompt engineering, agent chat, freeform prompting
 The governing investigative rules enforced across the Cooperative network: (01) Verify origin before relying on material, (02) Preserve attribution and the chain of custody, and (03) Assume nothing confirmed—one origin is one claim, not independent corroboration.
 _Avoid_: Editorial guidelines, newsroom rules, style guide
 
+**Off-record consent gate**:
+The procedural requirement where an investigative witness interview (such as Theo Park's account of misfire `LT-47B` in L3) cannot be unsealed or admitted into evidence until off-record consent terms are explicitly confirmed, triggering an authentic `blocked` state in the running process.
+_Avoid_: Interview unlock, dialogue choice, Q&A prompt
+
 **Cooperative (Capital Press & Analyst Cooperative)**:
 The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
 _Avoid_: Agency, newsroom, syndicate, union
@@ -175,8 +179,12 @@ Clickable terminal grid regions active only when mouse capture is enabled. In th
 _Avoid_: UI buttons, overlay clicks, pointer shortcuts
 
 **Mode bar**:
-The modal status strip painted at the bottom of the active pane surface during non-terminal modes (prefix, copy, resize, navigate). In standard terminal mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
-_Avoid_: Status bar, bottom dock, info footer
+The authentic terminal status projection painted across row 40 during modal states (navigate, prefix, copy, resize) that places the mode indicator and key hints on a single unified line aligned with the sidebar collapse affordance. It is entirely unmounted in terminal mode and carries no artificial counters or synthetic status footers.
+_Avoid_: Status bar, bottom dock, info footer, two-tier mode bar
+
+**Compact sidebar**:
+The 4-character collapsed sidebar state (upstream Herdr `14-sidebar-compact`) displaying workspace index numerals and process status dots while collapsing long names and header chrome. Preserves authentic 80-column terminal area on mobile or constrained viewports (`< 680px`).
+_Avoid_: Collapsed menu, hamburger sidebar, mini dock
 
 **Named session vs default server session**:
 The process isolation boundary separating independent Herdr instances. A named session isolates Unix domain sockets and runtime state in dedicated user directories, allowing safe termination without affecting the shared default server session.

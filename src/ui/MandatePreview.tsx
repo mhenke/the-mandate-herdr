@@ -348,11 +348,7 @@ interface ModeHintItem {
   readonly desc: string;
 }
 
-function ModeHints({
-  hints,
-}: {
-  readonly hints: readonly ModeHintItem[];
-}) {
+function ModeHints({ hints }: { readonly hints: readonly ModeHintItem[] }) {
   return (
     <>
       {hints.map((hint, idx) => (

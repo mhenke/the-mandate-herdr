@@ -1,14 +1,7 @@
 {
-  "entry": [
-    "tests/**/*.test.ts"
-  ],
-  "project": [
-    "src/**/*.{ts,tsx}",
-    "tests/**/*.ts"
-  ],
-  "ignore": [
-    "src/content/**"
-  ],
+  "entry": ["tests/**/*.test.ts"],
+  "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
+  "ignore": ["src/content/**"],
   "rules": {
     "exports": "off",
     "types": "off"

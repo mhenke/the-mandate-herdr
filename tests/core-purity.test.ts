@@ -75,7 +75,9 @@ function findBrowserGlobals(sourceFile: ts.SourceFile): string[] {
       const parent = node.parent;
       if (
         !(
-          (ts.isPropertyAccessExpression(parent) && parent.name === node && parent.expression !== node) ||
+          (ts.isPropertyAccessExpression(parent) &&
+            parent.name === node &&
+            parent.expression !== node) ||
           (ts.isPropertyAssignment(parent) && parent.name === node)
         )
       ) {
@@ -122,10 +124,9 @@ describe("core purity AST verification", () => {
 
       for (const specifier of imports) {
         for (const pattern of FORBIDDEN_MODULE_PATTERNS) {
-          expect(
-            pattern.test(specifier),
-            `Forbidden module import "${specifier}" in ${path}`,
-          ).toBe(false);
+          expect(pattern.test(specifier), `Forbidden module import "${specifier}" in ${path}`).toBe(
+            false,
+          );
         }
       }
     }

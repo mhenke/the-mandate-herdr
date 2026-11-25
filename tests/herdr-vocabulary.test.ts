@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createScenario,
-  createStore,
-  isPrefixKey,
-  resolvePrefixBinding,
-} from "../src/core/herdr";
+import { createScenario, createStore, isPrefixKey, resolvePrefixBinding } from "../src/core/herdr";
 import { normalizeDomKey } from "../src/adapters/herdr-browser";
 
 // Host-key normalization contract for the adapter. Mirrors

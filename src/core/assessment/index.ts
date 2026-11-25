@@ -197,10 +197,10 @@ export function observe(
       progress.l1TabCreated ||
       Boolean(
         player &&
-        l1WorkspaceId &&
-        before.activeWorkspaceId === l1WorkspaceId &&
-        after.activeWorkspaceId === l1WorkspaceId &&
-        tabCount(after) > tabCount(before),
+          l1WorkspaceId &&
+          before.activeWorkspaceId === l1WorkspaceId &&
+          after.activeWorkspaceId === l1WorkspaceId &&
+          tabCount(after) > tabCount(before),
       ),
     l2SecondTab: progress.l2SecondTab || Boolean(player && tabCount(after) > tabCount(before)),
     l2RenamedTabId,
@@ -211,9 +211,9 @@ export function observe(
       progress.l2SwitchedBack ||
       Boolean(
         progress.l2SwitchedAway &&
-        tabSwitch &&
-        progress.l2RenamedTabId &&
-        afterTab?.id === progress.l2RenamedTabId,
+          tabSwitch &&
+          progress.l2RenamedTabId &&
+          afterTab?.id === progress.l2RenamedTabId,
       ),
     l3Split: progress.l3Split || Boolean(split),
     l3NewPaneId: newPaneId,
@@ -221,22 +221,22 @@ export function observe(
       progress.l3FocusMoved ||
       Boolean(
         (progress.l3Split || split) &&
-        player &&
-        isFocusAction(action) &&
-        beforeFocus &&
-        afterFocus &&
-        beforeFocus.id !== afterFocus.id,
+          player &&
+          isFocusAction(action) &&
+          beforeFocus &&
+          afterFocus &&
+          beforeFocus.id !== afterFocus.id,
       ),
     l3TypedInNewPane:
       progress.l3TypedInNewPane ||
       Boolean(
         progress.l3FocusMoved &&
-        player &&
-        entry.effect === "forwarded" &&
-        isTypedChar(entry) &&
-        newPaneId &&
-        afterFocus?.id === newPaneId &&
-        inputGrew(before, after, newPaneId),
+          player &&
+          entry.effect === "forwarded" &&
+          isTypedChar(entry) &&
+          newPaneId &&
+          afterFocus?.id === newPaneId &&
+          inputGrew(before, after, newPaneId),
       ),
     l3RenamedTabId: progress.l3RenamedTabId ?? renamed,
   };
