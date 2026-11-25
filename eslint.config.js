@@ -15,7 +15,13 @@ const coreOnly = (label, forbidden) => [
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "references/feasibility/**", ".playwright-mcp/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "references/feasibility/**",
+      ".playwright-mcp/**",
+      ".worktrees/**",
+    ],
   },
   ...tseslint.configs.recommended.map((config) => ({ ...config, files: ["**/*.{ts,tsx}"] })),
   {

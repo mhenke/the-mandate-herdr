@@ -128,25 +128,61 @@
         "role": "secondary",
         "displayName": "Terminal Muted Text",
         "canonical": "#9aa4b0",
-        "tonalRamp": ["#0b0d10", "#23262b", "#3d424a", "#585e68", "#737b86", "#929aa6", "#b9c0c9", "#eff1f3"]
+        "tonalRamp": [
+          "#0b0d10",
+          "#23262b",
+          "#3d424a",
+          "#585e68",
+          "#737b86",
+          "#929aa6",
+          "#b9c0c9",
+          "#eff1f3"
+        ]
       },
       "terminal-bright": {
         "role": "neutral",
         "displayName": "Terminal Bright Text",
         "canonical": "#e6edf3",
-        "tonalRamp": ["#0a0b0c", "#202224", "#393c3f", "#55585c", "#72767a", "#909498", "#b9bec3", "#f1f3f5"]
+        "tonalRamp": [
+          "#0a0b0c",
+          "#202224",
+          "#393c3f",
+          "#55585c",
+          "#72767a",
+          "#909498",
+          "#b9bec3",
+          "#f1f3f5"
+        ]
       },
       "terminal-border": {
         "role": "neutral",
         "displayName": "Terminal Border",
         "canonical": "#3e4452",
-        "tonalRamp": ["#090a0c", "#1e2025", "#363941", "#51545e", "#6e717b", "#8b8e99", "#b4b6c0", "#edeef1"]
+        "tonalRamp": [
+          "#090a0c",
+          "#1e2025",
+          "#363941",
+          "#51545e",
+          "#6e717b",
+          "#8b8e99",
+          "#b4b6c0",
+          "#edeef1"
+        ]
       },
       "terminal-inverse": {
         "role": "neutral",
         "displayName": "Terminal Inverse Text",
         "canonical": "#181825",
-        "tonalRamp": ["#0a0b10", "#20212a", "#393948", "#535463", "#6f7080", "#8d8d9f", "#b5b6c8", "#eeeef3"]
+        "tonalRamp": [
+          "#0a0b10",
+          "#20212a",
+          "#393948",
+          "#535463",
+          "#6f7080",
+          "#8d8d9f",
+          "#b5b6c8",
+          "#eeeef3"
+        ]
       },
       "focus-blue": {
         "role": "tertiary",

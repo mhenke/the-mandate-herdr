@@ -1,0 +1,5 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "ignorePatterns": ["src/content/**"],
+  "ignoreDependencies": ["hyperframes"]
+}

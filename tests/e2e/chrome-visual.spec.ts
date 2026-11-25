@@ -17,7 +17,7 @@ test("chrome visual evidence: startup, Herdr, workspace, and split panes", async
   await surface.focus();
   await page.keyboard.press("Control+b");
   await page.keyboard.press("w");
-  await expect(page.locator(".herdr-modebar")).toHaveText("« NAVIGATE");
+  await expect(page.locator(".herdr-modebar")).toContainText("« NAVIGATE");
   await page.screenshot({ path: "/tmp/opencode/mandate-final/final-modebar-navigate.png" });
   await page.keyboard.press("Escape");
   await expect(page.locator(".herdr-modebar")).toHaveCount(0);

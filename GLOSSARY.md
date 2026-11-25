@@ -57,7 +57,7 @@ A deterministic, in-terminal simulation of an automated LLM coding agent (Claude
 _Avoid_: Real Claude API, backend LLM integration, chatbot widget
 
 **Token relevance matching**:
-The prompt-matching mechanism used in `src/core/applications/index.ts` where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
+The prompt-matching mechanism where natural language requests are scored against document IDs (hyphenated and unhyphenated), titles, and search terms, replacing rigid regular expression matching.
 _Avoid_: NLP model, fuzzy regex, vector search, semantic embedder
 
 **Bounded task assignment**:
@@ -68,9 +68,9 @@ _Avoid_: Prompt engineering, agent chat, freeform prompting
 The governing investigative rules enforced across the Cooperative network: (01) Verify origin before relying on material, (02) Preserve attribution and the chain of custody, and (03) Assume nothing confirmed—one origin is one claim, not independent corroboration.
 _Avoid_: Editorial guidelines, newsroom rules, style guide
 
-**Cooperative (Capital Press & Analyst Cooperative)**:
-The independent press and analysis network whose corroborating records satisfy intake verification rules without state authority.
-_Avoid_: Agency, newsroom, syndicate, union
+**Off-record consent gate**:
+The procedural requirement where an investigative witness interview (such as Theo Park's account of misfire `LT-47B` in L3) cannot be unsealed or admitted into evidence until off-record consent terms are explicitly confirmed, triggering an authentic `blocked` state in the running process.
+_Avoid_: Interview unlock, dialogue choice, Q&A prompt
 
 **Counter-provenance filing (CPF)**:
 The affirmative instrument proving common source and retracting the filer's own contribution. Subtraction alone (withdrawing a report) is never sufficient; the filing must establish the shared origin.
@@ -175,8 +175,12 @@ Clickable terminal grid regions active only when mouse capture is enabled. In th
 _Avoid_: UI buttons, overlay clicks, pointer shortcuts
 
 **Mode bar**:
-The modal status strip painted at the bottom of the active pane surface during non-terminal modes (prefix, copy, resize, navigate). In standard terminal mode, the mode bar is absent and the bottom row remains part of the pane scrollback surface.
-_Avoid_: Status bar, bottom dock, info footer
+The authentic terminal status projection painted across row 40 during modal states (navigate, prefix, copy, resize) that places the mode indicator and key hints on a single unified line aligned with the sidebar collapse affordance. It is entirely unmounted in terminal mode and carries no artificial counters or synthetic status footers.
+_Avoid_: Status bar, bottom dock, info footer, two-tier mode bar
+
+**Compact sidebar**:
+The 4-character collapsed sidebar state (upstream Herdr `14-sidebar-compact`) displaying workspace index numerals and process status dots while collapsing long names and header chrome. Preserves authentic 80-column terminal area on mobile or constrained viewports (`< 680px`).
+_Avoid_: Collapsed menu, hamburger sidebar, mini dock
 
 **Named session vs default server session**:
 The process isolation boundary separating independent Herdr instances. A named session isolates Unix domain sockets and runtime state in dedicated user directories, allowing safe termination without affecting the shared default server session.
@@ -207,7 +211,7 @@ The rule that a completed/idle agent remains flagged with its completion indicat
 _Avoid_: Server acknowledgment, read receipt, global seen flag
 
 **Actions context (`ActionsProvider` / `useMandateActions`)**:
-The React context boundary (`src/ui/ActionsContext.tsx`) providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components from prop-drilling without violating Standard mode's keyboard-only rule.
+The presentation boundary providing a unified dispatcher for user-initiated multiplexer actions (workspace selection, tab switching, new tab, pane focus). Decouples presentation components without violating Standard mode's keyboard-only rule.
 _Avoid_: Global state store, redux action, UI controller
 
 **In-pane command line editing**:
@@ -215,11 +219,11 @@ Authentic terminal line editing inside focused shell panes where printable chara
 _Avoid_: Form input, textbox edit, terminal textarea
 
 **Reload recovery (Development state caching)**:
-The development-only mechanism in `src/adapters/investigation-session.ts` that preserves committed state across hot reloads in `sessionStorage` via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
+The development mechanism that preserves committed state across hot reloads via validated schema snapshots (for narrative, application, and assessment states) and journal event replay (for the Herdr multiplexer engine). Defers permanent persistence to Milestone 3 and never manufactures learning credit.
 _Avoid_: Save game, checkpoint save, persistent database
 
 **Purity compiler audit**:
-The automated static verification in `tests/core-purity.test.ts` using the TypeScript compiler AST (`ts.createSourceFile`) to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across `src/core/**/*.ts`.
+The automated static verification using compiler AST analysis to inspect import declarations, export declarations, dynamic imports, CommonJS calls, and browser global identifier accesses across pure core simulation modules.
 _Avoid_: Regex test, lint script, import scanner
 
 **Spiral learning progression (`[I]`, `[G]`, `[Ind]`, `[M]`)**:

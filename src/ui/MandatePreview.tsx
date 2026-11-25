@@ -299,6 +299,7 @@ function WorkspaceItem({
       type="button"
       className={isActive ? "herdr-ws herdr-ws-active" : "herdr-ws"}
       aria-current={isActive ? "true" : undefined}
+      aria-label={`${workspace.name} ${tabName}`}
       onClick={() => {
         actions.selectWorkspace(workspace.id);
       }}
@@ -307,7 +308,7 @@ function WorkspaceItem({
         <span className="herdr-ws-dot" aria-hidden="true">
           ·
         </span>
-        {workspace.name}
+        <span className="herdr-ws-label">{workspace.name}</span>
       </span>
       <span className="herdr-ws-tab">{tabName}</span>
     </button>
@@ -347,18 +348,9 @@ interface ModeHintItem {
   readonly desc: string;
 }
 
-function ModeHints({
-  badge,
-  badgeClass,
-  hints,
-}: {
-  readonly badge: string;
-  readonly badgeClass?: string;
-  readonly hints: readonly ModeHintItem[];
-}) {
+function ModeHints({ hints }: { readonly hints: readonly ModeHintItem[] }) {
   return (
     <>
-      <span className={`herdr-mode-badge ${badgeClass ?? ""}`.trim()}>{badge}</span>
       {hints.map((hint, idx) => (
         <span key={hint.key}>
           {idx > 0 && "\u00A0\u00A0"}
@@ -368,6 +360,56 @@ function ModeHints({
       ))}
     </>
   );
+}
+
+function renderModeHints(mode: string, modeBarMode: string): JSX.Element | null {
+  if (mode === "navigate" || modeBarMode === "navigate") {
+    return (
+      <ModeHints
+        hints={[
+          { key: "esc", desc: "back" },
+          { key: "↑/↓", desc: "workspace" },
+          { key: "tab", desc: "pane" },
+          { key: "?", desc: "keybinds" },
+        ]}
+      />
+    );
+  }
+  if (mode === "prefix") {
+    return (
+      <ModeHints
+        hints={[
+          { key: "esc", desc: "cancel" },
+          { key: "ctrl+b", desc: "send prefix" },
+          { key: "w", desc: "workspace nav" },
+          { key: "?", desc: "keybinds" },
+        ]}
+      />
+    );
+  }
+  if (mode === "copy" || modeBarMode === "copy") {
+    return (
+      <ModeHints
+        hints={[
+          { key: "esc", desc: "cancel" },
+          { key: "/", desc: "search" },
+          { key: "n/N", desc: "next" },
+          { key: "y", desc: "yank" },
+        ]}
+      />
+    );
+  }
+  if (modeBarMode === "resize") {
+    return (
+      <ModeHints
+        hints={[
+          { key: "esc", desc: "done" },
+          { key: "←/↓/↑/→", desc: "resize" },
+        ]}
+      />
+    );
+  }
+  return null;
 }
 
 export function MandatePreview({
@@ -381,16 +423,6 @@ export function MandatePreview({
   const surfaceRef = useRef<HTMLDivElement>(null);
   const workspace = snapshot.workspaces.find((w) => w.id === snapshot.activeWorkspaceId);
   const tab = workspace?.tabs.find((t) => t.id === workspace.activeTabId) ?? null;
-  const activeWorkspaceIndex = Math.max(
-    0,
-    snapshot.workspaces.findIndex((w) => w.id === snapshot.activeWorkspaceId),
-  );
-  const activeTabIndex = Math.max(
-    0,
-    workspace?.tabs.findIndex((t) => t.id === workspace.activeTabId) ?? 0,
-  );
-  const totalTabs = Math.max(1, workspace?.tabs.length ?? 1);
-  const paneCount = tab?.panes.length ?? 0;
   const agents = snapshot.workspaces.flatMap((currentWorkspace) =>
     currentWorkspace.tabs.flatMap((currentTab) =>
       currentTab.panes
@@ -496,60 +528,16 @@ export function MandatePreview({
             )}
             {snapshot.overlay ? <OverlayView overlay={snapshot.overlay} /> : null}
           </div>
-          {snapshot.modeBar.visible ? (
-            <p className="herdr-modebar" aria-live="polite">
-              « {snapshot.modeBar.mode.toUpperCase()}
-            </p>
-          ) : null}
-          <footer
-            className="herdr-bottom-bar"
-            aria-label="Status bar"
-            hidden={snapshot.mode === "terminal"}
-          >
-            <div className="herdr-bottom-left">
-              {snapshot.mode === "prefix" ? (
-                <ModeHints
-                  badge="PREFIX"
-                  hints={[
-                    { key: "esc", desc: "cancel" },
-                    { key: "ctrl+b", desc: "send prefix" },
-                    { key: "w", desc: "workspace nav" },
-                    { key: "?", desc: "keybinds" },
-                  ]}
-                />
-              ) : snapshot.mode === "navigate" ? (
-                <ModeHints
-                  badge="NAVIGATE"
-                  badgeClass="herdr-mode-badge-nav"
-                  hints={[
-                    { key: "esc", desc: "back" },
-                    { key: "↑/↓", desc: "workspace" },
-                    { key: "tab", desc: "pane" },
-                    { key: "?", desc: "keybinds" },
-                  ]}
-                />
-              ) : snapshot.mode === "copy" ? (
-                <ModeHints
-                  badge="COPY"
-                  badgeClass="herdr-mode-badge-copy"
-                  hints={[
-                    { key: "esc", desc: "cancel" },
-                    { key: "/", desc: "search" },
-                    { key: "n/N", desc: "next" },
-                    { key: "y", desc: "yank" },
-                  ]}
-                />
-              ) : (
-                <span className="herdr-mode-hint">? for shortcuts</span>
-              )}
-            </div>
-            <div className="herdr-bottom-right">
-              <span>
-                WORKSPACE {activeWorkspaceIndex + 1} · TAB {activeTabIndex + 1}/{totalTabs} · PANES{" "}
-                {paneCount}
+          {snapshot.modeBar.visible || snapshot.mode === "prefix" ? (
+            <footer className="herdr-modebar" role="status" aria-live="polite">
+              <span className="herdr-modebar-title">
+                « {(snapshot.modeBar.visible ? snapshot.modeBar.mode : snapshot.mode).toUpperCase()}
               </span>
-            </div>
-          </footer>
+              <div className="herdr-modebar-hints">
+                {renderModeHints(snapshot.mode, snapshot.modeBar.mode)}
+              </div>
+            </footer>
+          ) : null}
         </div>
       </div>
       {reminder ? (

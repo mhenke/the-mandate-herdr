@@ -203,7 +203,10 @@ function paneOutput(paneId: string, lines: readonly string[]): ApplicationEffect
 
 function tokenize(text: string): readonly string[] {
   const normalized = normalize(text);
-  const words = normalized.replace(/[^a-z0-9-]/g, " ").split(/\s+/).filter(Boolean);
+  const words = normalized
+    .replace(/[^a-z0-9-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
   const tokens: string[] = [];
   for (const word of words) {
     tokens.push(word);
@@ -635,11 +638,7 @@ export function stepApplication(
   if (!input.paneId) return ignoreInput(state);
   const paneId = input.paneId;
   if (commandKey === "enter") return submitPane(state, paneId, level);
-  const next = applyLineEdit(
-    state.paneInputs[paneId] ?? "",
-    state.paneCursors?.[paneId],
-    input,
-  );
+  const next = applyLineEdit(state.paneInputs[paneId] ?? "", state.paneCursors?.[paneId], input);
   if (!next) return ignoreInput(state);
   return {
     state: {

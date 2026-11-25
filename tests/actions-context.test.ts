@@ -29,11 +29,7 @@ describe("ActionsContext", () => {
     }
 
     renderToStaticMarkup(
-      React.createElement(
-        ActionsProvider,
-        { actions },
-        React.createElement(Consumer),
-      ),
+      React.createElement(ActionsProvider, { actions }, React.createElement(Consumer)),
     );
 
     expect(capturedActions).toBe(actions);

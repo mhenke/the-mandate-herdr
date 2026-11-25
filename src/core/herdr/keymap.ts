@@ -249,4 +249,3 @@ export function helpBindingRows(): readonly HelpGroup[] {
 export function helpRowCount(): number {
   return helpBindingRows().reduce((total, group) => total + group.rows.length, 0);
 }
-
