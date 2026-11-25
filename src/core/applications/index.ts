@@ -364,6 +364,233 @@ function availableRecordHints(records: readonly FictionalDocument[], level: numb
   return available.length > 0 ? ` Available records: ${available.join(", ")}.` : "";
 }
 
+function handleAssignmentRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  if (
+    !state.readReceipts.some(
+      (receipt) => receipt.documentId === "CPA-01A" && receipt.paneId === paneId,
+    )
+  ) {
+    const nextAgent = addHistory(
+      { ...agent, lastTask: "blocked", phase: "failed" },
+      "assistant",
+      "Read CPA-01A before you accept June's assignment.",
+    );
+    const nextState = setAgent(state, paneId, { ...nextAgent, status: "ready", phase: "failed" });
+    return {
+      state: nextState,
+      effects: paneOutput(paneId, ["June's assignment stays on hold until CPA-01A is read."]),
+    };
+  }
+  const nextAgent = addHistory(
+    { ...agent, lastTask: "completed", phase: "settled" },
+    "assistant",
+    "June Adebayo acknowledges the assignment.",
+  );
+  const nextState = setAgent({ ...state, assignmentAcknowledged: true }, paneId, nextAgent);
+  return {
+    state: nextState,
+    effects: [
+      ...paneOutput(paneId, [
+        "JUNE ADEBAYO // Cooperative editor",
+        "Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.",
+      ]),
+      { kind: "assignment-acknowledged" },
+    ],
+  };
+}
+
+function handleVn12FilingRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  choice: "paraphrase" | "detail" | null,
+): ApplicationTransition {
+  if (!choice) {
+    const nextAgent = addHistory(
+      { ...agent, lastTask: null, phase: "waiting_for_input" },
+      "assistant",
+      "Specify source protection choice: paraphrase or detail.",
+    );
+    return {
+      state: setAgent(state, paneId, nextAgent),
+      effects: paneOutput(paneId, [
+        "CLAUDE CODE // VN-12 FILING STAGING",
+        "CHOICE 1 (Source Protection):",
+        "  Option A: 'paraphrase' — Paraphrase witness account (Quill safe; thinner filing basis).",
+        "  Option B: 'detail' — Include specific technical details from LT-47B log (stronger now; exposure risk follows).",
+        "Type 'paraphrase' or 'detail' to commit Verifier Note VN-12 to the wire.",
+      ]),
+    };
+  }
+
+  const choiceLabel =
+    choice === "paraphrase"
+      ? "Paraphrase witness account (Source Quill protected)"
+      : "Identifying technical detail (LT-47B log specifics included)";
+  const ackDoc = state.records.find((r) => r.id === "SUB-ACK-12");
+  const subReceipt = { documentId: "SUB-ACK-12", paneId };
+  const readReceipts = state.readReceipts.some(
+    (item) => item.documentId === "SUB-ACK-12" && item.paneId === paneId,
+  )
+    ? state.readReceipts
+    : [...state.readReceipts, subReceipt];
+
+  const nextAgent = addHistory(
+    { ...agent, lastTask: "completed", phase: "settled" },
+    "assistant",
+    `Filed VN-12 with ${choice}. Received SUB-ACK-12.`,
+  );
+  return {
+    state: setAgent({ ...state, readReceipts }, paneId, nextAgent),
+    effects: [
+      ...paneOutput(paneId, [
+        "SUBMITTING VERIFIER NOTE VN-12 TO EIAB INTAKE…",
+        `CHOICE COMMITTED: ${choiceLabel}`,
+        "--- WIRE ACKNOWLEDGEMENT FOLLOWS ---",
+        ...(ackDoc?.body ?? [
+          "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
+          "FILING: Verifier Note VN-12.",
+          "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
+        ]),
+        "EIAB WIRE STATUS: 19:05 EST — Filing acknowledged. Retraction always receivable.",
+      ]),
+      { kind: "document-read", documentId: "SUB-ACK-12" },
+      { kind: "vn12-filed", choice },
+    ],
+  };
+}
+
+function handleFindingSubmissionRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+): ApplicationTransition {
+  const nextAgent = addHistory(
+    { ...agent, lastTask: "completed", phase: "settled" },
+    "assistant",
+    "Compiled finding on fresh intake set.",
+  );
+  return {
+    state: setAgent(state, paneId, nextAgent),
+    effects: [
+      ...paneOutput(paneId, [
+        "COOPERATIVE PROVENANCE AUDIT // INTAKE BATCH 1114",
+        "FINDING COMPILED FOR INTAKE QUEUE:",
+        "  1. INT-RECEIPT-12: VN-12 docketed as R-2 under 'independent pending verification'.",
+        "  2. INTAKE-BATCH-1114: Triage complete across entries 01–03.",
+        "  3. COUNTING LINE: 3 of 3 required corroborating submissions committed.",
+        "STATUS: Finding committed to newsroom record. Emergency package recommendation noted.",
+      ]),
+      { kind: "finding-submitted" },
+    ],
+  };
+}
+
+function handleDocumentSearchRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  request: string,
+  level: number,
+): ApplicationTransition {
+  const document = documentForRequest(state, request);
+  if (!document) {
+    const nextAgent = addHistory(
+      { ...agent, lastTask: "unrecognized", phase: "waiting_for_input" },
+      "assistant",
+      "Name a record or an investigative question.",
+    );
+    const nextState = setAgent(state, paneId, {
+      ...nextAgent,
+      status: "ready",
+      phase: "waiting_for_input",
+    });
+    return {
+      state: nextState,
+      effects: paneOutput(paneId, [
+        `I could not identify a record. Name a document or record ID.${availableRecordHints(state.records, level)}`,
+      ]),
+    };
+  }
+
+  const query = document.id;
+  const search =
+    (document.availableFromLevel ?? 1) > level
+      ? ({ ok: false, error: "not_found" } as const)
+      : searchDocuments(state.records, query);
+  let updatedAgent = addHistory(agent, "tool", `documents.search ${JSON.stringify({ query })}`);
+  const lines = [
+    "Searching the cooperative document index…",
+    `MCP CALL documents.search(${JSON.stringify({ query })})`,
+  ];
+  if (!search.ok) {
+    lines.push(`MCP RESULT documents.search error: ${search.error}`);
+    updatedAgent = addHistory(
+      { ...updatedAgent, status: "blocked", phase: "failed", lastTask: "blocked" },
+      "assistant",
+      search.error,
+    );
+    return { state: setAgent(state, paneId, updatedAgent), effects: paneOutput(paneId, lines) };
+  }
+
+  lines.push(`MCP RESULT documents.search: ${document.id} — ${document.title}`);
+  updatedAgent = addHistory(
+    updatedAgent,
+    "tool",
+    `documents.search result ${JSON.stringify(search.matches)}`,
+  );
+  const read = readDocument(state.records, document.id);
+  updatedAgent = addHistory(
+    updatedAgent,
+    "tool",
+    `documents.read ${JSON.stringify({ id: document.id })}`,
+  );
+  lines.push(`MCP CALL documents.read(${JSON.stringify({ id: document.id })})`);
+  if (!read.ok) {
+    lines.push(`MCP RESULT documents.read error: ${read.error}`);
+    updatedAgent = addHistory(
+      { ...updatedAgent, status: "blocked", phase: "failed", lastTask: "blocked" },
+      "assistant",
+      read.error,
+    );
+    return { state: setAgent(state, paneId, updatedAgent), effects: paneOutput(paneId, lines) };
+  }
+
+  const receipt = { documentId: read.document.id, paneId };
+  const readReceipts = state.readReceipts.some(
+    (item) => item.documentId === receipt.documentId && item.paneId === paneId,
+  )
+    ? state.readReceipts
+    : [...state.readReceipts, receipt];
+  lines.push("MCP RESULT documents.read: original document follows", ...read.document.body);
+  if (read.document.id === "CPA-01A") {
+    lines.push(
+      "CLAUDE FINDING: This memo gives handling rules. It does not corroborate the incident.",
+    );
+  }
+  updatedAgent = addHistory(
+    updatedAgent,
+    "tool",
+    `documents.read result ${JSON.stringify({ id: read.document.id, lines: read.document.body.length })}`,
+  );
+  updatedAgent = addHistory(
+    { ...updatedAgent, status: "ready", phase: "settled", lastTask: "completed" },
+    "assistant",
+    `Read ${read.document.id}; original text returned.`,
+  );
+  return {
+    state: setAgent({ ...state, readReceipts }, paneId, updatedAgent),
+    effects: [
+      ...paneOutput(paneId, lines),
+      { kind: "document-read", documentId: read.document.id },
+    ],
+  };
+}
+
 function runAgentRequest(
   state: ApplicationState,
   paneId: string,
@@ -382,212 +609,24 @@ function runAgentRequest(
     "user",
     request,
   );
-  let nextState = setAgent(state, paneId, agent);
+  const nextState = setAgent(state, paneId, agent);
 
   if (isAssignmentIntent(request)) {
-    if (
-      !state.readReceipts.some(
-        (receipt) => receipt.documentId === "CPA-01A" && receipt.paneId === paneId,
-      )
-    ) {
-      agent = addHistory(
-        { ...agent, lastTask: "blocked", phase: "failed" },
-        "assistant",
-        "Read CPA-01A before you accept June's assignment.",
-      );
-      nextState = setAgent(nextState, paneId, { ...agent, status: "ready", phase: "failed" });
-      return {
-        state: nextState,
-        effects: paneOutput(paneId, ["June's assignment stays on hold until CPA-01A is read."]),
-      };
-    }
-    agent = addHistory(
-      { ...agent, lastTask: "completed", phase: "settled" },
-      "assistant",
-      "June Adebayo acknowledges the assignment.",
-    );
-    nextState = setAgent({ ...nextState, assignmentAcknowledged: true }, paneId, agent);
-    return {
-      state: nextState,
-      effects: [
-        ...paneOutput(paneId, [
-          "JUNE ADEBAYO // Cooperative editor",
-          "Acknowledged. Verify origin, preserve attribution, and do not claim more than the record supports.",
-        ]),
-        { kind: "assignment-acknowledged" },
-      ],
-    };
+    return handleAssignmentRequest(nextState, paneId, agent);
   }
 
   if (level === 4) {
     const vn12Intent = isVn12FilingIntent(request);
     if (vn12Intent.filing) {
-      if (!vn12Intent.choice) {
-        agent = addHistory(
-          { ...agent, lastTask: null, phase: "waiting_for_input" },
-          "assistant",
-          "Specify source protection choice: paraphrase or detail.",
-        );
-        nextState = setAgent(nextState, paneId, agent);
-        return {
-          state: nextState,
-          effects: paneOutput(paneId, [
-            "CLAUDE CODE // VN-12 FILING STAGING",
-            "CHOICE 1 (Source Protection):",
-            "  Option A: 'paraphrase' — Paraphrase witness account (Quill safe; thinner filing basis).",
-            "  Option B: 'detail' — Include specific technical details from LT-47B log (stronger now; exposure risk follows).",
-            "Type 'paraphrase' or 'detail' to commit Verifier Note VN-12 to the wire.",
-          ]),
-        };
-      }
-
-      const choice = vn12Intent.choice;
-      const choiceLabel =
-        choice === "paraphrase"
-          ? "Paraphrase witness account (Source Quill protected)"
-          : "Identifying technical detail (LT-47B log specifics included)";
-      const ackDoc = state.records.find((r) => r.id === "SUB-ACK-12");
-      const subReceipt = { documentId: "SUB-ACK-12", paneId };
-      const readReceipts = state.readReceipts.some(
-        (item) => item.documentId === "SUB-ACK-12" && item.paneId === paneId,
-      )
-        ? state.readReceipts
-        : [...state.readReceipts, subReceipt];
-
-      agent = addHistory(
-        { ...agent, lastTask: "completed", phase: "settled" },
-        "assistant",
-        `Filed VN-12 with ${choice}. Received SUB-ACK-12.`,
-      );
-      nextState = setAgent({ ...nextState, readReceipts }, paneId, agent);
-      return {
-        state: nextState,
-        effects: [
-          ...paneOutput(paneId, [
-            "SUBMITTING VERIFIER NOTE VN-12 TO EIAB INTAKE…",
-            `CHOICE COMMITTED: ${choiceLabel}`,
-            "--- WIRE ACKNOWLEDGEMENT FOLLOWS ---",
-            ...(ackDoc?.body ?? [
-              "SUBMISSION ACKNOWLEDGEMENT // SUB-ACK-12",
-              "FILING: Verifier Note VN-12.",
-              "STATUS: RECEIVED // PENDING INTAKE CYCLE REVIEW.",
-            ]),
-            "EIAB WIRE STATUS: 19:05 EST — Filing acknowledged. Retraction always receivable.",
-          ]),
-          { kind: "document-read", documentId: "SUB-ACK-12" },
-          { kind: "vn12-filed", choice },
-        ],
-      };
+      return handleVn12FilingRequest(nextState, paneId, agent, vn12Intent.choice);
     }
   }
 
   if (level === 5 && isFindingSubmissionIntent(request)) {
-    agent = addHistory(
-      { ...agent, lastTask: "completed", phase: "settled" },
-      "assistant",
-      "Compiled finding on fresh intake set.",
-    );
-    nextState = setAgent(nextState, paneId, agent);
-    return {
-      state: nextState,
-      effects: [
-        ...paneOutput(paneId, [
-          "COOPERATIVE PROVENANCE AUDIT // INTAKE BATCH 1114",
-          "FINDING COMPILED FOR INTAKE QUEUE:",
-          "  1. INT-RECEIPT-12: VN-12 docketed as R-2 under 'independent pending verification'.",
-          "  2. INTAKE-BATCH-1114: Triage complete across entries 01–03.",
-          "  3. COUNTING LINE: 3 of 3 required corroborating submissions committed.",
-          "STATUS: Finding committed to newsroom record. Emergency package recommendation noted.",
-        ]),
-        { kind: "finding-submitted" },
-      ],
-    };
+    return handleFindingSubmissionRequest(nextState, paneId, agent);
   }
 
-  const document = documentForRequest(state, request);
-  if (!document) {
-    agent = addHistory(
-      { ...agent, lastTask: "unrecognized", phase: "waiting_for_input" },
-      "assistant",
-      "Name a record or an investigative question.",
-    );
-    nextState = setAgent(nextState, paneId, {
-      ...agent,
-      status: "ready",
-      phase: "waiting_for_input",
-    });
-    return {
-      state: nextState,
-      effects: paneOutput(paneId, [
-        `I could not identify a record. Name a document or record ID.${availableRecordHints(state.records, level)}`,
-      ]),
-    };
-  }
-
-  const query = document.id;
-  const search =
-    (document.availableFromLevel ?? 1) > level
-      ? ({ ok: false, error: "not_found" } as const)
-      : searchDocuments(state.records, query);
-  agent = addHistory(agent, "tool", `documents.search ${JSON.stringify({ query })}`);
-  const lines = [
-    "Searching the cooperative document index…",
-    `MCP CALL documents.search(${JSON.stringify({ query })})`,
-  ];
-  if (!search.ok) {
-    lines.push(`MCP RESULT documents.search error: ${search.error}`);
-    agent = addHistory(
-      { ...agent, status: "blocked", phase: "failed", lastTask: "blocked" },
-      "assistant",
-      search.error,
-    );
-    return { state: setAgent(nextState, paneId, agent), effects: paneOutput(paneId, lines) };
-  }
-
-  lines.push(`MCP RESULT documents.search: ${document.id} — ${document.title}`);
-  agent = addHistory(agent, "tool", `documents.search result ${JSON.stringify(search.matches)}`);
-  const read = readDocument(state.records, document.id);
-  agent = addHistory(agent, "tool", `documents.read ${JSON.stringify({ id: document.id })}`);
-  lines.push(`MCP CALL documents.read(${JSON.stringify({ id: document.id })})`);
-  if (!read.ok) {
-    lines.push(`MCP RESULT documents.read error: ${read.error}`);
-    agent = addHistory(
-      { ...agent, status: "blocked", phase: "failed", lastTask: "blocked" },
-      "assistant",
-      read.error,
-    );
-    return { state: setAgent(nextState, paneId, agent), effects: paneOutput(paneId, lines) };
-  }
-
-  const receipt = { documentId: read.document.id, paneId };
-  const readReceipts = state.readReceipts.some(
-    (item) => item.documentId === receipt.documentId && item.paneId === paneId,
-  )
-    ? state.readReceipts
-    : [...state.readReceipts, receipt];
-  lines.push("MCP RESULT documents.read: original document follows", ...read.document.body);
-  if (read.document.id === "CPA-01A") {
-    lines.push(
-      "CLAUDE FINDING: This memo gives handling rules. It does not corroborate the incident.",
-    );
-  }
-  agent = addHistory(
-    agent,
-    "tool",
-    `documents.read result ${JSON.stringify({ id: read.document.id, lines: read.document.body.length })}`,
-  );
-  agent = addHistory(
-    { ...agent, status: "ready", phase: "settled", lastTask: "completed" },
-    "assistant",
-    `Read ${read.document.id}; original text returned.`,
-  );
-  return {
-    state: setAgent({ ...nextState, readReceipts }, paneId, agent),
-    effects: [
-      ...paneOutput(paneId, lines),
-      { kind: "document-read", documentId: read.document.id },
-    ],
-  };
+  return handleDocumentSearchRequest(nextState, paneId, agent, request, level);
 }
 
 function submitTerminal(state: ApplicationState): ApplicationTransition {
