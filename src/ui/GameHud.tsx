@@ -38,8 +38,8 @@ function missionL1(props: GameHudProps): {
   const { application, story } = props;
   const isClaudeRunning = Object.keys(application.agents).length > 0;
   return {
-    objective: "Review your morning assignment and newsroom handling rules.",
-    why: "Understand the terms before investigating the incident.",
+    objective: "Review June's morning assignment and source-handling rules.",
+    why: "A confidential SOC source sent a tip—read June's email and the handling rules before taking it on.",
     steps: [
       {
         label: "Start Herdr",
@@ -52,13 +52,13 @@ function missionL1(props: GameHudProps): {
         complete: isClaudeRunning,
       },
       {
-        label: "Check assignment & source rules",
-        instruction: "Ask Claude about your schedule, email, or source-handling procedures.",
+        label: "Read June's email & source rules",
+        instruction: "Ask Claude to read June's email and check source-handling procedures.",
         complete: story.events.includes("SE-L1-assignment"),
       },
       {
-        label: "Confirm source rules & accept assignment",
-        instruction: "Tell Claude: Accept the assignment.",
+        label: "Confirm rules & take the assignment",
+        instruction: "When ready, tell Claude you accept June's assignment.",
         complete: story.flags.includes("assignment-accepted"),
       },
     ],

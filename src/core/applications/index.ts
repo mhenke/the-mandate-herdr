@@ -551,27 +551,36 @@ function tokenize(text: string): readonly string[] {
   return tokens;
 }
 
+const ACCEPT_VERBS = new Set([
+  "accept",
+  "accepts",
+  "accepted",
+  "agree",
+  "agrees",
+  "confirm",
+  "confirmed",
+]);
+
 function isAssignmentAcceptanceIntent(request: string): boolean {
   const norm = normalize(request);
+  if (
+    request.includes("?") ||
+    /\b(why|should|would|don'?t|do not|not ready|before|explain|what is|know anything)\b/i.test(
+      norm,
+    )
+  ) {
+    return false;
+  }
   const tokens = norm
     .replace(/[^a-z0-9 ]/g, " ")
     .split(/\s+/)
     .filter(Boolean);
   const tokenSet = new Set(tokens);
-  const hasAccept =
-    tokenSet.has("accept") ||
-    tokenSet.has("accepts") ||
-    tokenSet.has("accepted") ||
-    tokenSet.has("agree") ||
-    tokenSet.has("agrees") ||
-    tokenSet.has("confirm") ||
-    tokenSet.has("confirmed");
+  const hasAccept = tokens.some((token) => ACCEPT_VERBS.has(token));
   if (tokens.length === 1 && hasAccept) return true;
   if (norm.startsWith("i accept") || norm.startsWith("i agree") || norm.startsWith("we accept"))
     return true;
-  if (hasAccept && (tokenSet.has("assignment") || tokenSet.has("terms") || tokenSet.has("task")))
-    return true;
-  return false;
+  return hasAccept && (tokenSet.has("assignment") || tokenSet.has("terms") || tokenSet.has("task"));
 }
 
 function isAssignmentBriefIntent(request: string): boolean {
@@ -580,7 +589,7 @@ function isAssignmentBriefIntent(request: string): boolean {
     return false;
   }
   return (
-    /\b(assignment|what should i (do|investigate)|what is (the|my) (assignment|task|lead)|what did june|june'?s? assignment)\b/i.test(
+    /\b(assignment|what should i (do|investigate)|what is (the|my) (assignment|task|lead)|what did june|june'?s? assignment|know anything about it)\b/i.test(
       norm,
     ) && !isAssignmentAcceptanceIntent(request)
   );
@@ -964,16 +973,21 @@ function handleAssignmentBriefRequest(
     "Here is June Adebayo's assignment message:",
     "",
     "From: June Adebayo <j.adebayo@cooperative.press>",
-    "To: Investigative Desk",
+    "To: Investigative Desk (Stringer)",
     "Date: Nov 12, 2026, 08:42 EST",
     "Subject: Priority: Vendor security incident & protected source",
     "",
-    '"We have an unverified report of a vendor incident affecting State oversight records.',
-    "The source is anxious and requested strict confidentiality.",
+    "\"A confidential campus SOC analyst ('Quill') sent the Cooperative a partial SOC memo",
+    "yesterday reporting a five-minute probe against a demonstration election-night reporting",
+    "portal on Nov 9.",
     "",
-    "Before you contact the source or open external lines:",
+    "I need a credentialed verifier to check whether the shared artifact holds up and whether",
+    "it merits a signed Verifier Note—without exposing Quill's identity or overclaiming",
+    "corroboration. Standard stringer rates apply.",
+    "",
+    "Before I route you the shared SOC copy:",
     "  1. Review our newsroom source-handling procedures (CPA-01A).",
-    "  2. Confirm your acceptance of the handling terms.",
+    "  2. Confirm your acceptance of the assignment under those handling terms.",
     '  3. Keep your working notes in a separate tab so we maintain a clean audit trail."',
   ];
   return replyWithAgentLines(state, paneId, agent, replyLines, "assignment", {
@@ -1308,6 +1322,52 @@ function isContactOrNextStepIntent(request: string): boolean {
   );
 }
 
+function contactReplyLines(
+  state: ApplicationState,
+  agent: AgentSession,
+  level: number,
+  hasReadCpa: boolean,
+): readonly string[] {
+  if (level >= 3) {
+    return [
+      "June Adebayo (j.adebayo@cooperative.press) is your editor of record for filings and escalations.",
+      "For witness material, confirm off-record consent terms before relying on Theo Park's transcript or drafting VN-12.",
+    ];
+  }
+  if (state.assignmentAcknowledged) {
+    return [
+      "You've already confirmed the assignment with June Adebayo.",
+      "Next, keep this desk log open, open a new research tab in Herdr (Ctrl+B, then C), and pull up the shared SOC report before contacting any source or witness.",
+    ];
+  }
+  const hasReadBrief = agent.history.some((h) => h.content.includes("newsroom_mail.get_message"));
+  const briefSummary =
+    "In her email, June explains that a confidential campus SOC analyst ('Quill') sent a partial SOC memo about a Nov 9 five-minute probe on a demo election-night reporting portal. She's asking if you'll verify whether the shared artifact holds up (standard stringer rates) without exposing Quill.";
+  if (hasReadCpa) {
+    return hasReadBrief
+      ? [
+          "Reply to June Adebayo (j.adebayo@cooperative.press) first—do not contact the protected source ('Quill') directly.",
+          "Now that you've reviewed CPA-01A, tell me if you want to accept the assignment and I'll send your confirmation to June so she can route the shared SOC copy.",
+        ]
+      : [
+          '[tool: newsroom_mail.get_message(id: "MSG-1112-01")]',
+          "Your contact is June Adebayo (j.adebayo@cooperative.press), not the source directly.",
+          "",
+          briefSummary,
+          "",
+          "Since you've already reviewed CPA-01A, let me know if you want to accept the assignment and I'll reply to June so she can send over the shared SOC copy.",
+        ];
+  }
+  return [
+    ...(hasReadBrief ? [] : ['[tool: newsroom_mail.get_message(id: "MSG-1112-01")]']),
+    "Your contact is June Adebayo (j.adebayo@cooperative.press)—the source ('Quill') is confidential and routed through the Cooperative.",
+    "",
+    briefSummary,
+    "",
+    "Before she sends the shared SOC copy, review our source-handling procedures (CPA-01A), then let me know if you want to take the assignment.",
+  ];
+}
+
 function handleContactOrNextStepRequest(
   state: ApplicationState,
   paneId: string,
@@ -1315,35 +1375,26 @@ function handleContactOrNextStepRequest(
   level: number,
 ): ApplicationTransition {
   const hasReadCpa = state.readReceipts.some((r) => r.documentId === "CPA-01A");
-  let replyLines: readonly string[];
-
-  if (level >= 3) {
-    replyLines = [
-      "June Adebayo (j.adebayo@cooperative.press) is your editor of record for filings and escalations.",
-      "For witness material, confirm off-record consent terms before relying on Theo Park's transcript or drafting VN-12.",
-    ];
-  } else if (state.assignmentAcknowledged) {
-    replyLines = [
-      "You've already confirmed the assignment with June Adebayo.",
-      "Next, keep this desk log open, open a new research tab in Herdr (Ctrl+B, then C), and pull up the shared SOC report before contacting any source or witness.",
-    ];
-  } else if (hasReadCpa) {
-    replyLines = [
-      "Reply to June Adebayo (j.adebayo@cooperative.press) first—do not contact the protected source directly yet.",
-      "Now that you've reviewed CPA-01A, tell me when you're ready to accept the assignment and I'll send your confirmation to June so she can route the incoming vendor records.",
-    ];
-  } else {
-    replyLines = [
-      "June Adebayo (j.adebayo@cooperative.press) sent the assignment, and the source is confidential—do not contact them directly yet.",
-      "First review our source-handling procedures (CPA-01A), then let me know when you're ready to accept the assignment.",
-    ];
-  }
-
+  const replyLines = contactReplyLines(state, agent, level, hasReadCpa);
   return replyWithAgentLines(state, paneId, agent, replyLines, "next step", {
     lastReferencedMessageId: "MSG-1112-01",
-    lastReferencedDocumentId: hasReadCpa ? "CPA-01A" : agent.lastReferencedDocumentId,
+    lastReferencedDocumentId: "CPA-01A",
     lastTopic: "assignment",
   });
+}
+
+function routeScheduleOrInbox(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  request: string,
+): ApplicationTransition | null {
+  const wantsSchedule = isScheduleIntent(request);
+  const wantsInbox = isInboxIntent(request);
+  if (wantsSchedule && wantsInbox) return handleScheduleAndInboxRequest(state, paneId, agent);
+  if (wantsSchedule) return handleScheduleRequest(state, paneId, agent);
+  if (wantsInbox) return handleInboxRequest(state, paneId, agent);
+  return null;
 }
 
 function routeNewsroomDeskRequest(
@@ -1362,13 +1413,8 @@ function routeNewsroomDeskRequest(
   if (isContactOrNextStepIntent(request)) {
     return handleContactOrNextStepRequest(state, paneId, agent, level);
   }
-  const wantsSchedule = isScheduleIntent(request);
-  const wantsInbox = isInboxIntent(request);
-  if (wantsSchedule && wantsInbox) {
-    return handleScheduleAndInboxRequest(state, paneId, agent);
-  }
-  if (wantsSchedule) return handleScheduleRequest(state, paneId, agent);
-  if (wantsInbox) return handleInboxRequest(state, paneId, agent);
+  const scheduleOrInbox = routeScheduleOrInbox(state, paneId, agent, request);
+  if (scheduleOrInbox) return scheduleOrInbox;
   if (isIncidentIntent(request) && level === 1) {
     return handleIncidentOverviewRequest(state, paneId, agent);
   }

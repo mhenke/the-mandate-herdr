@@ -494,17 +494,30 @@ describe("Cooperative Managed Claude Code Environment", () => {
     let state = typeLine(createApplicationState(), "herdr").state;
     state = typeLine(state, "claude", "p1").state;
 
-    // Before reading CPA-01A
+    // Before reading email or CPA-01A: summarizes June's assignment and Quill lead
     const beforeCpa = typeLine(state, "ok, who do i need to contact?", "p1");
     const beforeOut = beforeCpa.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
     expect(beforeOut).toContain("June Adebayo");
-    expect(beforeOut).toContain("First review our source-handling procedures");
+    expect(beforeOut).toContain("Quill");
+    expect(beforeOut).toContain("source-handling procedures (CPA-01A)");
 
-    // After reading CPA-01A, before accepting
+    // Asking "why would i accept the assignment?" explains the assignment and does NOT accept it
     state = typeLine(beforeCpa.state, "review procedures", "p1").state;
-    const afterCpa = typeLine(state, "ok, who do i need to contact?", "p1");
+    const whyRes = typeLine(
+      state,
+      "why would i accept the assignment? i don't know anything about it?",
+      "p1",
+    );
+    const whyOut = whyRes.effects.map((e) => (e.kind === "pane-output" ? e.line : "")).join("\n");
+    expect(whyRes.state.assignmentAcknowledged).toBe(false);
+    expect(whyOut).toContain("newsroom_mail.get_message");
+    expect(whyOut).toContain("Quill");
+    expect(whyOut).toContain("Standard stringer rates apply");
+
+    // After reading CPA-01A and brief, before accepting
+    const afterCpa = typeLine(whyRes.state, "ok, who do i need to contact?", "p1");
     const afterOut = afterCpa.effects
       .map((e) => (e.kind === "pane-output" ? e.line : ""))
       .join("\n");
