@@ -489,4 +489,36 @@ describe("Cooperative Managed Claude Code Environment", () => {
     expect(state.agents.p1?.lastReferencedDocumentId).toBe("CPA-01A");
     expect(state.agents.p2?.lastReferencedDocumentId).toBeUndefined();
   });
+
+  it("answers state-aware contact and next-step questions naturally across the L1 flow", () => {
+    let state = typeLine(createApplicationState(), "herdr").state;
+    state = typeLine(state, "claude", "p1").state;
+
+    // Before reading CPA-01A
+    const beforeCpa = typeLine(state, "ok, who do i need to contact?", "p1");
+    const beforeOut = beforeCpa.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(beforeOut).toContain("June Adebayo");
+    expect(beforeOut).toContain("First review our source-handling procedures");
+
+    // After reading CPA-01A, before accepting
+    state = typeLine(beforeCpa.state, "review procedures", "p1").state;
+    const afterCpa = typeLine(state, "ok, who do i need to contact?", "p1");
+    const afterOut = afterCpa.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(afterOut).toContain("Reply to June Adebayo");
+    expect(afterOut).toContain("accept the assignment");
+    expect(afterOut).not.toContain("I could not identify a record");
+
+    // After accepting assignment
+    state = typeLine(afterCpa.state, "accept the assignment", "p1").state;
+    const afterAccept = typeLine(state, "what do i do next?", "p1");
+    const acceptOut = afterAccept.effects
+      .map((e) => (e.kind === "pane-output" ? e.line : ""))
+      .join("\n");
+    expect(acceptOut).toContain("already confirmed the assignment with June Adebayo");
+    expect(acceptOut).toContain("open a new research tab");
+  });
 });

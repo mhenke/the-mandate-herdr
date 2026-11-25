@@ -8,7 +8,7 @@
 import { useEffect, useRef, type JSX } from "react";
 import type { HerdrSnapshot, Overlay, TabView } from "../core/herdr/index";
 import { helpBindingRows } from "../core/herdr/index";
-import type { ApplicationState } from "../core/applications";
+import { DEFAULT_CWD, displayCwd, type ApplicationState } from "../core/applications";
 import { buildClaudeScreenModel } from "../core/applications/screen";
 import { useMandateActions } from "./ActionsContext";
 import { TerminalScreen } from "./TerminalScreen";
@@ -234,7 +234,7 @@ function ActiveTabView({
                 <TerminalScreen
                   model={buildClaudeScreenModel({
                     history: agent.history,
-                    cwd: application?.paneCwds?.[pane.id] ?? "~/Projects/the-mandate",
+                    cwd: displayCwd(application?.paneCwds?.[pane.id] ?? DEFAULT_CWD),
                     inputBuffer: paneInputs[pane.id] ?? "",
                     inputCursor: paneCursors?.[pane.id] ?? paneInputs[pane.id]?.length ?? 0,
                     phase: agent.phase,

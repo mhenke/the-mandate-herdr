@@ -1289,6 +1289,63 @@ function routeFollowUpAndPolicy(
   return null;
 }
 
+function isContactOrNextStepIntent(request: string): boolean {
+  const norm = normalize(request);
+  if (
+    /\b(memo|document|transcript|cpa-01a|um-1109|lt-47b|receipt|report|procedures?|rules?)\b/i.test(
+      norm,
+    )
+  ) {
+    return false;
+  }
+  return (
+    /\bwho\b.*\b(contact|reach out|talk to|reply to|email|message|is the source|source)\b/i.test(
+      norm,
+    ) ||
+    /\b(what('?s| is| should i do)?\s+next|what do i do (now|next)|where do we go from here)\b/i.test(
+      norm,
+    )
+  );
+}
+
+function handleContactOrNextStepRequest(
+  state: ApplicationState,
+  paneId: string,
+  agent: AgentSession,
+  level: number,
+): ApplicationTransition {
+  const hasReadCpa = state.readReceipts.some((r) => r.documentId === "CPA-01A");
+  let replyLines: readonly string[];
+
+  if (level >= 3) {
+    replyLines = [
+      "June Adebayo (j.adebayo@cooperative.press) is your editor of record for filings and escalations.",
+      "For witness material, confirm off-record consent terms before relying on Theo Park's transcript or drafting VN-12.",
+    ];
+  } else if (state.assignmentAcknowledged) {
+    replyLines = [
+      "You've already confirmed the assignment with June Adebayo.",
+      "Next, keep this desk log open, open a new research tab in Herdr (Ctrl+B, then C), and pull up the shared SOC report before contacting any source or witness.",
+    ];
+  } else if (hasReadCpa) {
+    replyLines = [
+      "Reply to June Adebayo (j.adebayo@cooperative.press) first—do not contact the protected source directly yet.",
+      "Now that you've reviewed CPA-01A, tell me when you're ready to accept the assignment and I'll send your confirmation to June so she can route the incoming vendor records.",
+    ];
+  } else {
+    replyLines = [
+      "June Adebayo (j.adebayo@cooperative.press) sent the assignment, and the source is confidential—do not contact them directly yet.",
+      "First review our source-handling procedures (CPA-01A), then let me know when you're ready to accept the assignment.",
+    ];
+  }
+
+  return replyWithAgentLines(state, paneId, agent, replyLines, "next step", {
+    lastReferencedMessageId: "MSG-1112-01",
+    lastReferencedDocumentId: hasReadCpa ? "CPA-01A" : agent.lastReferencedDocumentId,
+    lastTopic: "assignment",
+  });
+}
+
 function routeNewsroomDeskRequest(
   state: ApplicationState,
   paneId: string,
@@ -1301,6 +1358,9 @@ function routeNewsroomDeskRequest(
   }
   if (isAssignmentBriefIntent(request)) {
     return handleAssignmentBriefRequest(state, paneId, agent);
+  }
+  if (isContactOrNextStepIntent(request)) {
+    return handleContactOrNextStepRequest(state, paneId, agent, level);
   }
   const wantsSchedule = isScheduleIntent(request);
   const wantsInbox = isInboxIntent(request);
