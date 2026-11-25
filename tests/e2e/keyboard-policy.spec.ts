@@ -193,7 +193,7 @@ test("the pane shows the edited command, not forwarded key names", async ({ page
   await page.keyboard.down("Backspace");
   await page.keyboard.down("Backspace");
   await page.keyboard.up("Backspace");
-  await expect(page.getByText(/^❯ claudexyz▊$/)).toBeVisible();
+  await expect(page.getByText("$ claudexyz")).toBeVisible();
 
   await page.keyboard.press("Control+b");
   await page.keyboard.press("Control+b");
@@ -202,7 +202,7 @@ test("the pane shows the edited command, not forwarded key names", async ({ page
   await page.keyboard.down("Backspace");
   await page.keyboard.up("Backspace");
 
-  await expect(page.getByText(/^❯ claude▊$/)).toBeVisible();
+  await expect(page.getByText("$ claude")).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.getByText(/Claude Code v1\.0\.12/)).toBeVisible();
 });

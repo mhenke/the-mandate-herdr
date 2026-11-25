@@ -43,6 +43,8 @@ Start with the [specification index](docs/README.md).
 
 The game may simulate fictional terminal content and processes. It must preserve authentic surrounding Herdr bindings, layout, focus, state, and lifecycle behavior.
 
+The Herdr multiplexer state machine provides 100% deterministic replay from scenario seeds and its input/process event journal. The architecture avoids overclaiming full-session bit-level event replay from sequence 0: startup terminal keystrokes typing `herdr` execute in the pre-boot terminal before attaching to the multiplexer engine, and development reload recovery restores simulated application sessions (Claude Code) and narrative progress via validated schema snapshots while replaying the Herdr multiplexer event journal.
+
 ## Development
 
 Follow the [agent workflow](docs/AGENT_WORKFLOW.md). The solo project works directly on `main`, with no mandatory pull request or branch protection. Run `pnpm typecheck`, `pnpm lint`, and `pnpm test`. Run `pnpm test:e2e` for the browser flow.

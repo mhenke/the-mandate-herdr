@@ -37,8 +37,13 @@ export interface AgentSession {
 
 export interface ApplicationState {
   readonly herdrLaunched: boolean;
-  readonly terminal: { readonly input: string; readonly output: readonly string[] };
+  readonly terminal: {
+    readonly input: string;
+    readonly output: readonly string[];
+    readonly cursor?: number;
+  };
   readonly paneInputs: Readonly<Record<string, string>>;
+  readonly paneCursors?: Readonly<Record<string, number>>;
   readonly agents: Readonly<Record<string, AgentSession>>;
   readonly records: readonly FictionalDocument[];
   readonly readReceipts: readonly ReadReceipt[];
@@ -129,8 +134,9 @@ const RECORDS: readonly FictionalDocument[] = [
 export function createApplicationState(): ApplicationState {
   return {
     herdrLaunched: false,
-    terminal: { input: "", output: ["$ "] },
+    terminal: { input: "", output: ["$ "], cursor: 0 },
     paneInputs: {},
+    paneCursors: {},
     agents: {},
     records: RECORDS,
     readReceipts: [],
@@ -405,7 +411,7 @@ function submitTerminal(state: ApplicationState): ApplicationTransition {
       state: {
         ...state,
         herdrLaunched: true,
-        terminal: { input: "", output: [...state.terminal.output, printed] },
+        terminal: { input: "", output: [...state.terminal.output, printed], cursor: 0 },
       },
       effects: [{ kind: "terminal-output", line: printed }, { kind: "herdr-started" }],
     };
@@ -417,6 +423,7 @@ function submitTerminal(state: ApplicationState): ApplicationTransition {
       terminal: {
         input: "",
         output: [...state.terminal.output, printed, ...(message ? [message] : []), "$ "],
+        cursor: 0,
       },
     },
     effects: [
@@ -429,7 +436,11 @@ function submitTerminal(state: ApplicationState): ApplicationTransition {
 function submitPane(state: ApplicationState, paneId: string, level: number): ApplicationTransition {
   const line = state.paneInputs[paneId] ?? "";
   const echoed = `$ ${line}`;
-  const base = { ...state, paneInputs: { ...state.paneInputs, [paneId]: "" } };
+  const base = {
+    ...state,
+    paneInputs: { ...state.paneInputs, [paneId]: "" },
+    paneCursors: { ...state.paneCursors, [paneId]: 0 },
+  };
   if (line.trim() === "claude" && !base.agents[paneId]) {
     const agent: AgentSession = { status: "ready", history: [], lastTask: null };
     return {
@@ -457,6 +468,87 @@ function ignoreInput(state: ApplicationState): ApplicationTransition {
   return { state, effects: [], ignored: true };
 }
 
+function insertAtCursor(
+  text: string,
+  cursor: number,
+  insertion: string,
+): { input: string; cursor: number } {
+  const clamped = Math.max(0, Math.min(cursor, text.length));
+  return {
+    input: text.slice(0, clamped) + insertion + text.slice(clamped),
+    cursor: clamped + insertion.length,
+  };
+}
+
+function applyLineEdit(
+  currentInput: string,
+  rawCursor: number | undefined,
+  input: ApplicationInput,
+): { input: string; cursor: number } | null {
+  if (input.kind !== "key") return null;
+  const cursor = Math.max(0, Math.min(rawCursor ?? currentInput.length, currentInput.length));
+  const rawKey = input.key;
+  const commandKey = rawKey.toLowerCase();
+  const control = input.modifiers?.length === 1 && input.modifiers[0] === "ctrl";
+  const clear = control && (commandKey === "u" || commandKey === "c");
+  const backspace = commandKey === "backspace";
+  const forwardDelete = commandKey === "delete";
+  const isLeft = commandKey === "arrowleft" || commandKey === "left";
+  const isRight = commandKey === "arrowright" || commandKey === "right";
+  const isHome = commandKey === "home";
+  const isEnd = commandKey === "end";
+
+  if (!clear && input.modifiers?.some((mod) => mod !== "shift")) {
+    return null;
+  }
+
+  if (clear) {
+    return { input: "", cursor: 0 };
+  }
+
+  if (backspace) {
+    if (cursor > 0) {
+      return {
+        input: currentInput.slice(0, cursor - 1) + currentInput.slice(cursor),
+        cursor: cursor - 1,
+      };
+    }
+    return { input: currentInput, cursor: 0 };
+  }
+
+  if (forwardDelete) {
+    if (cursor < currentInput.length) {
+      return {
+        input: currentInput.slice(0, cursor) + currentInput.slice(cursor + 1),
+        cursor,
+      };
+    }
+    return { input: currentInput, cursor };
+  }
+
+  if (isLeft) {
+    return { input: currentInput, cursor: Math.max(0, cursor - 1) };
+  }
+
+  if (isRight) {
+    return { input: currentInput, cursor: Math.min(currentInput.length, cursor + 1) };
+  }
+
+  if (isHome) {
+    return { input: currentInput, cursor: 0 };
+  }
+
+  if (isEnd) {
+    return { input: currentInput, cursor: currentInput.length };
+  }
+
+  if (rawKey.length === 1 && /^[\x20-\x7e]$/.test(rawKey)) {
+    return insertAtCursor(currentInput, cursor, rawKey);
+  }
+
+  return null;
+}
+
 export function stepApplication(
   state: ApplicationState,
   input: ApplicationInput,
@@ -469,22 +561,34 @@ export function stepApplication(
     if (!cleanText) return ignoreInput(state);
     if (!state.herdrLaunched) {
       if (input.paneId) return ignoreInput(state);
+      const next = insertAtCursor(
+        state.terminal.input,
+        state.terminal.cursor ?? state.terminal.input.length,
+        cleanText,
+      );
       return {
         state: {
           ...state,
-          terminal: { ...state.terminal, input: state.terminal.input + cleanText },
+          terminal: { ...state.terminal, input: next.input, cursor: next.cursor },
         },
         effects: [],
       };
     }
     if (!input.paneId) return ignoreInput(state);
     const paneId = input.paneId;
+    const currentInput = state.paneInputs[paneId] ?? "";
+    const currentCursor = state.paneCursors?.[paneId] ?? currentInput.length;
+    const next = insertAtCursor(currentInput, currentCursor, cleanText);
     return {
       state: {
         ...state,
         paneInputs: {
           ...state.paneInputs,
-          [paneId]: (state.paneInputs[paneId] ?? "") + cleanText,
+          [paneId]: next.input,
+        },
+        paneCursors: {
+          ...state.paneCursors,
+          [paneId]: next.cursor,
         },
       },
       effects: [],
@@ -495,53 +599,43 @@ export function stepApplication(
   const commandKey = rawKey.toLowerCase();
   const control = input.modifiers?.length === 1 && input.modifiers[0] === "ctrl";
   const clear = control && (commandKey === "u" || commandKey === "c");
-  const backspace = commandKey === "backspace";
   if (!clear && input.modifiers?.some((mod) => mod !== "shift")) {
     return ignoreInput(state);
   }
   if (!state.herdrLaunched) {
     if (input.paneId) return ignoreInput(state);
     if (commandKey === "enter") return submitTerminal(state);
-    if (clear || backspace) {
-      return {
-        state: {
-          ...state,
-          terminal: { ...state.terminal, input: clear ? "" : state.terminal.input.slice(0, -1) },
-        },
-        effects: [],
-      };
-    }
-    if (rawKey.length === 1 && /^[\x20-\x7e]$/.test(rawKey)) {
-      return {
-        state: { ...state, terminal: { ...state.terminal, input: state.terminal.input + rawKey } },
-        effects: [],
-      };
-    }
-    return ignoreInput(state);
+    const next = applyLineEdit(state.terminal.input, state.terminal.cursor, input);
+    if (!next) return ignoreInput(state);
+    return {
+      state: {
+        ...state,
+        terminal: { ...state.terminal, input: next.input, cursor: next.cursor },
+      },
+      effects: [],
+    };
   }
   if (!input.paneId) return ignoreInput(state);
   const paneId = input.paneId;
   if (commandKey === "enter") return submitPane(state, paneId, level);
-  if (clear || backspace) {
-    return {
-      state: {
-        ...state,
-        paneInputs: {
-          ...state.paneInputs,
-          [paneId]: clear ? "" : (state.paneInputs[paneId] ?? "").slice(0, -1),
-        },
+  const next = applyLineEdit(
+    state.paneInputs[paneId] ?? "",
+    state.paneCursors?.[paneId],
+    input,
+  );
+  if (!next) return ignoreInput(state);
+  return {
+    state: {
+      ...state,
+      paneInputs: {
+        ...state.paneInputs,
+        [paneId]: next.input,
       },
-      effects: [],
-    };
-  }
-  if (rawKey.length === 1 && /^[\x20-\x7e]$/.test(rawKey)) {
-    return {
-      state: {
-        ...state,
-        paneInputs: { ...state.paneInputs, [paneId]: (state.paneInputs[paneId] ?? "") + rawKey },
+      paneCursors: {
+        ...state.paneCursors,
+        [paneId]: next.cursor,
       },
-      effects: [],
-    };
-  }
-  return ignoreInput(state);
+    },
+    effects: [],
+  };
 }

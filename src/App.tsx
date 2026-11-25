@@ -13,6 +13,7 @@ import type { ApplicationState } from "./core/applications";
 import { createInvestigationSession, RECOVERY_STORAGE_KEY } from "./adapters/investigation-session";
 import { pathToPhase, phaseToPath, PHASE_TITLES } from "./adapters/navigation";
 import { toInputEvent } from "./adapters/herdr-browser";
+import { ActionsProvider, type MandateActions } from "./ui/ActionsContext";
 import { MandatePreview, type KeyboardToast, type PreviewKeyInput } from "./ui/MandatePreview";
 import { GameHud } from "./ui/GameHud";
 import { useInvestigationSnapshot } from "./ui/useHerdrSnapshot";
@@ -307,6 +308,16 @@ export function App() {
     [session, captured, focusSurface, showReminder],
   );
 
+  const actions = useMemo<MandateActions>(
+    () => ({
+      selectWorkspace: handleSelectWorkspace,
+      selectTab: handleSelectTab,
+      newTab: handleNewTab,
+      focusPane: handleFocusPane,
+    }),
+    [handleSelectWorkspace, handleSelectTab, handleNewTab, handleFocusPane],
+  );
+
   return (
     <main className="mandate">
       <div ref={sceneTopRef} tabIndex={-1} className="mandate-focus-anchor">
@@ -360,46 +371,44 @@ export function App() {
       </div>
 
       {showChrome ? (
-        <div className="workspace-screen">
-          <GameHud
-            releaseButtonRef={releaseButtonRef}
-            level={snapshot.level}
-            objectives={snapshot.assessment.objectives}
-            hints={snapshot.presentation.hints}
-            hintsUsed={snapshot.assessment.hintsUsed}
-            application={snapshot.application}
-            story={snapshot.story}
-            responseReady={snapshot.phase === "response"}
-            captured={captured && inWorkspace}
-            accessible={snapshot.inputPolicy === "accessible"}
-            onReturnToTitle={handleReturnToTitle}
-            onRequestHint={handleRequestHint}
-            onToggleCapture={captured ? release : engage}
-            onSetAccessible={(on) => session.setAccessibleMode(on)}
-          />
-          <div className="terminal" ref={surfaceHostRef}>
-            {snapshot.application.herdrLaunched ? (
-              <MandatePreview
-                snapshot={snapshot.herdr}
-                paneInputs={snapshot.application.paneInputs}
-                captured={captured && inWorkspace}
-                reminder={reminder}
-                onPreviewKey={handlePreviewKey}
-                onSelectWorkspace={handleSelectWorkspace}
-                onSelectTab={handleSelectTab}
-                onNewTab={handleNewTab}
-                onFocusPane={handleFocusPane}
-              />
-            ) : (
-              <StartupTerminal
-                workspaceName={snapshot.herdr.workspaces[0]?.name}
-                application={snapshot.application}
-                captured={captured && inWorkspace}
-                onPreviewKey={handlePreviewKey}
-              />
-            )}
+        <ActionsProvider actions={actions}>
+          <div className="workspace-screen">
+            <GameHud
+              releaseButtonRef={releaseButtonRef}
+              level={snapshot.level}
+              objectives={snapshot.assessment.objectives}
+              hints={snapshot.presentation.hints}
+              hintsUsed={snapshot.assessment.hintsUsed}
+              application={snapshot.application}
+              story={snapshot.story}
+              responseReady={snapshot.phase === "response"}
+              captured={captured && inWorkspace}
+              accessible={snapshot.inputPolicy === "accessible"}
+              onReturnToTitle={handleReturnToTitle}
+              onRequestHint={handleRequestHint}
+              onToggleCapture={captured ? release : engage}
+              onSetAccessible={(on) => session.setAccessibleMode(on)}
+            />
+            <div className="terminal" ref={surfaceHostRef}>
+              {snapshot.application.herdrLaunched ? (
+                <MandatePreview
+                  snapshot={snapshot.herdr}
+                  paneInputs={snapshot.application.paneInputs}
+                  captured={captured && inWorkspace}
+                  reminder={reminder}
+                  onPreviewKey={handlePreviewKey}
+                />
+              ) : (
+                <StartupTerminal
+                  workspaceName={snapshot.herdr.workspaces[0]?.name}
+                  application={snapshot.application}
+                  captured={captured && inWorkspace}
+                  onPreviewKey={handlePreviewKey}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        </ActionsProvider>
       ) : null}
     </main>
   );

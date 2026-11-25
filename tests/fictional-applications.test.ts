@@ -152,4 +152,173 @@ describe("fictional document tools and Claude Code", () => {
     });
     expect(pastedPane.state.paneInputs.p1).toBe("claude");
   });
+
+  it("allows left and right arrow navigation and mid-line insertion in terminal and pane inputs", () => {
+    let state = createApplicationState();
+    // Type 'hdr' in terminal
+    for (const ch of "hdr") {
+      state = playerKey(state, ch).state;
+    }
+    expect(state.terminal.input).toBe("hdr");
+    expect(state.terminal.cursor).toBe(3);
+
+    // Press left arrow twice to position cursor between 'h' and 'd' (index 1)
+    state = playerKey(state, "arrowleft").state;
+    expect(state.terminal.cursor).toBe(2);
+    state = playerKey(state, "left").state;
+    expect(state.terminal.cursor).toBe(1);
+
+    // Insert 'e' -> 'hedr'
+    state = playerKey(state, "e").state;
+    expect(state.terminal.input).toBe("hedr");
+    expect(state.terminal.cursor).toBe(2);
+
+    // Left arrow at start clamps to 0
+    state = playerKey(state, "left").state;
+    state = playerKey(state, "left").state;
+    state = playerKey(state, "left").state;
+    expect(state.terminal.cursor).toBe(0);
+
+    // Insert word at the very start
+    for (const ch of "run ") {
+      state = playerKey(state, ch).state;
+    }
+    expect(state.terminal.input).toBe("run hedr");
+    expect(state.terminal.cursor).toBe(4);
+
+    // Clear and launch herdr to test in pane
+    state = stepApplication(state, {
+      kind: "key",
+      origin: "player",
+      key: "u",
+      modifiers: ["ctrl"],
+    }).state;
+    expect(state.terminal.input).toBe("");
+    expect(state.terminal.cursor).toBe(0);
+
+    for (const ch of "herdr") {
+      state = playerKey(state, ch).state;
+    }
+    state = playerKey(state, "enter").state;
+    expect(state.herdrLaunched).toBe(true);
+
+    // In pane 'p1': type 'clade'
+    for (const ch of "clade") {
+      state = playerKey(state, ch, "p1").state;
+    }
+    expect(state.paneInputs.p1).toBe("clade");
+    expect(state.paneCursors?.p1).toBe(5);
+
+    // Move left twice to index 3 (before 'd') and insert 'u'
+    state = playerKey(state, "arrowleft", "p1").state;
+    state = playerKey(state, "arrowleft", "p1").state;
+    expect(state.paneCursors?.p1).toBe(3);
+    state = playerKey(state, "u", "p1").state;
+    expect(state.paneInputs.p1).toBe("claude");
+    expect(state.paneCursors?.p1).toBe(4);
+
+    // Press Enter to submit 'claude'
+    const submitted = playerKey(state, "enter", "p1");
+    expect(submitted.state.paneInputs.p1).toBe("");
+    expect(submitted.state.paneCursors?.p1).toBe(0);
+    expect(submitted.effects.some((e) => e.kind === "claude-started")).toBe(true);
+  });
+
+  it("deletes character behind cursor with backspace when inside a string", () => {
+    let state = createApplicationState();
+    // Type 'herddr'
+    for (const ch of "herddr") {
+      state = playerKey(state, ch).state;
+    }
+    expect(state.terminal.input).toBe("herddr");
+    expect(state.terminal.cursor).toBe(6);
+
+    // Move left past 'r' to index 5 (after second 'd')
+    state = playerKey(state, "arrowleft").state;
+    expect(state.terminal.cursor).toBe(5);
+
+    // Backspace deletes the second 'd' (character at index 4)
+    state = playerKey(state, "backspace").state;
+    expect(state.terminal.input).toBe("herdr");
+    expect(state.terminal.cursor).toBe(4);
+
+    // Move to beginning and verify backspace at cursor 0 does not delete or throw
+    state = playerKey(state, "home").state;
+    expect(state.terminal.cursor).toBe(0);
+    state = playerKey(state, "backspace").state;
+    expect(state.terminal.input).toBe("herdr");
+    expect(state.terminal.cursor).toBe(0);
+
+    // Launch herdr and test pane backspace mid-line
+    state = playerKey(state, "end").state;
+    state = playerKey(state, "enter").state;
+
+    for (const ch of "cllaude") {
+      state = playerKey(state, ch, "p1").state;
+    }
+    // Move left 5 times to index 2 (after the first 'l')
+    for (let i = 0; i < 5; i++) {
+      state = playerKey(state, "left", "p1").state;
+    }
+    expect(state.paneCursors?.p1).toBe(2);
+    // Backspace deletes the duplicate 'l' at index 1
+    state = playerKey(state, "backspace", "p1").state;
+    expect(state.paneInputs.p1).toBe("claude");
+    expect(state.paneCursors?.p1).toBe(1);
+  });
+
+  it("jumps cursor to beginning and end of input with home and end keys", () => {
+    let state = createApplicationState();
+    // Type 'world'
+    for (const ch of "world") {
+      state = playerKey(state, ch).state;
+    }
+    expect(state.terminal.cursor).toBe(5);
+
+    // Jump home
+    state = playerKey(state, "home").state;
+    expect(state.terminal.cursor).toBe(0);
+
+    // Insert 'hello ' at the start
+    for (const ch of "hello ") {
+      state = playerKey(state, ch).state;
+    }
+    expect(state.terminal.input).toBe("hello world");
+    expect(state.terminal.cursor).toBe(6);
+
+    // Jump to end
+    state = playerKey(state, "end").state;
+    expect(state.terminal.cursor).toBe(11);
+    expect(state.terminal.cursor).toBe(state.terminal.input.length);
+
+    // Right arrow at end clamps to input.length
+    state = playerKey(state, "arrowright").state;
+    expect(state.terminal.cursor).toBe(11);
+
+    // In pane
+    state = stepApplication(state, {
+      kind: "key",
+      origin: "player",
+      key: "u",
+      modifiers: ["ctrl"],
+    }).state;
+    for (const ch of "herdr") {
+      state = playerKey(state, ch).state;
+    }
+    state = playerKey(state, "enter").state;
+
+    for (const ch of "memo") {
+      state = playerKey(state, ch, "p1").state;
+    }
+    state = playerKey(state, "home", "p1").state;
+    expect(state.paneCursors?.p1).toBe(0);
+    for (const ch of "read ") {
+      state = playerKey(state, ch, "p1").state;
+    }
+    expect(state.paneInputs.p1).toBe("read memo");
+    state = playerKey(state, "end", "p1").state;
+    expect(state.paneCursors?.p1).toBe(9);
+    state = playerKey(state, "!", "p1").state;
+    expect(state.paneInputs.p1).toBe("read memo!");
+  });
 });

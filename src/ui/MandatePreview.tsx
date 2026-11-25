@@ -8,6 +8,7 @@
 import { useEffect, useRef, type JSX } from "react";
 import type { HerdrSnapshot, Overlay, TabView } from "../core/herdr/index";
 import { helpBindingRows } from "../core/herdr/index";
+import { useMandateActions } from "./ActionsContext";
 
 /** Plain key report passed up to the App-owned adapter binding. */
 export interface PreviewKeyInput {
@@ -32,10 +33,6 @@ export interface MandatePreviewProps {
   readonly captured: boolean;
   readonly reminder: KeyboardToast | null;
   readonly onPreviewKey: (input: PreviewKeyInput) => boolean;
-  readonly onSelectWorkspace: (workspaceId: string) => void;
-  readonly onSelectTab: (tabId: string) => void;
-  readonly onNewTab: () => void;
-  readonly onFocusPane: (paneId: string) => void;
 }
 
 function renderHeaderLine(line: string, key: string): JSX.Element | null {
@@ -162,12 +159,11 @@ function renderLine(line: string, index: number, paneId: string): JSX.Element {
 function ActiveTabView({
   tab,
   paneInputs,
-  onFocusPane,
 }: {
   readonly tab: TabView;
   readonly paneInputs: MandatePreviewProps["paneInputs"];
-  readonly onFocusPane: (paneId: string) => void;
 }): JSX.Element {
+  const actions = useMandateActions();
   const panes =
     tab.zoomedPaneId !== null
       ? tab.panes.filter((pane) => pane.id === tab.zoomedPaneId)
@@ -187,7 +183,7 @@ function ActiveTabView({
           aria-label={`${pane.title}${pane.id === tab.focusedPaneId ? " (focused)" : ""}`}
           onMouseDown={(event) => {
             if (event.target instanceof HTMLElement && event.target.closest("button")) return;
-            onFocusPane(pane.id);
+            actions.focusPane(pane.id);
           }}
         >
           <div className="tui-pane-body">
@@ -291,12 +287,11 @@ type WorkspaceItemView = HerdrSnapshot["workspaces"][number];
 function WorkspaceItem({
   workspace,
   isActive,
-  onSelect,
 }: {
   readonly workspace: WorkspaceItemView;
   readonly isActive: boolean;
-  readonly onSelect: () => void;
 }): JSX.Element {
+  const actions = useMandateActions();
   const activeTab = workspace.tabs.find((t) => t.id === workspace.activeTabId);
   const tabName = workspace.name === "the-mandate" ? "main" : (activeTab?.name ?? "—");
   return (
@@ -305,7 +300,7 @@ function WorkspaceItem({
       className={isActive ? "herdr-ws herdr-ws-active" : "herdr-ws"}
       aria-current={isActive ? "true" : undefined}
       onClick={() => {
-        onSelect();
+        actions.selectWorkspace(workspace.id);
       }}
     >
       <span className="herdr-ws-name">
@@ -323,13 +318,12 @@ function TabButton({
   tab,
   index,
   isActive,
-  onSelect,
 }: {
   readonly tab: TabView;
   readonly index: number;
   readonly isActive: boolean;
-  readonly onSelect: () => void;
 }): JSX.Element {
+  const actions = useMandateActions();
   const label = tab.name === "1" || tab.name === "assignment" ? `${index + 1}` : tab.name;
   return (
     <button
@@ -339,7 +333,7 @@ function TabButton({
       aria-label={tab.name}
       className={isActive ? "herdr-tab-active" : "herdr-tab"}
       onClick={() => {
-        onSelect();
+        actions.selectTab(tab.id);
       }}
     >
       {label}
@@ -382,11 +376,8 @@ export function MandatePreview({
   captured,
   reminder,
   onPreviewKey,
-  onSelectWorkspace,
-  onSelectTab,
-  onNewTab,
-  onFocusPane,
 }: MandatePreviewProps): JSX.Element {
+  const actions = useMandateActions();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const workspace = snapshot.workspaces.find((w) => w.id === snapshot.activeWorkspaceId);
   const tab = workspace?.tabs.find((t) => t.id === workspace.activeTabId) ?? null;
@@ -429,7 +420,6 @@ export function MandatePreview({
                   key={w.id}
                   workspace={w}
                   isActive={w.id === snapshot.activeWorkspaceId}
-                  onSelect={() => onSelectWorkspace(w.id)}
                 />
               ))}
             </div>
@@ -470,7 +460,6 @@ export function MandatePreview({
                   tab={t}
                   index={idx}
                   isActive={t.id === workspace.activeTabId}
-                  onSelect={() => onSelectTab(t.id)}
                 />
               ))}
             </div>
@@ -480,7 +469,7 @@ export function MandatePreview({
               className="herdr-newtab"
               aria-label="New tab"
               title="New tab (Ctrl+B C)"
-              onClick={onNewTab}
+              onClick={() => actions.newTab()}
             >
               +
             </button>
@@ -501,7 +490,7 @@ export function MandatePreview({
             }}
           >
             {tab ? (
-              <ActiveTabView tab={tab} paneInputs={paneInputs} onFocusPane={onFocusPane} />
+              <ActiveTabView tab={tab} paneInputs={paneInputs} />
             ) : (
               <p className="tui-empty">Detached.</p>
             )}

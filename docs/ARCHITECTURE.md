@@ -6,6 +6,11 @@ Milestone 2 authorizes L1–L3. Later levels remain design contracts. `IMPLEMENT
 
 The game is a static browser application with deterministic TypeScript state and React presentation. React renders committed snapshots. It owns no authoritative simulation, narrative, or assessment state. The published keyboard envelope is in `FEASIBILITY_KEYBOARD.md`.
 
+Determinism applies strictly within clearly defined simulation boundaries:
+- The **Herdr multiplexer state machine** (`src/core/herdr`) provides 100% deterministic replay from scenario seeds and its input/process event journal.
+- The overall session avoids overclaiming 100% bit-for-bit replay determinism of the entire session from sequence 0: the pre-boot startup terminal handles the initial `herdr` launch before attaching to the multiplexer engine, executing outside the Herdr event journal.
+- Application sessions (the Claude Code simulation) and narrative progress are observed facts rather than parts of a single unified event stream; development reload recovery preserves them through validated schema snapshots, while only the Herdr multiplexer state is reconstructed from its journal of committed process/input events.
+
 | Alternative | Benefits | Costs and decision |
 |---|---|---|
 | Pure simulation core with React presentation | Declarative chrome projection; deterministic core testable in bare Node | Selected (ADR-0004). The core must not import React or browser APIs — enforced by ESLint import boundaries plus a bare-Node import test, not convention |
@@ -31,7 +36,12 @@ Logical pane focus and DOM focus are distinct. Reading the transcript must not s
 
 ### Transition protocol
 
-One ordered transition loop accepts normalized input/host events, applies an authentic Herdr or fictional-application transition, and emits committed facts. Narrative and assessment observe those facts in a defined order. Narrative requests enter the same queue with explicit causal provenance. Rendering follows committed state.
+Input routing and simulation transitions observe explicit boundaries:
+
+1. **Pre-boot startup terminal:** Keystrokes typing `herdr` and Enter in the initial shell execute in the boot terminal before Herdr launches and are handled outside the Herdr multiplexer event journal. Once `herdr` launches, subsequent input attaches to the multiplexer engine.
+2. **Ordered transition loop:** Once attached, one ordered transition loop accepts normalized input/host events, applies an authentic Herdr or forwarded fictional-application transition, and emits committed facts. The Herdr multiplexer state machine provides 100% deterministic replay from scenario seeds and its input/process event journal.
+3. **Observation and recovery:** Application sessions (Claude Code simulation) and narrative progress are observed facts; narrative and assessment observe committed facts in a defined order. Narrative requests enter the same queue with explicit causal provenance. In development reload recovery, application sessions, narrative progress, and assessment are restored via validated schema snapshots, while only the Herdr multiplexer state is reconstructed from its journal of committed process/input events.
+4. **Rendering:** Rendering follows committed state snapshots via `useSyncExternalStore`.
 
 Host effects run outside the core and return correlated result events. Core functions cannot read the DOM, storage, clipboard, network, wall clock, or ambient randomness. Reject trigger cycles rather than running an unbounded settlement loop.
 
@@ -82,7 +92,9 @@ The host release control is outside the simulated surface and reachable by keybo
 
 ## Determinism and time
 
-The same version manifest, initial state, and external event sequence must yield identical simulation state, narrative facts, and assessment decisions.
+The Herdr multiplexer state machine provides 100% deterministic replay from scenario seeds and its input/process event journal: given the same version manifest, scenario seeds, and journaled events, it yields identical multiplexer state.
+
+The overall browser session distinguishes multiplexer replay from session recovery. Initial startup terminal keystrokes typing `herdr` are executed in the boot terminal outside the Herdr event journal before attaching to the multiplexer engine. Application sessions and narrative progress are observed facts rather than parts of a single unified event stream; development reload recovery preserves application, story, and assessment states via validated schema snapshots rather than full-session bit-level replay of all keystrokes from sequence 0.
 
 External events identify run/attempt, sequence, origin, input profile, logical time, and payload. Derived facts additionally identify causal event, emitting subsystem, target identities, and outcome. A scripted focus change remains scripted.
 
