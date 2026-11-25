@@ -10,7 +10,9 @@
 ## Agent workflow & governance
 
 - **Solo developer workflow**: Single-developer project ("one person"). Direct commits and pushes to `main`; pull requests and branch protection ceremonies are omitted. Follow the core workflow in `docs/AGENT_WORKFLOW.md` (Understand → Scope → Implement → Verify → Inspect → Report).
-- **Guardrails**: Preserve fidelity contracts, keep test assertions strict, keep generated artifacts (`graphify-out/`) uncommitted, and maintain pure simulation free of React/DOM dependencies.
+- **Worktree isolation**: Parallel agents develop in dedicated worktrees under `.worktrees/<lane-name>` (`lane/<lane-name>`). On creation, bootstrap the shared graph: `ln -s ../../graphify-out .worktrees/<lane-name>/graphify-out`. Keep worktrees git-ignored and prune after lane completion.
+- **Code exploration (Graphify)**: Query before searching. Run `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` before grepping or reading files. Baseline index lives at root `graphify-out/` and is symlinked into worktrees. Run `pnpm graphify:update` after structural changes; avoid concurrent rebuilds across worktrees. Exploration aid only (never an architectural authority or runtime dependency); keep `graphify-out` uncommitted.
+- **Guardrails**: Preserve fidelity contracts, keep test assertions strict, keep generated artifacts (`graphify-out`) uncommitted, and maintain pure simulation free of React/DOM dependencies.
 - **Specification index**: `docs/README.md` indexes all architecture, fidelity, narrative, and milestone specifications.
 - **Engineering skills**: Use [pstack](https://github.com/cursor/plugins/tree/main/pstack) in fallback mode (execute `SKILL.md` instructions manually in OpenCode, OMP, and Antigravity); `poteto-mode` selects playbooks; prioritize `architect`, `tdd`, `interrogate`, `blast-radius`, and visual-parity for UI. Exclude `obra/superpowers`.
 
@@ -21,7 +23,6 @@
 - **Observation cores (`src/core/narrative`, `src/core/assessment`)**: Observe committed facts; zero state ownership of Herdr multiplexer data.
 - **Host adapters (`src/adapters`)**: Translate browser events and enforce session recovery. They never own simulation rules.
 - **Presentation (`src/ui`)**: Read-only projections of committed session snapshots. Zero direct core mutations.
-- **Local exploration**: Graphify (`graphify-out/`) accelerates code navigation; it is an exploration aid, never a runtime dependency or architectural authority.
 
 ## Behavioral & visual authority
 
