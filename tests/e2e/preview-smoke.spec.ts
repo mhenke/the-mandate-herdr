@@ -17,10 +17,16 @@ test("the direct workspace route opens an idle terminal", async ({ page }) => {
   await expect(page.getByText(/Herdr v0\.9\.5/)).toHaveCount(0);
 });
 
-test("the optional cold open can be skipped to the idle terminal", async ({ page }) => {
+test("the optional cold open does not autostart video and can be skipped to the idle terminal", async ({
+  page,
+}) => {
   await page.goto("/title");
   await page.getByRole("button", { name: "New investigation" }).click();
   await expect(page.locator(".cinema-stage")).toBeVisible();
+  const video = page.locator("video.scene-video");
+  await expect(video).toBeVisible();
+  await expect(video).not.toHaveAttribute("autoplay", /.*/);
+  expect(await video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
   await page.getByRole("button", { name: "Skip to the workspace" }).click();
   await expect(page.getByRole("region", { name: /Terminal\. Type herdr/ })).toBeVisible();
 });

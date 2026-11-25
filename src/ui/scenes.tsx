@@ -99,7 +99,6 @@ function CinematicPlayer({
       className="scene-video"
       src={resolvedSrc}
       poster={resolvedPoster}
-      autoPlay
       muted
       playsInline
       preload="metadata"
